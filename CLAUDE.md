@@ -1,7 +1,7 @@
 # zev.ai — AI Consulting Website
 
 ## Overview
-Flagship website for Zev Steinmetz's AI consulting practice. Apple.com-quality cinematic scroll experience. 5 deep pages with alternating dark/light sections, scroll-triggered animations, and large confident typography.
+Flagship website for Zev Steinmetz's AI consulting practice. Apple.com-quality cinematic scroll experience. 6 pages (5 public + 1 private) with alternating dark/light sections, scroll-triggered animations, and large confident typography.
 
 ## Stack
 - **Framework:** Next.js 16 (App Router), TypeScript
@@ -22,12 +22,13 @@ Flagship website for Zev Steinmetz's AI consulting practice. Apple.com-quality c
 - **CTA style:** Gold rounded-full buttons with arrow icons
 - **Easing:** `[0.22, 1, 0.36, 1]` throughout
 
-## Pages (5 total)
+## Pages (6 total)
 - `/` — 7 cinematic sections: Hero (parallax + gradient orbs + scroll hint), Problem (light, 4 staggered statements), Approach (3 numbered phases), Capabilities (light, 6 items with gold dots), Scale (3 cards: Starter/Growth/Enterprise with floor statement), Difference (light, 3 beliefs with dividers), CTA
 - `/services` — 4 service tiers (AI Readiness $2.5K, AI Implementation $5-25K, Fractional AI Officer $5-10K/mo, Performance Partnership base+10-25% impact). "Most aligned" badge on tier 4. Pricing transparency rationale.
 - `/work` — Featured project narrative: real estate platform. Stats (2000+ pages, 18 agents, 28+ tables, 25 SOPs). 4 aspect deep-dives (Scale, Intelligence, Infrastructure, Automation). Tech stack.
 - `/about` — Philosophy-first editorial prose. Implementation over strategy. Builder section (Zev's background). Technology stack ecosystem.
 - `/contact` — 12-col grid: form (name, email, company optional, message) + sidebar (email, location, response time).
+- `/discover` — **Private** (not in nav, noindex). Typeform-style multi-step client discovery intake form. 11 questions (one per screen), animated transitions, selection chips, review screen, mailto submission + clipboard fallback. Formspree endpoint placeholder ready to enable. Sent to prospects before meetings.
 
 ## Key Components
 - `Navbar` — Sticky, 5 links + gold CTA button. Desktop at lg (1024px+), hamburger below. Transparent on hero, blur backdrop on scroll. Mobile full-screen overlay with serif links.
@@ -68,7 +69,8 @@ src/
 │   ├── services/           # Services page + layout
 │   ├── work/               # Work page + layout
 │   ├── about/              # About page + layout
-│   └── contact/            # Contact page + layout
+│   ├── contact/            # Contact page + layout
+│   └── discover/           # Private client discovery intake form (not in nav)
 ├── components/
 │   ├── navbar.tsx           # Sticky nav with 5 links + CTA
 │   ├── footer.tsx           # Minimal footer
