@@ -42,6 +42,11 @@ export function Navbar() {
             href="/"
             className="text-xl font-semibold tracking-tight"
             aria-label="zev.ai home"
+            onClick={() => {
+              if (pathname === '/') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
           >
             <span className="text-foreground-strong">zev</span>
             <span className="text-accent">.ai</span>
