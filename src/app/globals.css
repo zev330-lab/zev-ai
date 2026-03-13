@@ -76,3 +76,7 @@ body {
 .section-light .border-border {
   border-color: var(--color-surface-light-border);
 }
+
+.section-light .divide-surface-light-border > * + * {
+  border-color: var(--color-surface-light-border);
+}

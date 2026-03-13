@@ -48,7 +48,7 @@ export function Navbar() {
           </Link>
 
           {/* Desktop */}
-          <div className="hidden md:flex items-center gap-10">
+          <div className="hidden lg:flex items-center gap-10">
             {NAV_LINKS.filter(l => l.href !== '/').map((link) => (
               <Link
                 key={link.href}
@@ -73,7 +73,7 @@ export function Navbar() {
 
           {/* Mobile hamburger */}
           <button
-            className="md:hidden relative w-8 h-8 flex items-center justify-center"
+            className="lg:hidden relative w-8 h-8 flex items-center justify-center"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
@@ -104,7 +104,7 @@ export function Navbar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-40 bg-background flex flex-col items-center justify-center md:hidden"
+            className="fixed inset-0 z-40 bg-background flex flex-col items-center justify-center lg:hidden"
           >
             <div className="flex flex-col items-center gap-10">
               {NAV_LINKS.map((link) => (

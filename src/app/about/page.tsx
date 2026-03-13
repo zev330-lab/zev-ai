@@ -32,7 +32,7 @@ export default function AboutPage() {
 
       {/* Philosophy */}
       <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-32 md:py-40">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
           <div className="max-w-3xl space-y-10">
             <Reveal>
               <p className="font-[family-name:var(--font-serif)] text-xl md:text-2xl leading-[1.6] tracking-tight">

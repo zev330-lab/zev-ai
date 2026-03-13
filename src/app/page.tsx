@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
-import { AnimatedNumber } from '@/components/animated-number';
 import { HeroGradient } from '@/components/hero-gradient';
+import { cn } from '@/lib/utils';
 
 export default function Home() {
   const heroRef = useRef<HTMLElement>(null);
@@ -91,22 +91,22 @@ export default function Home() {
           SECTION 2 — THE PROBLEM
           ═══════════════════════════════════════════ */}
       <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-32 md:py-40">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
           <Reveal>
-            <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-20 md:mb-28">
+            <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-14 md:mb-20">
               The reality
             </p>
           </Reveal>
 
-          <StaggerReveal className="space-y-20 md:space-y-28">
+          <StaggerReveal className="space-y-14 md:space-y-20">
             <StaggerChild>
-              <div className="max-w-3xl">
-                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-5">
+              <div className="max-w-[680px]">
+                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
                   Everyone&apos;s talking about AI.
                   <br />
                   Almost nobody&apos;s using it.
                 </h2>
-                <p className="text-muted-light text-lg leading-relaxed max-w-2xl">
+                <p className="text-muted-light text-lg leading-relaxed">
                   You&apos;ve seen the demos, sat through the pitches, read the LinkedIn
                   posts about how AI will change everything. And yet your business
                   runs the same way it did two years ago.
@@ -115,13 +115,13 @@ export default function Home() {
             </StaggerChild>
 
             <StaggerChild>
-              <div className="max-w-3xl md:ml-auto md:text-right">
-                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-5">
+              <div className="max-w-[680px] md:ml-auto md:text-right">
+                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
                   You&apos;ve been sold strategy
                   <br />
                   when you needed systems.
                 </h2>
-                <p className="text-muted-light text-lg leading-relaxed max-w-2xl md:ml-auto">
+                <p className="text-muted-light text-lg leading-relaxed md:ml-auto">
                   Most AI consultants deliver a PDF and a roadmap. You needed someone
                   who delivers working software — systems that are live, tested, and
                   running inside your operations.
@@ -130,11 +130,11 @@ export default function Home() {
             </StaggerChild>
 
             <StaggerChild>
-              <div className="max-w-3xl">
-                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-5">
+              <div className="max-w-[680px]">
+                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
                   Your competitors aren&apos;t waiting.
                 </h2>
-                <p className="text-muted-light text-lg leading-relaxed max-w-2xl">
+                <p className="text-muted-light text-lg leading-relaxed">
                   While you&apos;re evaluating, someone in your market is deploying.
                   AI adoption isn&apos;t a future trend — it&apos;s a present advantage.
                   The gap between companies that use AI and those that don&apos;t is
@@ -144,13 +144,13 @@ export default function Home() {
             </StaggerChild>
 
             <StaggerChild>
-              <div className="max-w-3xl md:ml-auto md:text-right">
-                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-5">
+              <div className="max-w-[680px] md:ml-auto md:text-right">
+                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
                   You don&apos;t need more advice.
                   <br />
                   You need a builder.
                 </h2>
-                <p className="text-muted-light text-lg leading-relaxed max-w-2xl md:ml-auto">
+                <p className="text-muted-light text-lg leading-relaxed md:ml-auto">
                   Someone who understands your operations, identifies where AI
                   creates real leverage, builds the system, and proves it works.
                   That&apos;s what we do.
@@ -165,12 +165,12 @@ export default function Home() {
           SECTION 3 — THE APPROACH
           ═══════════════════════════════════════════ */}
       <section className="overflow-hidden">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-32 md:py-40">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
           <Reveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
               How we work
             </p>
-            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-20 md:mb-28">
+            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-16 md:mb-20">
               Three phases. One goal:
               <br />
               <span className="italic text-accent">systems that deliver.</span>
@@ -217,12 +217,12 @@ export default function Home() {
           SECTION 4 — WHAT WE BUILD
           ═══════════════════════════════════════════ */}
       <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-32 md:py-40">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
           <Reveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">
               Capabilities
             </p>
-            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-20 md:mb-28">
+            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-16 md:mb-20">
               The systems we build
             </h2>
           </Reveal>
@@ -275,59 +275,97 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════
-          SECTION 5 — PROOF
+          SECTION 5 — WHAT AI SYSTEMS LOOK LIKE
           ═══════════════════════════════════════════ */}
       <section className="relative overflow-hidden">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-32 md:py-40">
-          {/* Metrics */}
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
           <Reveal>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 mb-24 md:mb-32">
-              <div>
-                <div className="text-[clamp(3rem,7vw,5rem)] font-[family-name:var(--font-serif)] font-light text-accent leading-none">
-                  <AnimatedNumber value={2000} suffix="+" />
-                </div>
-                <p className="mt-3 text-muted-light">pages built with AI</p>
-              </div>
-              <div>
-                <div className="text-[clamp(3rem,7vw,5rem)] font-[family-name:var(--font-serif)] font-light text-accent leading-none">
-                  <AnimatedNumber value={18} />
-                </div>
-                <p className="mt-3 text-muted-light">intelligent agents deployed</p>
-              </div>
-              <div>
-                <div className="text-[clamp(3rem,7vw,5rem)] font-[family-name:var(--font-serif)] font-light text-foreground-strong leading-none">
-                  100%
-                </div>
-                <p className="mt-3 text-muted-light">real systems, not slide decks</p>
-              </div>
-            </div>
+            <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
+              Scale
+            </p>
+            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-16 md:mb-20">
+              AI systems built to your scale
+            </h2>
           </Reveal>
 
-          {/* Proof narrative */}
-          <Reveal>
-            <div className="border-t border-border pt-16 md:pt-20">
-              <div className="max-w-3xl">
-                <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
-                  Featured project
-                </p>
-                <p className="font-[family-name:var(--font-serif)] text-2xl md:text-3xl leading-[1.4] tracking-tight text-foreground-strong">
-                  We built a 2,000-page real estate platform with 18 AI agents,
-                  a complete database backend, automated content generation,
-                  intelligent lead scoring, and client nurture systems — using the
-                  same AI-native development approach we bring to every engagement.
-                </p>
-                <div className="mt-10">
-                  <Link
-                    href="/work"
-                    className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover transition-colors duration-300"
-                  >
-                    See how we built it
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-                    </svg>
-                  </Link>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 mb-16 md:mb-20">
+            {[
+              {
+                tier: 'Starter System',
+                timeframe: '2–4 weeks',
+                tagline: 'Ideal for teams exploring AI\u2019s impact',
+                items: [
+                  '5–10 AI-powered workflows',
+                  'Process automation + content generation',
+                  'Integration with existing tools',
+                ],
+              },
+              {
+                tier: 'Growth Engine',
+                timeframe: '1–3 months',
+                tagline: 'For businesses ready to scale with AI',
+                items: [
+                  '50–200 pages of AI-generated content',
+                  '5–10 intelligent agents',
+                  'Custom dashboards + analytics',
+                  'Full backend infrastructure',
+                ],
+              },
+              {
+                tier: 'Enterprise Platform',
+                timeframe: '3–6 months',
+                tagline: 'Full-stack AI transformation',
+                items: [
+                  '1,000+ pages of dynamic content',
+                  '15–25+ specialized AI agents',
+                  'Multi-system integrations',
+                  'Complete data infrastructure',
+                  'Ongoing optimization + monitoring',
+                ],
+              },
+            ].map((scale, i) => (
+              <Reveal key={scale.tier} delay={i * 0.12}>
+                <div className={cn(
+                  'relative border border-border rounded-2xl p-8 md:p-10 h-full transition-all duration-500',
+                  i === 2 ? 'md:scale-[1.03] border-accent/20' : ''
+                )}>
+                  <p className="text-xs tracking-[0.2em] uppercase text-muted mb-1">
+                    {scale.timeframe}
+                  </p>
+                  <h3 className="text-xl font-semibold tracking-tight text-foreground-strong mb-2">
+                    {scale.tier}
+                  </h3>
+                  <p className="text-sm text-accent font-medium mb-6">
+                    {scale.tagline}
+                  </p>
+                  <ul className="space-y-3">
+                    {scale.items.map((item) => (
+                      <li key={item} className="flex items-start gap-3 text-sm text-muted-light leading-relaxed">
+                        <div className="w-1 h-1 rounded-full bg-accent mt-2 shrink-0" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal>
+            <div className="border-t border-border pt-10">
+              <p className="text-muted-light max-w-[680px] leading-relaxed">
+                Our largest system to date: a full-stack platform with thousands of pages
+                and dozens of AI agents, built entirely with AI-native development.{' '}
+                <Link
+                  href="/work"
+                  className="text-accent hover:text-accent-hover transition-colors duration-300 inline-flex items-center gap-1"
+                >
+                  See the details
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                  </svg>
+                </Link>
+              </p>
             </div>
           </Reveal>
         </div>
@@ -337,24 +375,35 @@ export default function Home() {
           SECTION 6 — THE DIFFERENCE
           ═══════════════════════════════════════════ */}
       <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-32 md:py-40">
-          <StaggerReveal className="space-y-20 md:space-y-24 max-w-4xl mx-auto text-center">
-            <StaggerChild>
-              <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.5rem,4vw,2.5rem)] leading-[1.35] tracking-tight">
-                &ldquo;We believe AI should build things, not just analyze them.&rdquo;
-              </p>
-            </StaggerChild>
-            <StaggerChild>
-              <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.5rem,4vw,2.5rem)] leading-[1.35] tracking-tight">
-                &ldquo;We believe the best AI strategy is a working prototype.&rdquo;
-              </p>
-            </StaggerChild>
-            <StaggerChild>
-              <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.5rem,4vw,2.5rem)] leading-[1.35] tracking-tight">
-                &ldquo;We believe small teams with AI beat big teams without it.&rdquo;
-              </p>
-            </StaggerChild>
-          </StaggerReveal>
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-20 md:py-28">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
+            <div className="lg:col-span-3">
+              <Reveal>
+                <p className="text-xs tracking-[0.2em] uppercase text-muted-light">
+                  What we believe
+                </p>
+              </Reveal>
+            </div>
+            <div className="lg:col-span-9 max-w-2xl">
+              <StaggerReveal className="divide-y divide-surface-light-border">
+                <StaggerChild>
+                  <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] tracking-tight py-8 first:pt-0">
+                    AI should build things, not just analyze them.
+                  </p>
+                </StaggerChild>
+                <StaggerChild>
+                  <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] tracking-tight py-8">
+                    The best AI strategy is a working prototype.
+                  </p>
+                </StaggerChild>
+                <StaggerChild>
+                  <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] tracking-tight py-8 last:pb-0">
+                    Small teams with AI beat big teams without it.
+                  </p>
+                </StaggerChild>
+              </StaggerReveal>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -362,7 +411,7 @@ export default function Home() {
           SECTION 7 — CTA
           ═══════════════════════════════════════════ */}
       <section>
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-32 md:py-40">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
           <Reveal>
             <div className="max-w-3xl">
               <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight mb-8">
