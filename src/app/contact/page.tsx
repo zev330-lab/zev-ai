@@ -2,23 +2,15 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Section } from '@/components/section';
-
-const BUDGET_OPTIONS = [
-  'Under $5K',
-  '$5K–$15K',
-  '$15K–$50K',
-  '$50K+',
-  'Not sure yet',
-];
+import { Reveal } from '@/components/reveal';
+import { SITE } from '@/lib/constants';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     company: '',
-    challenge: '',
-    budget: '',
+    message: '',
   });
   const [submitted, setSubmitted] = useState(false);
 
@@ -29,191 +21,156 @@ export default function ContactPage() {
   };
 
   return (
-    <>
-      {/* Hero */}
-      <section className="relative pt-32 pb-16 md:pt-40 md:pb-20">
-        <div className="absolute inset-0 mesh-gradient" />
-        <div className="relative mx-auto max-w-4xl px-6 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <p className="mb-4 text-sm font-medium tracking-widest text-accent uppercase font-[family-name:var(--font-mono)]">
-              Contact
-            </p>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-[family-name:var(--font-display)] tracking-tight">
-              Let&apos;s Build{' '}
-              <span className="gradient-text">Together</span>
-            </h1>
-            <p className="mt-6 text-lg text-muted-light max-w-2xl mx-auto">
-              Tell me about your business and the challenges you&apos;re facing.
-              I&apos;ll show you what&apos;s possible with AI.
-            </p>
-          </motion.div>
-        </div>
-      </section>
+    <section className="min-h-screen">
+      <div className="mx-auto max-w-3xl px-6 pt-32 pb-24 md:pt-40 md:pb-32">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
+        >
+          <p className="text-sm text-muted tracking-wide uppercase mb-8">
+            Contact
+          </p>
+          <h1 className="font-[family-name:var(--font-serif)] text-3xl md:text-4xl tracking-tight leading-[1.2] mb-4">
+            Tell me about your business.
+          </h1>
+          <p className="text-muted-light mb-12">
+            I&apos;ll get back to you within a day.
+          </p>
+        </motion.div>
 
-      <Section className="pt-0">
-        <div className="mx-auto max-w-6xl px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
-            {/* Form */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="lg:col-span-3"
-            >
-              {submitted ? (
-                <div className="rounded-2xl border border-accent/20 bg-surface p-12 text-center">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 text-accent mb-6">
-                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <h2 className="text-2xl font-bold font-[family-name:var(--font-display)] mb-2">
-                    Message Received
-                  </h2>
-                  <p className="text-muted-light">
-                    I&apos;ll review your information and get back to you within 24 hours
-                    to schedule a discovery call.
-                  </p>
-                </div>
-              ) : (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                      <label htmlFor="name" className="block text-sm font-medium text-foreground mb-2">
-                        Name <span className="text-accent">*</span>
-                      </label>
-                      <input
-                        id="name"
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full rounded-xl border border-surface-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
-                        placeholder="Your name"
-                      />
-                    </div>
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
-                        Email <span className="text-accent">*</span>
-                      </label>
-                      <input
-                        id="email"
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full rounded-xl border border-surface-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
-                        placeholder="you@company.com"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label htmlFor="company" className="block text-sm font-medium text-foreground mb-2">
-                      Company / Organization
-                    </label>
-                    <input
-                      id="company"
-                      type="text"
-                      value={formData.company}
-                      onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                      className="w-full rounded-xl border border-surface-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
-                      placeholder="Your company name"
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="challenge" className="block text-sm font-medium text-foreground mb-2">
-                      What&apos;s your biggest operational challenge? <span className="text-accent">*</span>
-                    </label>
-                    <textarea
-                      id="challenge"
-                      required
-                      rows={5}
-                      value={formData.challenge}
-                      onChange={(e) => setFormData(prev => ({ ...prev, challenge: e.target.value }))}
-                      className="w-full rounded-xl border border-surface-border bg-surface px-4 py-3 text-sm text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors resize-none"
-                      placeholder="Describe the processes, workflows, or pain points you'd like to address with AI..."
-                    />
-                  </div>
-
-                  <div>
-                    <label htmlFor="budget" className="block text-sm font-medium text-foreground mb-2">
-                      Budget Range
-                    </label>
-                    <select
-                      id="budget"
-                      value={formData.budget}
-                      onChange={(e) => setFormData(prev => ({ ...prev, budget: e.target.value }))}
-                      className="w-full rounded-xl border border-surface-border bg-surface px-4 py-3 text-sm text-foreground focus:outline-none focus:border-accent transition-colors appearance-none"
-                    >
-                      <option value="">Select a range</option>
-                      {BUDGET_OPTIONS.map((opt) => (
-                        <option key={opt} value={opt}>{opt}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full rounded-full bg-accent py-4 text-base font-medium text-white hover:bg-accent-light transition-all hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]"
+        {submitted ? (
+          <Reveal>
+            <div className="py-16">
+              <h2 className="font-[family-name:var(--font-serif)] text-2xl tracking-tight mb-3">
+                Message received.
+              </h2>
+              <p className="text-muted-light">
+                I&apos;ll review what you&apos;ve shared and get back to you
+                within 24 hours.
+              </p>
+            </div>
+          </Reveal>
+        ) : (
+          <Reveal>
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm text-muted-light mb-2"
                   >
-                    Send Message
-                  </button>
-                </form>
-              )}
-            </motion.div>
-
-            {/* Sidebar */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="lg:col-span-2 space-y-8"
-            >
-              {/* Calendly placeholder */}
-              <div className="rounded-2xl border border-surface-border bg-surface p-8">
-                <h3 className="font-semibold font-[family-name:var(--font-display)] text-foreground mb-2">
-                  Book a Discovery Call
-                </h3>
-                <p className="text-sm text-muted-light mb-6">
-                  Prefer to jump straight to a conversation? Schedule a 30-minute
-                  discovery call.
-                </p>
-                <div className="rounded-xl border border-dashed border-surface-border bg-surface-light p-8 text-center">
-                  <svg className="w-10 h-10 text-muted mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                  </svg>
-                  <p className="text-sm text-muted">Calendly scheduling coming soon</p>
+                    Name
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        name: e.target.value,
+                      }))
+                    }
+                    className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm text-muted-light mb-2"
+                  >
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        email: e.target.value,
+                      }))
+                    }
+                    className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+                    placeholder="you@company.com"
+                  />
                 </div>
               </div>
 
-              {/* Quick info */}
-              <div className="rounded-2xl border border-surface-border bg-surface p-8 space-y-6">
-                <div>
-                  <p className="text-xs font-medium text-muted uppercase tracking-wider mb-2">Email</p>
-                  <a href="mailto:zev@zev.ai" className="text-sm text-accent hover:text-accent-light transition-colors">
-                    zev@zev.ai
-                  </a>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted uppercase tracking-wider mb-2">Location</p>
-                  <p className="text-sm text-muted-light">Newton, MA</p>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-muted uppercase tracking-wider mb-2">Response Time</p>
-                  <p className="text-sm text-muted-light">Within 24 hours</p>
-                </div>
+              <div>
+                <label
+                  htmlFor="company"
+                  className="block text-sm text-muted-light mb-2"
+                >
+                  Company{' '}
+                  <span className="text-muted">(optional)</span>
+                </label>
+                <input
+                  id="company"
+                  type="text"
+                  value={formData.company}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      company: e.target.value,
+                    }))
+                  }
+                  className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
+                  placeholder="Your company"
+                />
               </div>
-            </motion.div>
+
+              <div>
+                <label
+                  htmlFor="message"
+                  className="block text-sm text-muted-light mb-2"
+                >
+                  Tell me about your business and what you&apos;re exploring with AI
+                </label>
+                <textarea
+                  id="message"
+                  required
+                  rows={6}
+                  value={formData.message}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      message: e.target.value,
+                    }))
+                  }
+                  className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors resize-none"
+                  placeholder="What does your business do? What processes feel manual or inefficient? What have you tried so far?"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="inline-block border-b border-accent text-accent text-sm tracking-wide pb-1 hover:text-accent-hover hover:border-accent-hover transition-colors"
+              >
+                Send message
+              </button>
+            </form>
+          </Reveal>
+        )}
+
+        <Reveal delay={0.3}>
+          <div className="mt-16 pt-16 border-t border-border">
+            <p className="text-sm text-muted-light">
+              Or email directly:{' '}
+              <a
+                href={`mailto:${SITE.email}`}
+                className="text-foreground hover:text-accent transition-colors"
+              >
+                {SITE.email}
+              </a>
+            </p>
           </div>
-        </div>
-      </Section>
-    </>
+        </Reveal>
+      </div>
+    </section>
   );
 }
