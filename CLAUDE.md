@@ -23,14 +23,14 @@ Flagship website for Zev Steinmetz's AI consulting practice. Apple.com-quality c
 - **Easing:** `[0.22, 1, 0.36, 1]` throughout
 
 ## Pages (5 total)
-- `/` — 7 cinematic sections: Hero (parallax + gradient orbs + scroll hint), Problem (light, 4 staggered statements), Approach (3 numbered phases), Capabilities (light, 6 items with gold dots), Proof (animated metrics + project narrative), Difference (light, 3 manifesto quotes), CTA
-- `/services` — 3 service tiers (AI Automation Sprint $15K, AI Platform Build $30-60K, Ongoing Partnership $5-10K/mo) with pricing, timelines, deliverables. Alternating sections. Pricing transparency rationale.
+- `/` — 7 cinematic sections: Hero (parallax + gradient orbs + scroll hint), Problem (light, 4 staggered statements), Approach (3 numbered phases), Capabilities (light, 6 items with gold dots), Scale (3 cards: Starter/Growth/Enterprise with floor statement), Difference (light, 3 beliefs with dividers), CTA
+- `/services` — 4 service tiers (AI Readiness $2.5K, AI Implementation $5-25K, Fractional AI Officer $5-10K/mo, Performance Partnership base+10-25% impact). "Most aligned" badge on tier 4. Pricing transparency rationale.
 - `/work` — Featured project narrative: real estate platform. Stats (2000+ pages, 18 agents, 28+ tables, 25 SOPs). 4 aspect deep-dives (Scale, Intelligence, Infrastructure, Automation). Tech stack.
 - `/about` — Philosophy-first editorial prose. Implementation over strategy. Builder section (Zev's background). Technology stack ecosystem.
 - `/contact` — 12-col grid: form (name, email, company optional, message) + sidebar (email, location, response time).
 
 ## Key Components
-- `Navbar` — Sticky, 5 links + gold CTA button. Transparent on hero, blur backdrop on scroll. Mobile full-screen overlay with serif links.
+- `Navbar` — Sticky, 5 links + gold CTA button. Desktop at lg (1024px+), hamburger below. Transparent on hero, blur backdrop on scroll. Mobile full-screen overlay with serif links.
 - `Footer` — Logo, description, email, LinkedIn, copyright.
 - `Reveal` / `StaggerReveal` / `StaggerChild` — Scroll-triggered animation wrappers using useInView.
 - `AnimatedNumber` — Count-up animation triggered on scroll into view.
@@ -89,4 +89,4 @@ src/
 - **Build:** `npm run build`
 - **Dev:** `npm run dev`
 - **Deploy:** `vercel --prod --yes --scope steinmetz-real-estate-professionlas`
-- **Status:** Phase 2 deployed (2026-03-13) — apple-quality rebuild with 5 deep pages
+- **Status:** Phase 2.1 deployed (2026-03-13) — 4th service tier, scale spectrum, spacing refinements
