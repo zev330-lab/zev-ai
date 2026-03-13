@@ -213,25 +213,6 @@ export default function ServicesPage() {
         );
       })}
 
-      {/* Why pricing */}
-      <section>
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
-          <Reveal>
-            <div className="max-w-2xl">
-              <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
-                On transparency
-              </p>
-              <p className="font-[family-name:var(--font-serif)] text-xl md:text-2xl leading-[1.5] tracking-tight text-foreground-strong">
-                We publish pricing because we believe in transparency. Research
-                shows 39% of buyers choose more transparent providers, even at
-                higher prices. These ranges filter for serious inquiries and
-                signal confidence in what we deliver.
-              </p>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="section-light">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
