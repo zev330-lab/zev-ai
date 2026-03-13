@@ -34,11 +34,9 @@ export default function Home() {
             transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(3rem,8vw,7rem)] leading-[1.05] tracking-tight font-light max-w-4xl">
-              Your business runs
+              AI systems that
               <br />
-              on duct tape.
-              <br />
-              <span className="italic text-accent">I build the machine.</span>
+              <span className="italic text-accent">actually work.</span>
             </h1>
           </motion.div>
 
