@@ -8,7 +8,7 @@ export function HeroGradient() {
       <motion.div
         className="absolute w-[800px] h-[800px] rounded-full opacity-[0.04]"
         style={{
-          background: 'radial-gradient(circle, #c8a55e 0%, transparent 70%)',
+          background: 'radial-gradient(circle, #5ba8b5 0%, transparent 70%)',
           top: '-20%',
           right: '-10%',
         }}
@@ -25,7 +25,7 @@ export function HeroGradient() {
       <motion.div
         className="absolute w-[600px] h-[600px] rounded-full opacity-[0.03]"
         style={{
-          background: 'radial-gradient(circle, #c8a55e 0%, transparent 70%)',
+          background: 'radial-gradient(circle, #5ba8b5 0%, transparent 70%)',
           bottom: '-10%',
           left: '-10%',
         }}
