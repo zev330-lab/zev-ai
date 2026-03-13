@@ -292,7 +292,6 @@ export default function Home() {
             {[
               {
                 tier: 'Starter System',
-                timeframe: '2–4 weeks',
                 tagline: 'Ideal for teams exploring AI\u2019s impact',
                 items: [
                   '5–10 AI-powered workflows',
@@ -302,7 +301,6 @@ export default function Home() {
               },
               {
                 tier: 'Growth Engine',
-                timeframe: '1–3 months',
                 tagline: 'For businesses ready to scale with AI',
                 items: [
                   '50–200 pages of AI-generated content',
@@ -313,7 +311,6 @@ export default function Home() {
               },
               {
                 tier: 'Enterprise Platform',
-                timeframe: '3–6 months',
                 tagline: 'Full-stack AI transformation',
                 items: [
                   '1,000+ pages of dynamic content',
@@ -329,9 +326,6 @@ export default function Home() {
                   'relative border border-border rounded-2xl p-8 md:p-10 h-full transition-all duration-500',
                   i === 2 ? 'md:scale-[1.03] border-accent/20' : ''
                 )}>
-                  <p className="text-xs tracking-[0.2em] uppercase text-muted mb-1">
-                    {scale.timeframe}
-                  </p>
                   <h3 className="text-xl font-semibold tracking-tight text-foreground-strong mb-2">
                     {scale.tier}
                   </h3>
