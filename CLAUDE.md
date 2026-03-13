@@ -74,5 +74,9 @@ src/
 ## Deployment
 - **Repo:** github.com/zev330-lab/zev-ai
 - **Host:** Vercel
+- **Live URL:** https://zev-ai-swart.vercel.app
+- **Vercel Team:** steinmetz-real-estate-professionlas
 - **Build:** `npm run build`
 - **Dev:** `npm run dev`
+- **Deploy:** `vercel --prod --yes --scope steinmetz-real-estate-professionlas`
+- **Status:** Deployed and live (2026-03-13)
