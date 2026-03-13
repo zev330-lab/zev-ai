@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
         await resend.emails.send({
           from: 'zev.ai <onboarding@resend.dev>',
-          to: 'zev@zev.ai',
+          to: 'zev330@gmail.com',
           subject: `New discovery form from ${body.name}${body.company ? ` — ${body.company}` : ''}`,
           text: `New discovery form submission on zev.ai\n\n${fields}`,
         });

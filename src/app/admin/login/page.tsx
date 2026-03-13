@@ -49,7 +49,7 @@ export default function AdminLoginPage() {
             <input
               id="email"
               type="email"
-              defaultValue="zev@zev.ai"
+              defaultValue="zev330@gmail.com"
               className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>

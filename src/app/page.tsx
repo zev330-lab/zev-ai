@@ -430,10 +430,10 @@ export default function Home() {
                   </svg>
                 </Link>
                 <a
-                  href="mailto:zev@zev.ai"
+                  href="mailto:zev330@gmail.com"
                   className="text-sm text-muted-light hover:text-foreground-strong transition-colors duration-300 py-3.5"
                 >
-                  or email zev@zev.ai
+                  or email zev330@gmail.com
                 </a>
               </div>
             </div>

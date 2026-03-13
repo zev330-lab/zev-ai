@@ -216,7 +216,7 @@ export default function DiscoverPage() {
       // Fallback: mailto link if API fails
       const subject = encodeURIComponent(`Discovery — ${data.name}, ${data.company}`);
       const body = encodeURIComponent(buildMailtoBody(data));
-      window.location.href = `mailto:zev@zev.ai?subject=${subject}&body=${body}`;
+      window.location.href = `mailto:zev330@gmail.com?subject=${subject}&body=${body}`;
       setSubmitted(true);
     } finally {
       setSubmitting(false);
@@ -628,10 +628,10 @@ export default function DiscoverPage() {
                     <p className="text-sm text-muted">
                       Questions before then?{' '}
                       <a
-                        href="mailto:zev@zev.ai"
+                        href="mailto:zev330@gmail.com"
                         className="text-accent hover:text-accent-hover transition-colors duration-300"
                       >
-                        zev@zev.ai
+                        zev330@gmail.com
                       </a>
                     </p>
                   </motion.div>

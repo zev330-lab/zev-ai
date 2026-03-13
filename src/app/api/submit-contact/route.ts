@@ -35,7 +35,7 @@ export async function POST(request: Request) {
         const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
           from: 'zev.ai <onboarding@resend.dev>',
-          to: 'zev@zev.ai',
+          to: 'zev330@gmail.com',
           subject: `New inquiry from ${name}${company ? ` — ${company}` : ''}`,
           text: [
             `New contact form submission on zev.ai`,
