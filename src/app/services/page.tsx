@@ -8,7 +8,7 @@ const TIERS = [
   {
     num: '01',
     name: 'AI Readiness Assessment',
-    headline: 'A structured deep-dive into your business to identify where AI creates real value.',
+    headline: 'A structured deep-dive into your business to find where AI creates real value — not hypothetical value.',
     duration: '2–3 weeks',
     price: 'Starting at $2,500',
     deliverable: 'AI Opportunity Roadmap with prioritized recommendations',
@@ -23,7 +23,7 @@ const TIERS = [
   {
     num: '02',
     name: 'AI Implementation',
-    headline: 'We design, build, and deploy AI systems that integrate into your existing operations.',
+    headline: 'I design, build, and deploy AI systems that plug into your existing operations and start working immediately.',
     duration: 'Custom scoped per project',
     price: 'Projects typically range $5,000–$25,000',
     deliverable: 'Production-ready AI system, deployed and documented',
@@ -44,7 +44,7 @@ const TIERS = [
   {
     num: '03',
     name: 'Fractional AI Officer',
-    headline: 'Ongoing AI leadership embedded in your team — strategy, implementation, and iteration.',
+    headline: 'Ongoing AI leadership embedded in your team. Strategy, implementation, and iteration — all in one seat.',
     duration: 'Monthly engagement',
     price: '$5,000–$10,000/month',
     deliverable: 'Continuous AI transformation',
@@ -59,7 +59,7 @@ const TIERS = [
   {
     num: '04',
     name: 'Performance Partnership',
-    headline: 'We invest in your success. A portion of our fee is tied directly to the results we deliver.',
+    headline: 'I invest in your success. A portion of my fee is tied directly to the results I deliver.',
     duration: 'Engagement-dependent',
     price: 'Base fee + 10–25% of measured impact',
     deliverable: 'Measurable business outcomes with shared upside',
@@ -84,20 +84,20 @@ export default function ServicesPage() {
       <section className="pt-36 md:pt-44 pb-20">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
               Services
             </p>
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight max-w-3xl">
-              How we work
+              Pick your depth.
             </h1>
             <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
               Four levels of engagement — from a focused assessment to a
               performance-linked partnership. Every engagement delivers real,
-              deployed systems.
+              deployed systems. No strategy-only engagements.
             </p>
           </motion.div>
         </div>
@@ -111,7 +111,7 @@ export default function ServicesPage() {
             key={tier.num}
             className={i % 2 === 1 ? 'section-light' : ''}
           >
-            <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-20 md:py-28">
+            <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
               <Reveal>
                 {isFeatured && (
                   <div className="mb-8">
@@ -195,11 +195,11 @@ export default function ServicesPage() {
                       <Link
                         href="/contact"
                         className={isFeatured
-                          ? 'inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.03]'
+                          ? 'inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]'
                           : 'inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover transition-colors duration-300'
                         }
                       >
-                        {'cta' in tier ? (tier.cta as string) : i === 0 ? 'Book a discovery call' : i === 1 ? 'Tell us about your project' : 'Learn more'}
+                        {'cta' in tier ? (tier.cta as string) : i === 0 ? 'Book a discovery call' : i === 1 ? 'Tell me about your project' : 'Learn more'}
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                         </svg>
@@ -215,7 +215,7 @@ export default function ServicesPage() {
 
       {/* CTA */}
       <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-8 max-w-xl">
               Not sure which engagement fits?
@@ -224,7 +224,7 @@ export default function ServicesPage() {
             </h2>
             <Link
               href="/contact"
-              className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.03]"
+              className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
             >
               Start a conversation
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

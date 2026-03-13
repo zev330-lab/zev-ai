@@ -23,15 +23,6 @@ export function Footer() {
             >
               {SITE.email}
             </a>
-            <a
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground-strong transition-colors duration-300"
-              aria-label="LinkedIn"
-            >
-              LinkedIn
-            </a>
             <span>&copy; {new Date().getFullYear()} Zev Steinmetz</span>
           </div>
         </div>

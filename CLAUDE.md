@@ -33,7 +33,7 @@ Flagship website for Zev Steinmetz's AI consulting practice. Apple.com-quality c
 - **Surface:** #242a38 (dark), #f6f5f2 (light sections)
 - **Sections:** Alternating dark/light via `.section-light` CSS utility
 - **CTA style:** Teal rounded-full buttons with arrow icons
-- **Easing:** `[0.22, 1, 0.36, 1]` throughout
+- **Easing:** `[0.16, 1, 0.3, 1]` throughout
 
 ## Pages
 ### Public (5)

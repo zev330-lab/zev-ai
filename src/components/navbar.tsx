@@ -70,7 +70,7 @@ export function Navbar() {
             ))}
             <Link
               href="/contact"
-              className="text-[13px] tracking-wide bg-accent text-background px-5 py-2 rounded-full font-medium transition-all duration-300 hover:bg-accent-hover hover:scale-[1.03]"
+              className="text-[13px] tracking-wide bg-accent text-background px-5 py-2 rounded-full font-medium transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
             >
               Start a conversation
             </Link>

@@ -16,7 +16,7 @@ export function Reveal({
   children,
   className,
   delay = 0,
-  y = 30,
+  y = 24,
   duration = 0.8,
   once = true,
 }: RevealProps) {
@@ -31,7 +31,7 @@ export function Reveal({
       transition={{
         duration,
         delay,
-        ease: [0.22, 1, 0.36, 1],
+        ease: [0.16, 1, 0.3, 1],
       }}
       className={className}
     >
@@ -84,7 +84,7 @@ export function StaggerChild({
         visible: {
           opacity: 1,
           y: 0,
-          transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+          transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] },
         },
       }}
       className={className}

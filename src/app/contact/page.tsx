@@ -47,9 +47,9 @@ export default function ContactPage() {
       <section className="pt-36 md:pt-44 pb-12">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
               Contact
@@ -58,8 +58,8 @@ export default function ContactPage() {
               Let&apos;s talk.
             </h1>
             <p className="mt-6 text-lg text-muted-light max-w-xl leading-relaxed">
-              Tell us about your business and what you&apos;re exploring with AI.
-              We&apos;ll get back to you within 24 hours.
+              Tell me about your business and what you&apos;re exploring with AI.
+              I&apos;ll get back to you within 24 hours.
             </p>
           </motion.div>
         </div>
@@ -141,7 +141,7 @@ export default function ContactPage() {
                         value={formData.message}
                         onChange={update('message')}
                         className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground-strong placeholder:text-muted focus:outline-none focus:border-accent transition-colors duration-300 resize-none"
-                        placeholder="Tell us about your business, what processes feel manual, what you've tried so far..."
+                        placeholder="Tell me about your business, what processes feel manual, what you've tried so far..."
                       />
                     </div>
 
@@ -157,7 +157,7 @@ export default function ContactPage() {
                     <button
                       type="submit"
                       disabled={status === 'loading' || !isValid}
-                      className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.03] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                      className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
                       {status === 'loading' ? 'Sending...' : 'Send message'}
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

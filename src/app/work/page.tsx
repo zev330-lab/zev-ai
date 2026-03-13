@@ -14,17 +14,17 @@ const ASPECTS = [
   {
     label: 'Intelligence',
     title: '18 AI agents running in production',
-    body: 'Autonomous agents handling lead scoring, client communication, content generation, reputation management, recruiting, and operations. Each agent has a specific role, runs on a schedule, and produces measurable output.',
+    body: 'Autonomous agents handling lead scoring, client communication, content generation, reputation management, recruiting, and operations. Each has a specific role, runs on a schedule, and produces measurable output.',
   },
   {
     label: 'Infrastructure',
     title: 'Full-stack production system',
-    body: 'Complete backend with 28+ database tables, row-level security, automated data pipelines, role-based dashboards, and real-time reporting. Not a prototype — enterprise-grade infrastructure deployed on modern cloud platforms.',
+    body: '28+ database tables, row-level security, automated data pipelines, role-based dashboards, and real-time reporting. Enterprise-grade infrastructure deployed on modern cloud platforms.',
   },
   {
     label: 'Automation',
     title: 'Systems that run themselves',
-    body: 'Daily cron-driven nurture sequences that draft personalized emails and queue them for human approval. Automated reputation monitoring and response drafting. Lead scoring that rates prospects 0-100 and routes them intelligently.',
+    body: 'Daily nurture sequences that draft personalized emails and queue them for human approval. Automated reputation monitoring and response drafting. Lead scoring that rates prospects 0–100 and routes them intelligently.',
   },
 ];
 
@@ -40,15 +40,15 @@ export default function WorkPage() {
       <section className="pt-36 md:pt-44 pb-20">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
               Work
             </p>
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight max-w-3xl">
-              What we&apos;ve built
+              What I&apos;ve built
             </h1>
           </motion.div>
         </div>
@@ -66,12 +66,11 @@ export default function WorkPage() {
               <br />
               built entirely with AI.
             </h2>
-            <p className="text-lg text-muted-light max-w-2xl leading-relaxed">
-              An enterprise-grade technology platform spanning thousands of pages,
-              running dozens of intelligent agents, and managing every aspect of a
-              real estate business — from lead generation to client nurture to
-              reputation management. Built using the same AI-native development
-              approach we bring to every client engagement.
+            <p className="text-lg text-muted-light max-w-[640px] leading-relaxed">
+              Thousands of pages. Dozens of intelligent agents. Every aspect of a
+              real estate business — lead generation, client nurture, reputation
+              management, recruiting — running on AI infrastructure. Built using
+              the same approach I bring to every client engagement.
             </p>
           </Reveal>
         </div>
@@ -79,7 +78,7 @@ export default function WorkPage() {
 
       {/* Stats */}
       <section>
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
               {[
@@ -118,7 +117,7 @@ export default function WorkPage() {
                   <h3 className="font-[family-name:var(--font-serif)] text-2xl md:text-3xl leading-[1.2] tracking-tight mb-5">
                     {aspect.title}
                   </h3>
-                  <p className="text-muted-light text-lg leading-relaxed max-w-2xl">
+                  <p className="text-muted-light text-lg leading-relaxed max-w-[640px]">
                     {aspect.body}
                   </p>
                 </div>
@@ -130,7 +129,7 @@ export default function WorkPage() {
 
       {/* Tech stack */}
       <section>
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-8">
               Technology
@@ -151,7 +150,7 @@ export default function WorkPage() {
 
       {/* CTA */}
       <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-8 max-w-xl">
               Let&apos;s build something
@@ -160,7 +159,7 @@ export default function WorkPage() {
             </h2>
             <Link
               href="/contact"
-              className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.03]"
+              className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
             >
               Start a conversation
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

@@ -16,9 +16,9 @@ export default function AboutPage() {
       <section className="pt-36 md:pt-44 pb-20">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           >
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
               About
@@ -32,11 +32,11 @@ export default function AboutPage() {
 
       {/* Philosophy */}
       <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
-          <div className="max-w-3xl space-y-10">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
+          <div className="max-w-[680px] space-y-10">
             <Reveal>
               <p className="font-[family-name:var(--font-serif)] text-xl md:text-2xl leading-[1.6] tracking-tight">
-                The AI consulting industry is broken. Most firms deliver strategy
+                The AI consulting industry has a problem. Most firms deliver strategy
                 decks and roadmaps — documents that describe what you could do,
                 then leave you to figure out how. You pay for advice and still
                 need to hire someone to build.
@@ -45,17 +45,16 @@ export default function AboutPage() {
 
             <Reveal>
               <p className="font-[family-name:var(--font-serif)] text-xl md:text-2xl leading-[1.6] tracking-tight">
-                We skip the deck. We build the system.
+                I skip the deck. I build the system.
               </p>
             </Reveal>
 
             <Reveal>
               <p className="text-muted-light text-lg leading-[1.8]">
-                Our approach is rooted in a simple belief: the fastest path
-                from &ldquo;AI could help us&rdquo; to &ldquo;AI is helping us&rdquo; is building
-                real software and deploying it into your operations. Not in
-                six months. Not after a strategy phase and a vendor selection
-                process. In weeks.
+                The fastest path from &ldquo;AI could help us&rdquo; to &ldquo;AI
+                is helping us&rdquo; is building real software and deploying it
+                into your operations. Not in six months. Not after a strategy phase
+                and a vendor selection process. In weeks.
               </p>
             </Reveal>
 
@@ -71,10 +70,9 @@ export default function AboutPage() {
 
             <Reveal>
               <p className="text-muted-light text-lg leading-[1.8]">
-                That&apos;s what we do. We bring enterprise-grade AI capabilities
-                to businesses that think they can&apos;t afford them. We build
-                systems, deploy them, train your team, and then find the
-                next opportunity.
+                I bring enterprise-grade AI capabilities to businesses that
+                think they can&apos;t afford them. Build the system, deploy it,
+                train your team, find the next opportunity.
               </p>
             </Reveal>
           </div>
@@ -83,7 +81,7 @@ export default function AboutPage() {
 
       {/* The builder */}
       <section>
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
               <div className="lg:col-span-3">
@@ -91,19 +89,18 @@ export default function AboutPage() {
                   The builder
                 </p>
               </div>
-              <div className="lg:col-span-9 max-w-2xl">
+              <div className="lg:col-span-9 max-w-[640px]">
                 <p className="text-muted-light text-lg leading-[1.8] mb-6">
-                  Zev Steinmetz came to AI implementation through building.
-                  As a real estate professional in Newton, Massachusetts, he
-                  needed technology that didn&apos;t exist — so he built it.
-                  A platform spanning thousands of pages, running dozens of
-                  AI agents, managing an entire business operation. A full
-                  production system, not a prototype.
+                  I came to AI implementation through building. As a real estate
+                  professional in Newton, Massachusetts, I needed technology that
+                  didn&apos;t exist — so I built it. A platform spanning thousands
+                  of pages, running dozens of AI agents, managing an entire business
+                  operation. Not a prototype. A full production system.
                 </p>
                 <p className="text-muted-light text-lg leading-[1.8]">
                   That experience — building real systems with real constraints
-                  for a real business — is the foundation of everything we do
-                  at zev.ai. Builder, not theorist. Implementation, not advice.
+                  for a real business — is the foundation of everything I do.
+                  Builder, not theorist. Implementation, not advice.
                 </p>
               </div>
             </div>
@@ -113,7 +110,7 @@ export default function AboutPage() {
 
       {/* Stack */}
       <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
               <div className="lg:col-span-3">
@@ -123,9 +120,8 @@ export default function AboutPage() {
               </div>
               <div className="lg:col-span-9">
                 <p className="text-muted-light mb-8 max-w-xl leading-relaxed">
-                  We build on modern, battle-tested infrastructure. Every tool
-                  in our stack is chosen for reliability, performance, and
-                  developer velocity.
+                  Modern, battle-tested infrastructure. Every tool chosen for
+                  reliability, performance, and speed.
                 </p>
                 <div className="flex flex-wrap gap-3">
                   {STACK.map((t) => (
@@ -145,14 +141,14 @@ export default function AboutPage() {
 
       {/* CTA */}
       <section>
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-8 max-w-xl">
-              Want to work together?
+              Want to build something together?
             </h2>
             <Link
               href="/contact"
-              className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.03]"
+              className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
             >
               Get in touch
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
