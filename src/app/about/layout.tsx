@@ -2,10 +2,10 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'About',
-  description: 'Implementation over strategy. I build production AI systems for businesses — not slide decks, not roadmaps, working software.',
+  description: 'Implementation over strategy. We build production AI systems for businesses — not slide decks, not roadmaps, working software.',
   openGraph: {
     title: 'About | zev.ai',
-    description: 'Implementation over strategy.',
+    description: 'Built, not theorized. The philosophy behind zev.ai.',
   },
 };
 

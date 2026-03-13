@@ -20,157 +20,161 @@ export default function ContactPage() {
     setSubmitted(true);
   };
 
+  const update = (field: string) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+
   return (
-    <section className="min-h-screen">
-      <div className="mx-auto max-w-3xl px-6 pt-32 pb-24 md:pt-40 md:pb-32">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }}
-        >
-          <p className="text-sm text-muted tracking-wide uppercase mb-8">
-            Contact
-          </p>
-          <h1 className="font-[family-name:var(--font-serif)] text-3xl md:text-4xl tracking-tight leading-[1.2] mb-4">
-            Tell me about your business.
-          </h1>
-          <p className="text-muted-light mb-12">
-            I&apos;ll get back to you within a day.
-          </p>
-        </motion.div>
-
-        {submitted ? (
-          <Reveal>
-            <div className="py-16">
-              <h2 className="font-[family-name:var(--font-serif)] text-2xl tracking-tight mb-3">
-                Message received.
-              </h2>
-              <p className="text-muted-light">
-                I&apos;ll review what you&apos;ve shared and get back to you
-                within 24 hours.
-              </p>
-            </div>
-          </Reveal>
-        ) : (
-          <Reveal>
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm text-muted-light mb-2"
-                  >
-                    Name
-                  </label>
-                  <input
-                    id="name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        name: e.target.value,
-                      }))
-                    }
-                    className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
-                    placeholder="Your name"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm text-muted-light mb-2"
-                  >
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
-                    className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
-                    placeholder="you@company.com"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="company"
-                  className="block text-sm text-muted-light mb-2"
-                >
-                  Company{' '}
-                  <span className="text-muted">(optional)</span>
-                </label>
-                <input
-                  id="company"
-                  type="text"
-                  value={formData.company}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      company: e.target.value,
-                    }))
-                  }
-                  className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors"
-                  placeholder="Your company"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="message"
-                  className="block text-sm text-muted-light mb-2"
-                >
-                  Tell me about your business and what you&apos;re exploring with AI
-                </label>
-                <textarea
-                  id="message"
-                  required
-                  rows={6}
-                  value={formData.message}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      message: e.target.value,
-                    }))
-                  }
-                  className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground placeholder:text-muted focus:outline-none focus:border-accent transition-colors resize-none"
-                  placeholder="What does your business do? What processes feel manual or inefficient? What have you tried so far?"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="inline-block border-b border-accent text-accent text-sm tracking-wide pb-1 hover:text-accent-hover hover:border-accent-hover transition-colors"
-              >
-                Send message
-              </button>
-            </form>
-          </Reveal>
-        )}
-
-        <Reveal delay={0.3}>
-          <div className="mt-16 pt-16 border-t border-border">
-            <p className="text-sm text-muted-light">
-              Or email directly:{' '}
-              <a
-                href={`mailto:${SITE.email}`}
-                className="text-foreground hover:text-accent transition-colors"
-              >
-                {SITE.email}
-              </a>
+    <>
+      {/* Hero */}
+      <section className="pt-36 md:pt-44 pb-12">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
+              Contact
             </p>
+            <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight max-w-3xl">
+              Let&apos;s talk.
+            </h1>
+            <p className="mt-6 text-lg text-muted-light max-w-xl leading-relaxed">
+              Tell us about your business and what you&apos;re exploring with AI.
+              We&apos;ll get back to you within 24 hours.
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Form */}
+      <section className="pb-24 md:pb-32">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+            <div className="lg:col-span-7">
+              {submitted ? (
+                <Reveal>
+                  <div className="py-20">
+                    <h2 className="font-[family-name:var(--font-serif)] text-3xl tracking-tight mb-4">
+                      Message received.
+                    </h2>
+                    <p className="text-muted-light text-lg">
+                      We&apos;ll review what you&apos;ve shared and get back to
+                      you within 24 hours.
+                    </p>
+                  </div>
+                </Reveal>
+              ) : (
+                <Reveal>
+                  <form onSubmit={handleSubmit} className="space-y-10">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
+                      <div>
+                        <label htmlFor="name" className="block text-sm text-muted-light mb-3">
+                          Name
+                        </label>
+                        <input
+                          id="name"
+                          type="text"
+                          required
+                          value={formData.name}
+                          onChange={update('name')}
+                          className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground-strong placeholder:text-muted focus:outline-none focus:border-accent transition-colors duration-300"
+                          placeholder="Your name"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="email" className="block text-sm text-muted-light mb-3">
+                          Email
+                        </label>
+                        <input
+                          id="email"
+                          type="email"
+                          required
+                          value={formData.email}
+                          onChange={update('email')}
+                          className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground-strong placeholder:text-muted focus:outline-none focus:border-accent transition-colors duration-300"
+                          placeholder="you@company.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="company" className="block text-sm text-muted-light mb-3">
+                        Company <span className="text-muted">(optional)</span>
+                      </label>
+                      <input
+                        id="company"
+                        type="text"
+                        value={formData.company}
+                        onChange={update('company')}
+                        className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground-strong placeholder:text-muted focus:outline-none focus:border-accent transition-colors duration-300"
+                        placeholder="Your company"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="message" className="block text-sm text-muted-light mb-3">
+                        What&apos;s on your mind?
+                      </label>
+                      <textarea
+                        id="message"
+                        required
+                        rows={6}
+                        value={formData.message}
+                        onChange={update('message')}
+                        className="w-full bg-transparent border-b border-border px-0 py-3 text-foreground-strong placeholder:text-muted focus:outline-none focus:border-accent transition-colors duration-300 resize-none"
+                        placeholder="Tell us about your business, what processes feel manual, what you've tried so far..."
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.03]"
+                    >
+                      Send message
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                      </svg>
+                    </button>
+                  </form>
+                </Reveal>
+              )}
+            </div>
+
+            {/* Sidebar */}
+            <div className="lg:col-span-4 lg:col-start-9">
+              <Reveal delay={0.2}>
+                <div className="space-y-10 lg:pt-12">
+                  <div>
+                    <p className="text-xs tracking-[0.2em] uppercase text-muted mb-3">
+                      Email
+                    </p>
+                    <a
+                      href={`mailto:${SITE.email}`}
+                      className="text-foreground-strong hover:text-accent transition-colors duration-300"
+                    >
+                      {SITE.email}
+                    </a>
+                  </div>
+                  <div>
+                    <p className="text-xs tracking-[0.2em] uppercase text-muted mb-3">
+                      Location
+                    </p>
+                    <p className="text-muted-light">Newton, Massachusetts</p>
+                  </div>
+                  <div>
+                    <p className="text-xs tracking-[0.2em] uppercase text-muted mb-3">
+                      Response time
+                    </p>
+                    <p className="text-muted-light">Within 24 hours</p>
+                  </div>
+                </div>
+              </Reveal>
+            </div>
           </div>
-        </Reveal>
-      </div>
-    </section>
+        </div>
+      </section>
+    </>
   );
 }

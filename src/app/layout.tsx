@@ -1,23 +1,23 @@
 import type { Metadata } from 'next';
-import { Geist } from 'next/font/google';
-import { Newsreader } from 'next/font/google';
+import { Sora, Source_Serif_4 } from 'next/font/google';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { JsonLd } from '@/components/json-ld';
 import { SITE } from '@/lib/constants';
 import './globals.css';
 
-const geist = Geist({
-  variable: '--font-geist',
+const sora = Sora({
+  variable: '--font-sora',
   subsets: ['latin'],
   display: 'swap',
 });
 
-const newsreader = Newsreader({
-  variable: '--font-newsreader',
+const sourceSerif = Source_Serif_4({
+  variable: '--font-source-serif',
   subsets: ['latin'],
   display: 'swap',
   style: ['normal', 'italic'],
+  weight: ['300', '400', '600', '700'],
 });
 
 export const metadata: Metadata = {
@@ -57,7 +57,7 @@ export default function RootLayout({
       <head>
         <JsonLd />
       </head>
-      <body className={`${geist.variable} ${newsreader.variable} antialiased`}>
+      <body className={`${sora.variable} ${sourceSerif.variable} antialiased`}>
         <Navbar />
         <main>{children}</main>
         <Footer />

@@ -1,15 +1,21 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #09090b;
-  --color-foreground: #fafaf9;
-  --color-accent: #c8a26e;
-  --color-accent-hover: #d4b483;
-  --color-muted: #52525b;
-  --color-muted-light: #a1a1aa;
-  --color-border: #1c1c22;
-  --font-sans: var(--font-geist);
-  --font-serif: var(--font-newsreader);
+  --color-background: #0a0a0a;
+  --color-foreground: #e8e4de;
+  --color-foreground-strong: #fafaf8;
+  --color-accent: #c8a55e;
+  --color-accent-hover: #d9b96f;
+  --color-muted: #525250;
+  --color-muted-light: #9a9a96;
+  --color-border: #1a1a1a;
+  --color-surface: #111111;
+  --color-surface-light: #fafaf8;
+  --color-surface-light-foreground: #1a1a1a;
+  --color-surface-light-muted: #6b6b68;
+  --color-surface-light-border: #e5e2dc;
+  --font-sans: var(--font-sora);
+  --font-serif: var(--font-source-serif);
 }
 
 * {
@@ -27,10 +33,11 @@ body {
   color: var(--color-foreground);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  line-height: 1.6;
 }
 
 ::selection {
-  background: rgba(200, 162, 110, 0.25);
+  background: rgba(200, 165, 94, 0.2);
   color: #fff;
 }
 
@@ -43,11 +50,29 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 2px;
 }
 
 *:focus-visible {
   outline: 1px solid var(--color-accent);
-  outline-offset: 2px;
+  outline-offset: 3px;
+}
+
+/* Utility for light sections */
+.section-light {
+  background: var(--color-surface-light);
+  color: var(--color-surface-light-foreground);
+}
+
+.section-light .text-muted-light {
+  color: var(--color-surface-light-muted);
+}
+
+.section-light .text-muted {
+  color: var(--color-surface-light-muted);
+}
+
+.section-light .border-border {
+  border-color: var(--color-surface-light-border);
 }
