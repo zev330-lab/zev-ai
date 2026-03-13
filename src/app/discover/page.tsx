@@ -10,6 +10,7 @@ const AI_LEVELS = ['Not yet', 'Dabbled a bit', 'Use them regularly', 'Tried and 
 
 interface FormData {
   name: string;
+  email: string;
   company: string;
   role: string;
   business: string;
@@ -25,6 +26,7 @@ interface FormData {
 
 const INITIAL: FormData = {
   name: '',
+  email: '',
   company: '',
   role: '',
   business: '',
@@ -38,27 +40,29 @@ const INITIAL: FormData = {
   anythingElse: '',
 };
 
-// Total steps: 0=welcome, 1-11=questions, 12=review, 13=thank you
-const TOTAL_STEPS = 14;
+// Total steps: 0=welcome, 1=name, 2=email, 3=company, 4=role, 5=business, 6=team,
+// 7=pain, 8=repetitive, 9=ai, 10=wand, 11=success, 12=anything, 13=review, 14=thanks
+const TOTAL_STEPS = 15;
 const FIRST_QUESTION = 1;
-const REVIEW_STEP = 12;
-const THANK_YOU_STEP = 13;
+const REVIEW_STEP = 13;
+const THANK_YOU_STEP = 14;
 
 function canAdvance(step: number, data: FormData): boolean {
   switch (step) {
     case 0: return true; // welcome
     case 1: return data.name.trim().length > 0;
-    case 2: return data.company.trim().length > 0;
-    case 3: return data.role.trim().length > 0;
-    case 4: return data.business.trim().length > 0;
-    case 5: return data.teamSize.length > 0;
-    case 6: return data.painPoints.trim().length > 0;
-    case 7: return data.repetitiveWork.trim().length > 0;
-    case 8: return data.aiExperience.length > 0;
-    case 9: return data.magicWand.trim().length > 0;
-    case 10: return data.success.trim().length > 0;
-    case 11: return true; // optional
-    case 12: return true; // review
+    case 2: return true; // email is optional
+    case 3: return data.company.trim().length > 0;
+    case 4: return data.role.trim().length > 0;
+    case 5: return data.business.trim().length > 0;
+    case 6: return data.teamSize.length > 0;
+    case 7: return data.painPoints.trim().length > 0;
+    case 8: return data.repetitiveWork.trim().length > 0;
+    case 9: return data.aiExperience.length > 0;
+    case 10: return data.magicWand.trim().length > 0;
+    case 11: return data.success.trim().length > 0;
+    case 12: return true; // optional
+    case 13: return true; // review
     default: return false;
   }
 }
@@ -66,6 +70,7 @@ function canAdvance(step: number, data: FormData): boolean {
 function buildMailtoBody(data: FormData): string {
   const lines = [
     `Name: ${data.name}`,
+    data.email ? `Email: ${data.email}` : '',
     `Company: ${data.company}`,
     `Role: ${data.role}`,
     '',
@@ -146,6 +151,7 @@ export default function DiscoverPage() {
   const [direction, setDirection] = useState(1);
   const [data, setData] = useState<FormData>(INITIAL);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
@@ -195,25 +201,27 @@ export default function DiscoverPage() {
   }, [next]);
 
   const handleSubmit = async () => {
-    // TODO: Replace with real Formspree endpoint
-    // Uncomment the following when Formspree endpoint is ready:
-    // try {
-    //   await fetch('https://formspree.io/f/FORM_ID', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify(data),
-    //   });
-    // } catch {
-    //   // Formspree failed — mailto fallback below still works
-    // }
+    setSubmitting(true);
 
-    // Primary: mailto link
-    const subject = encodeURIComponent(`Discovery — ${data.name}, ${data.company}`);
-    const body = encodeURIComponent(buildMailtoBody(data));
-    window.location.href = `mailto:zev@zev.ai?subject=${subject}&body=${body}`;
+    try {
+      const res = await fetch('/api/submit-discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
 
-    setSubmitted(true);
-    goTo(THANK_YOU_STEP, 1);
+      if (!res.ok) throw new Error('Submission failed');
+      setSubmitted(true);
+    } catch {
+      // Fallback: mailto link if API fails
+      const subject = encodeURIComponent(`Discovery — ${data.name}, ${data.company}`);
+      const body = encodeURIComponent(buildMailtoBody(data));
+      window.location.href = `mailto:zev@zev.ai?subject=${subject}&body=${body}`;
+      setSubmitted(true);
+    } finally {
+      setSubmitting(false);
+      goTo(THANK_YOU_STEP, 1);
+    }
   };
 
   const handleCopy = async () => {
@@ -237,16 +245,17 @@ export default function DiscoverPage() {
   // --- Review field display ---
   const reviewFields: { label: string; value: string; step: number }[] = [
     { label: 'Name', value: data.name, step: 1 },
-    { label: 'Company', value: data.company, step: 2 },
-    { label: 'Role', value: data.role, step: 3 },
-    { label: 'Business', value: data.business, step: 4 },
-    { label: 'Team size', value: data.teamSize, step: 5 },
-    { label: 'Pain points', value: data.painPoints, step: 6 },
-    { label: 'Repetitive work', value: data.repetitiveWork, step: 7 },
-    { label: 'AI experience', value: `${data.aiExperience}${data.aiDetails ? ` — ${data.aiDetails}` : ''}`, step: 8 },
-    { label: 'Magic wand', value: data.magicWand, step: 9 },
-    { label: 'Success', value: data.success, step: 10 },
-    { label: 'Anything else', value: data.anythingElse, step: 11 },
+    { label: 'Email', value: data.email, step: 2 },
+    { label: 'Company', value: data.company, step: 3 },
+    { label: 'Role', value: data.role, step: 4 },
+    { label: 'Business', value: data.business, step: 5 },
+    { label: 'Team size', value: data.teamSize, step: 6 },
+    { label: 'Pain points', value: data.painPoints, step: 7 },
+    { label: 'Repetitive work', value: data.repetitiveWork, step: 8 },
+    { label: 'AI experience', value: `${data.aiExperience}${data.aiDetails ? ` — ${data.aiDetails}` : ''}`, step: 9 },
+    { label: 'Magic wand', value: data.magicWand, step: 10 },
+    { label: 'Success', value: data.success, step: 11 },
+    { label: 'Anything else', value: data.anythingElse, step: 12 },
   ];
 
   return (
@@ -330,9 +339,25 @@ export default function DiscoverPage() {
                 </Question>
               )}
 
-              {/* ===== Q2: Company ===== */}
+              {/* ===== Q2: Email ===== */}
               {step === 2 && (
-                <Question label="02" question="What&rsquo;s your company or organization?">
+                <Question label="02" question="What&rsquo;s your email?">
+                  <input
+                    ref={inputRef as React.RefObject<HTMLInputElement>}
+                    type="email"
+                    value={data.email}
+                    onChange={(e) => update('email', e.target.value)}
+                    placeholder="you@company.com"
+                    className={inputClasses}
+                    autoComplete="email"
+                  />
+                  <p className="mt-3 text-sm text-muted">Optional — so I can send you a summary of our conversation.</p>
+                </Question>
+              )}
+
+              {/* ===== Q3: Company ===== */}
+              {step === 3 && (
+                <Question label="03" question="What&rsquo;s your company or organization?">
                   <input
                     ref={inputRef as React.RefObject<HTMLInputElement>}
                     type="text"
@@ -345,9 +370,9 @@ export default function DiscoverPage() {
                 </Question>
               )}
 
-              {/* ===== Q3: Role ===== */}
-              {step === 3 && (
-                <Question label="03" question="What&rsquo;s your role?">
+              {/* ===== Q4: Role ===== */}
+              {step === 4 && (
+                <Question label="04" question="What&rsquo;s your role?">
                   <input
                     ref={inputRef as React.RefObject<HTMLInputElement>}
                     type="text"
@@ -360,9 +385,9 @@ export default function DiscoverPage() {
                 </Question>
               )}
 
-              {/* ===== Q4: Business Overview ===== */}
-              {step === 4 && (
-                <Question label="04" question="In a sentence or two, what does your business do?">
+              {/* ===== Q5: Business Overview ===== */}
+              {step === 5 && (
+                <Question label="05" question="In a sentence or two, what does your business do?">
                   <textarea
                     ref={inputRef as React.RefObject<HTMLTextAreaElement>}
                     rows={3}
@@ -374,9 +399,9 @@ export default function DiscoverPage() {
                 </Question>
               )}
 
-              {/* ===== Q5: Team Size ===== */}
-              {step === 5 && (
-                <Question label="05" question="How many people are on your team?">
+              {/* ===== Q6: Team Size ===== */}
+              {step === 6 && (
+                <Question label="06" question="How many people are on your team?">
                   <div className="flex flex-wrap gap-3 mt-2">
                     {TEAM_SIZES.map((size) => (
                       <Chip
@@ -390,9 +415,9 @@ export default function DiscoverPage() {
                 </Question>
               )}
 
-              {/* ===== Q6: Pain Points ===== */}
-              {step === 6 && (
-                <Question label="06" question="What&rsquo;s the most frustrating part of running your business right now?">
+              {/* ===== Q7: Pain Points ===== */}
+              {step === 7 && (
+                <Question label="07" question="What&rsquo;s the most frustrating part of running your business right now?">
                   <textarea
                     ref={inputRef as React.RefObject<HTMLTextAreaElement>}
                     rows={4}
@@ -407,9 +432,9 @@ export default function DiscoverPage() {
                 </Question>
               )}
 
-              {/* ===== Q7: Repetitive Work ===== */}
-              {step === 7 && (
-                <Question label="07" question="Where do you or your team spend the most time on repetitive, manual tasks?">
+              {/* ===== Q8: Repetitive Work ===== */}
+              {step === 8 && (
+                <Question label="08" question="Where do you or your team spend the most time on repetitive, manual tasks?">
                   <textarea
                     ref={inputRef as React.RefObject<HTMLTextAreaElement>}
                     rows={3}
@@ -421,9 +446,9 @@ export default function DiscoverPage() {
                 </Question>
               )}
 
-              {/* ===== Q8: AI Experience ===== */}
-              {step === 8 && (
-                <Question label="08" question="Have you tried any AI tools yet?">
+              {/* ===== Q9: AI Experience ===== */}
+              {step === 9 && (
+                <Question label="09" question="Have you tried any AI tools yet?">
                   <div className="flex flex-wrap gap-3 mt-2">
                     {AI_LEVELS.map((level) => (
                       <Chip
@@ -457,9 +482,9 @@ export default function DiscoverPage() {
                 </Question>
               )}
 
-              {/* ===== Q9: Magic Wand ===== */}
-              {step === 9 && (
-                <Question label="09" question="If you could wave a magic wand and fix one thing in your business tomorrow, what would it be?">
+              {/* ===== Q10: Magic Wand ===== */}
+              {step === 10 && (
+                <Question label="10" question="If you could wave a magic wand and fix one thing in your business tomorrow, what would it be?">
                   <textarea
                     ref={inputRef as React.RefObject<HTMLTextAreaElement>}
                     rows={4}
@@ -471,9 +496,9 @@ export default function DiscoverPage() {
                 </Question>
               )}
 
-              {/* ===== Q10: Success ===== */}
-              {step === 10 && (
-                <Question label="10" question="What does success look like for your business over the next 12 months?">
+              {/* ===== Q11: Success ===== */}
+              {step === 11 && (
+                <Question label="11" question="What does success look like for your business over the next 12 months?">
                   <textarea
                     ref={inputRef as React.RefObject<HTMLTextAreaElement>}
                     rows={3}
@@ -485,9 +510,9 @@ export default function DiscoverPage() {
                 </Question>
               )}
 
-              {/* ===== Q11: Anything Else ===== */}
-              {step === 11 && (
-                <Question label="11" question="Anything else you want me to know before we meet?">
+              {/* ===== Q12: Anything Else ===== */}
+              {step === 12 && (
+                <Question label="12" question="Anything else you want me to know before we meet?">
                   <textarea
                     ref={inputRef as React.RefObject<HTMLTextAreaElement>}
                     rows={3}
@@ -530,9 +555,10 @@ export default function DiscoverPage() {
                   <div className="mt-8 flex flex-wrap gap-4">
                     <button
                       onClick={handleSubmit}
-                      className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.03] cursor-pointer"
+                      disabled={submitting}
+                      className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.03] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
-                      Submit
+                      {submitting ? 'Submitting...' : 'Submit'}
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                       </svg>
@@ -646,7 +672,7 @@ export default function DiscoverPage() {
             </button>
 
             <span className="text-xs text-muted tabular-nums">
-              {step <= 11 ? `${step} of 11` : 'Review'}
+              {step <= 12 ? `${step} of 12` : 'Review'}
             </span>
 
             {step < REVIEW_STEP && (
@@ -655,7 +681,7 @@ export default function DiscoverPage() {
                 disabled={!canAdvance(step, data)}
                 className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-hover transition-colors duration-300 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               >
-                {step === 11 ? 'Review' : 'Next'}
+                {step === 12 ? 'Review' : 'Next'}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                 </svg>

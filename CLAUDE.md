@@ -1,58 +1,94 @@
 # zev.ai — AI Consulting Website
 
+## Supabase Setup (Manual Steps)
+1. Create a Supabase project at supabase.com/dashboard
+2. Run `supabase-setup.sql` in the SQL Editor (creates `contacts` + `discoveries` tables with RLS)
+3. Copy project URL + anon key + service role key from Settings > API
+4. Set env vars in Vercel (Settings > Environment Variables):
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `RESEND_API_KEY` (from resend.com)
+   - `ADMIN_PASSWORD` (choose a strong password)
+5. Redeploy after setting env vars: `vercel --prod --yes --scope steinmetz-real-estate-professionlas`
+
 ## Overview
-Flagship website for Zev Steinmetz's AI consulting practice. Apple.com-quality cinematic scroll experience. 6 pages (5 public + 1 private) with alternating dark/light sections, scroll-triggered animations, and large confident typography.
+Flagship website for Zev Steinmetz's AI consulting practice. Apple.com-quality cinematic scroll experience. 8 pages (5 public + 3 private) with alternating dark/light sections, scroll-triggered animations, and large confident typography. Supabase backend for form submissions + admin dashboard for lead management.
 
 ## Stack
 - **Framework:** Next.js 16 (App Router), TypeScript
 - **Styling:** Tailwind CSS v4 (inline @theme)
 - **Animations:** Framer Motion (useScroll, useTransform, useInView, stagger reveals, parallax)
 - **Fonts:** Sora (sans, body) + Source Serif 4 (serif, headings/editorial)
+- **Backend:** Supabase (PostgreSQL + RLS), Resend (email notifications)
 - **Deployment:** Vercel
 - **Domain:** zev.ai (pending DNS setup)
 
 ## Design System
-- **Background:** near-black (#0a0a0a)
-- **Foreground:** warm off-white (#e8e4de), strong (#fafaf8)
-- **Accent:** warm gold (#c8a55e), hover (#d9b96f)
-- **Muted:** #525250, light (#9a9a96)
-- **Borders:** #1a1a1a
-- **Surface:** #111111 (dark), #fafaf8 (light sections)
+- **Background:** dark navy (#1e2330)
+- **Foreground:** off-white (#e4e7eb), strong (#f4f5f7)
+- **Accent:** teal (#5ba8b5), hover (#72bec9)
+- **Muted:** #5c6272, light (#9298a6)
+- **Borders:** #2a3042
+- **Surface:** #242a38 (dark), #f6f5f2 (light sections)
 - **Sections:** Alternating dark/light via `.section-light` CSS utility
-- **CTA style:** Gold rounded-full buttons with arrow icons
+- **CTA style:** Teal rounded-full buttons with arrow icons
 - **Easing:** `[0.22, 1, 0.36, 1]` throughout
 
-## Pages (6 total)
-- `/` — 7 cinematic sections: Hero (parallax + gradient orbs + scroll hint), Problem (light, 4 staggered statements), Approach (3 numbered phases), Capabilities (light, 6 items with gold dots), Scale (3 cards: Starter/Growth/Enterprise with floor statement), Difference (light, 3 beliefs with dividers), CTA
-- `/services` — 4 service tiers (AI Readiness $2.5K, AI Implementation $5-25K, Fractional AI Officer $5-10K/mo, Performance Partnership base+10-25% impact). "Most aligned" badge on tier 4. Pricing transparency rationale.
-- `/work` — Featured project narrative: real estate platform. Stats (2000+ pages, 18 agents, 28+ tables, 25 SOPs). 4 aspect deep-dives (Scale, Intelligence, Infrastructure, Automation). Tech stack.
-- `/about` — Philosophy-first editorial prose. Implementation over strategy. Builder section (Zev's background). Technology stack ecosystem.
-- `/contact` — 12-col grid: form (name, email, company optional, message) + sidebar (email, location, response time).
-- `/discover` — **Private** (not in nav, noindex). Typeform-style multi-step client discovery intake form. 11 questions (one per screen), animated transitions, selection chips, review screen, mailto submission + clipboard fallback. Formspree endpoint placeholder ready to enable. Sent to prospects before meetings.
+## Pages
+### Public (5)
+- `/` — 7 cinematic sections: Hero, Problem, Approach, Capabilities, Scale, Difference, CTA
+- `/services` — 4 service tiers with pricing
+- `/work` — Featured project narrative + stats
+- `/about` — Philosophy + builder background
+- `/contact` — Form (→ Supabase `contacts` table) + sidebar. Loading/success/error states. Resend email notification to zev@zev.ai.
+
+### Private (3) — not in nav, noindex
+- `/discover` — Typeform-style multi-step client discovery intake form. 12 questions (one per screen), animated transitions, selection chips, review screen. Submits to Supabase `discoveries` table via API. Mailto fallback if API fails. "Copy all answers" backup button.
+- `/admin` — Admin dashboard: contacts list, status management (new/read/replied/archived), notes, search, filter. Light theme, sidebar nav, slide-out detail panel.
+- `/admin/discoveries` — Discovery submissions list with full detail view. Statuses: new/reviewed/meeting_scheduled/proposal_sent/engaged/archived.
+
+## API Routes
+- `POST /api/submit-contact` — Validates, inserts into `contacts`, sends Resend notification
+- `POST /api/submit-discover` — Validates, inserts into `discoveries`, sends Resend notification
+- `POST /api/admin/login` — Password check, sets httpOnly auth cookie (7-day expiry)
+- `GET /api/admin/contacts` — List contacts (supports ?status= and ?search= filters)
+- `PATCH /api/admin/contacts` — Update contact status/notes
+- `GET /api/admin/discoveries` — List discoveries (supports ?status= and ?search= filters)
+- `PATCH /api/admin/discoveries` — Update discovery status/notes
+
+## Database (Supabase)
+- **`contacts`** — id, created_at, name, email, company, message, status, notes
+- **`discoveries`** — id, created_at, name, email, company, role, business_overview, team_size, pain_points, repetitive_work, ai_experience, ai_tools_detail, magic_wand, success_vision, anything_else, status, notes
+- **RLS:** anon can INSERT; service_role has full access
+
+## Admin Auth
+- Simple password auth via `ADMIN_PASSWORD` env var
+- Middleware redirects unauthenticated `/admin/*` requests to `/admin/login`
+- Auth stored in httpOnly cookie, 7-day expiry
 
 ## Key Components
-- `Navbar` — Sticky, 5 links + gold CTA button. Desktop at lg (1024px+), hamburger below. Transparent on hero, blur backdrop on scroll. Mobile full-screen overlay with serif links.
+- `Navbar` — Sticky, 5 links + CTA button. Desktop at lg+, hamburger below.
 - `Footer` — Logo, description, email, LinkedIn, copyright.
-- `Reveal` / `StaggerReveal` / `StaggerChild` — Scroll-triggered animation wrappers using useInView.
-- `AnimatedNumber` — Count-up animation triggered on scroll into view.
-- `HeroGradient` — Subtle ambient radial gradient orbs at very low opacity (0.03-0.04).
-- `JsonLd` — Schema.org (Organization, WebSite, ProfessionalService with OfferCatalog).
+- `Reveal` / `StaggerReveal` / `StaggerChild` — Scroll-triggered animation wrappers.
+- `AnimatedNumber` — Count-up animation on scroll.
+- `HeroGradient` — Subtle ambient gradient orbs.
+- `JsonLd` — Schema.org structured data.
 
 ## What's NOT Built Yet
-- [ ] Backend API routes (contact form → email delivery)
-- [ ] Supabase integration
 - [ ] Live AI chat (real Claude API integration)
 - [ ] Calendly embed
 - [ ] Blog (when real content exists)
 - [ ] Case studies (when 3+ real ones with permission)
 - [ ] Analytics (GA, PostHog)
 - [ ] Custom domain DNS
+- [ ] Resend domain verification (currently using onboarding@resend.dev)
 
 ## Working Rules
 - Design north star: apple.com — cinematic, confident, every animation serves the narrative
 - Confidence is quiet. Desperation is loud.
 - Every word earns its place or gets cut.
-- Dark mode only, no light mode
+- Dark mode only, no light mode (except admin dashboard — light theme for work tool)
 - Alternating dark/light sections for rhythm and readability
 - Performance target: 95+ Lighthouse scores
 - Never commit .env files
@@ -61,26 +97,37 @@ Flagship website for Zev Steinmetz's AI consulting practice. Apple.com-quality c
 ```
 src/
 ├── app/
-│   ├── layout.tsx          # Root layout (Sora + Source Serif 4 fonts, navbar, footer, JSON-LD)
-│   ├── page.tsx            # Home — 7 cinematic sections (client component)
-│   ├── globals.css         # Tailwind v4 theme + .section-light utility
-│   ├── sitemap.ts          # 5-page sitemap
-│   ├── robots.ts           # robots.txt
-│   ├── services/           # Services page + layout
-│   ├── work/               # Work page + layout
-│   ├── about/              # About page + layout
-│   ├── contact/            # Contact page + layout
-│   └── discover/           # Private client discovery intake form (not in nav)
+│   ├── layout.tsx              # Root layout
+│   ├── page.tsx                # Home
+│   ├── globals.css             # Tailwind v4 @theme
+│   ├── sitemap.ts / robots.ts
+│   ├── services/               # Services page
+│   ├── work/                   # Work page
+│   ├── about/                  # About page
+│   ├── contact/                # Contact form (wired to API)
+│   ├── discover/               # Multi-step intake form (wired to API)
+│   ├── admin/                  # Admin dashboard
+│   │   ├── login/page.tsx      # Password login
+│   │   ├── page.tsx            # Contacts view
+│   │   └── discoveries/page.tsx # Discoveries view
+│   └── api/
+│       ├── submit-contact/     # Public form endpoint
+│       ├── submit-discover/    # Public form endpoint
+│       └── admin/              # Auth + CRUD endpoints
+│           ├── login/
+│           ├── contacts/
+│           └── discoveries/
 ├── components/
-│   ├── navbar.tsx           # Sticky nav with 5 links + CTA
-│   ├── footer.tsx           # Minimal footer
-│   ├── reveal.tsx           # Reveal + StaggerReveal + StaggerChild
-│   ├── animated-number.tsx  # Scroll-triggered count-up
-│   ├── hero-gradient.tsx    # Ambient gradient orbs
-│   └── json-ld.tsx          # Structured data with OfferCatalog
-└── lib/
-    ├── constants.ts         # Site config, 5 nav links
-    └── utils.ts             # cn() helper
+│   ├── navbar.tsx / footer.tsx
+│   ├── reveal.tsx / animated-number.tsx
+│   ├── hero-gradient.tsx / json-ld.tsx
+├── lib/
+│   ├── constants.ts
+│   ├── supabase.ts             # Client + Admin Supabase instances
+│   └── utils.ts
+├── middleware.ts                # Admin route protection
+supabase-setup.sql              # DB schema + RLS policies
+.env.example                    # All required env vars
 ```
 
 ## Deployment
@@ -91,4 +138,4 @@ src/
 - **Build:** `npm run build`
 - **Dev:** `npm run dev`
 - **Deploy:** `vercel --prod --yes --scope steinmetz-real-estate-professionlas`
-- **Status:** Phase 2.1 deployed (2026-03-13) — 4th service tier, scale spectrum, spacing refinements
+- **Status:** Backend + admin dashboard deployed (2026-03-13). Forms wired to Supabase. Needs env vars set in Vercel to go live.

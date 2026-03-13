@@ -12,17 +12,34 @@ export default function ContactPage() {
     company: '',
     message: '',
   });
-  const [submitted, setSubmitted] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submission:', formData);
-    setSubmitted(true);
+    setStatus('loading');
+
+    try {
+      const res = await fetch('/api/submit-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (res.ok) {
+        setStatus('success');
+      } else {
+        setStatus('error');
+      }
+    } catch {
+      setStatus('error');
+    }
   };
 
   const update = (field: string) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+
+  const isValid = formData.name.trim() && formData.email.trim() && formData.message.trim() && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email);
 
   return (
     <>
@@ -53,14 +70,14 @@ export default function ContactPage() {
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
             <div className="lg:col-span-7">
-              {submitted ? (
+              {status === 'success' ? (
                 <Reveal>
                   <div className="py-20">
                     <h2 className="font-[family-name:var(--font-serif)] text-3xl tracking-tight mb-4">
-                      Message received.
+                      Thank you.
                     </h2>
                     <p className="text-muted-light text-lg">
-                      We&apos;ll review what you&apos;ve shared and get back to
+                      I&apos;ll review what you&apos;ve shared and get back to
                       you within 24 hours.
                     </p>
                   </div>
@@ -128,11 +145,21 @@ export default function ContactPage() {
                       />
                     </div>
 
+                    {status === 'error' && (
+                      <p className="text-sm text-red-400">
+                        Something went wrong. Email me directly at{' '}
+                        <a href={`mailto:${SITE.email}`} className="text-accent hover:text-accent-hover underline">
+                          {SITE.email}
+                        </a>
+                      </p>
+                    )}
+
                     <button
                       type="submit"
-                      className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.03]"
+                      disabled={status === 'loading' || !isValid}
+                      className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.03] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
-                      Send message
+                      {status === 'loading' ? 'Sending...' : 'Send message'}
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                       </svg>
