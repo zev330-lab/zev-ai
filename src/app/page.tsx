@@ -91,16 +91,16 @@ export default function Home() {
           SECTION 2 — THE PROBLEM
           ═══════════════════════════════════════════ */}
       <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-16 md:py-24">
           <Reveal>
-            <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-14 md:mb-20">
+            <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-10 md:mb-14">
               The reality
             </p>
           </Reveal>
 
-          <StaggerReveal className="space-y-14 md:space-y-20">
+          <StaggerReveal className="space-y-0">
             <StaggerChild>
-              <div className="max-w-[680px]">
+              <div className="max-w-[680px] pb-8 md:pb-12">
                 <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
                   Everyone&apos;s talking about AI.
                   <br />
@@ -115,46 +115,52 @@ export default function Home() {
             </StaggerChild>
 
             <StaggerChild>
-              <div className="max-w-[680px] md:ml-auto md:text-right">
-                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
-                  You&apos;ve been sold strategy
-                  <br />
-                  when you needed systems.
-                </h2>
-                <p className="text-muted-light text-lg leading-relaxed md:ml-auto">
-                  Most AI consultants deliver a PDF and a roadmap. You needed someone
-                  who delivers working software — systems that are live, tested, and
-                  running inside your operations.
-                </p>
+              <div className="border-t border-accent/25 pt-8 md:pt-12 pb-8 md:pb-12">
+                <div className="max-w-[680px] md:ml-auto md:text-right">
+                  <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
+                    You&apos;ve been sold strategy
+                    <br />
+                    when you needed systems.
+                  </h2>
+                  <p className="text-muted-light text-lg leading-relaxed md:ml-auto">
+                    Most AI consultants deliver a PDF and a roadmap. You needed someone
+                    who delivers working software — systems that are live, tested, and
+                    running inside your operations.
+                  </p>
+                </div>
               </div>
             </StaggerChild>
 
             <StaggerChild>
-              <div className="max-w-[680px]">
-                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
-                  Your competitors aren&apos;t waiting.
-                </h2>
-                <p className="text-muted-light text-lg leading-relaxed">
-                  While you&apos;re evaluating, someone in your market is deploying.
-                  AI adoption isn&apos;t a future trend — it&apos;s a present advantage.
-                  The gap between companies that use AI and those that don&apos;t is
-                  widening every quarter.
-                </p>
+              <div className="border-t border-accent/25 pt-8 md:pt-12 pb-8 md:pb-12">
+                <div className="max-w-[680px]">
+                  <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
+                    Your competitors aren&apos;t waiting.
+                  </h2>
+                  <p className="text-muted-light text-lg leading-relaxed">
+                    While you&apos;re evaluating, someone in your market is deploying.
+                    AI adoption isn&apos;t a future trend — it&apos;s a present advantage.
+                    The gap between companies that use AI and those that don&apos;t is
+                    widening every quarter.
+                  </p>
+                </div>
               </div>
             </StaggerChild>
 
             <StaggerChild>
-              <div className="max-w-[680px] md:ml-auto md:text-right">
-                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
-                  You don&apos;t need more advice.
-                  <br />
-                  You need a builder.
-                </h2>
-                <p className="text-muted-light text-lg leading-relaxed md:ml-auto">
-                  Someone who understands your operations, identifies where AI
-                  creates real leverage, builds the system, and proves it works.
-                  That&apos;s what we do.
-                </p>
+              <div className="border-t border-accent/25 pt-8 md:pt-12">
+                <div className="max-w-[680px] md:ml-auto md:text-right">
+                  <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
+                    You don&apos;t need more advice.
+                    <br />
+                    You need a builder.
+                  </h2>
+                  <p className="text-muted-light text-lg leading-relaxed md:ml-auto">
+                    Someone who understands your operations, identifies where AI
+                    creates real leverage, builds the system, and proves it works.
+                    That&apos;s what we do.
+                  </p>
+                </div>
               </div>
             </StaggerChild>
           </StaggerReveal>
