@@ -119,11 +119,11 @@ export function TreeOfLife({
           const isOracle = path.phantom;
           const isMiddle = isMiddlePillarPath(src, tgt);
 
-          // Path styling per Crown spec:
-          // Standard: solid, opacity 0.35, width 1.5
-          // Oracle: dashed, opacity 0.25, width 1.5
-          // Middle pillar: solid, opacity 0.5, width 2
-          // Oracle + middle (path 11): dashed, opacity 0.35, width 2
+          // Path styling:
+          // Standard: solid, opacity 0.45, width 1.6
+          // Oracle: dashed, opacity 0.35, width 1.6
+          // Middle pillar: solid, opacity 0.6, width 2.4
+          // Oracle + middle (path 11): dashed, opacity 0.45, width 2.4
           let opacity: number;
           let width: number;
           let dashArray: string | undefined;

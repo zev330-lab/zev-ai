@@ -95,7 +95,7 @@ export default function WorkPage() {
                 </p>
               </div>
               <div className="flex justify-center">
-                <div className="w-full max-w-[300px] h-[525px]">
+                <div className="w-full max-w-[300px] h-[450px]">
                   <TreeOfLife mode="diagram" />
                 </div>
               </div>
