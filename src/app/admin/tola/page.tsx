@@ -1,33 +1,20 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import {
-  ReactFlow,
-  Background,
-  Controls,
-  type Node,
-  type Edge,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-
-import { AgentNode, type AgentNodeData } from '@/components/admin/agent-node';
+import { TreeOfLife } from '@/components/tree-of-life';
 import { AgentPanel } from '@/components/admin/agent-panel';
 import { ActivityFeed } from '@/components/admin/activity-feed';
 import { useRealtimeAgents } from '@/hooks/use-realtime-agents';
 import {
   TOLA_AGENTS,
-  TREE_OF_LIFE_EDGES,
   STATUS_COLORS,
+  GEOMETRY_LABELS,
   type AgentId,
   type TolaAgent,
   type TolaAgentStatic,
 } from '@/lib/tola-agents';
 import { GEOMETRY_COMPONENTS } from '@/components/sacred-geometry';
 
-// Register custom node types outside component to avoid re-renders
-const nodeTypes = { agent: AgentNode };
-
-// Convert static agent data to TolaAgent for panel display when live data isn't available
 function staticToLive(agent: TolaAgentStatic): TolaAgent {
   return {
     id: agent.id,
@@ -50,14 +37,12 @@ export default function TolaAdminPage() {
   const { agents, loading } = useRealtimeAgents();
   const [selectedId, setSelectedId] = useState<AgentId | null>(null);
 
-  // Merge static data with live state
   const agentMap = useMemo(() => {
     const map = new Map<string, TolaAgent>();
     agents.forEach((a) => map.set(a.id, a));
     return map;
   }, [agents]);
 
-  // Selected agent: prefer live data, fall back to static
   const selectedAgent = useMemo(() => {
     if (!selectedId) return null;
     const live = agentMap.get(selectedId);
@@ -66,44 +51,17 @@ export default function TolaAdminPage() {
     return staticAgent ? staticToLive(staticAgent) : null;
   }, [selectedId, agentMap]);
 
-  // Build React Flow nodes
-  const nodes: Node<AgentNodeData>[] = useMemo(
-    () =>
-      TOLA_AGENTS.map((agent) => {
-        const live = agentMap.get(agent.id);
-        return {
-          id: agent.id,
-          type: 'agent' as const,
-          position: agent.position,
-          data: {
-            label: agent.display_name,
-            geometryEngine: agent.geometry_engine,
-            status: live?.status ?? 'offline',
-            description: agent.description,
-            tier: agent.tier,
-          },
-        };
-      }),
-    [agentMap],
-  );
+  const agentStatuses = useMemo(() => {
+    const record: Record<string, { status: 'healthy' | 'degraded' | 'critical' | 'offline' }> = {};
+    TOLA_AGENTS.forEach((a) => {
+      const live = agentMap.get(a.id);
+      record[a.id] = { status: live?.status ?? 'offline' };
+    });
+    return record;
+  }, [agentMap]);
 
-  // Build React Flow edges
-  const edges: Edge[] = useMemo(
-    () =>
-      TREE_OF_LIFE_EDGES.map((e, i) => ({
-        id: `e-${i}`,
-        source: e.source,
-        target: e.target,
-        style: {
-          stroke: 'rgba(22, 26, 46, 0.8)',
-          strokeWidth: 1.5,
-        },
-      })),
-    [],
-  );
-
-  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
-    setSelectedId(node.id as AgentId);
+  const handleNodeClick = useCallback((agentId: AgentId) => {
+    setSelectedId(agentId);
   }, []);
 
   const handleToggleKillSwitch = useCallback(
@@ -122,69 +80,83 @@ export default function TolaAdminPage() {
   );
 
   const healthyCount = agents.filter((a) => a.status === 'healthy').length;
+  const degradedCount = agents.filter((a) => a.status === 'degraded').length;
+  const criticalCount = agents.filter((a) => a.status === 'critical').length;
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-[var(--color-admin-border)] flex items-center justify-between shrink-0">
-        <div>
-          <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">
-            Tree of Life
-          </h1>
-          <p className="text-xs text-[var(--color-muted)] mt-0.5">
-            {agents.length > 0
-              ? `${agents.length} agents \u00b7 ${healthyCount} healthy`
-              : '11 agents \u00b7 loading state\u2026'}
-          </p>
+      {/* Header with overview bar */}
+      <div className="px-6 py-4 border-b border-[var(--color-admin-border)] shrink-0">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">
+              Tree of Life
+            </h1>
+            <p className="text-xs text-[var(--color-muted)] mt-0.5">
+              {agents.length > 0
+                ? `${agents.length} agents \u00b7 ${healthyCount} healthy`
+                : '11 agents \u00b7 loading state\u2026'}
+            </p>
+          </div>
+          <div className="hidden sm:flex items-center gap-4">
+            {Object.entries(STATUS_COLORS).map(([status, color]) => (
+              <div key={status} className="flex items-center gap-1.5">
+                <div
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+                <span className="text-[10px] text-[var(--color-muted)] capitalize">
+                  {status}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="hidden sm:flex items-center gap-4">
-          {Object.entries(STATUS_COLORS).map(([status, color]) => (
-            <div key={status} className="flex items-center gap-1.5">
-              <div
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: color }}
-              />
-              <span className="text-[10px] text-[var(--color-muted)] capitalize">
-                {status}
+
+        {/* Overview stats */}
+        {agents.length > 0 && (
+          <div className="flex items-center gap-6 text-xs">
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-green-400" />
+              <span className="text-[var(--color-muted-light)]">{healthyCount} healthy</span>
+            </div>
+            {degradedCount > 0 && (
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-amber-400" />
+                <span className="text-[var(--color-muted-light)]">{degradedCount} degraded</span>
+              </div>
+            )}
+            {criticalCount > 0 && (
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-red-400" />
+                <span className="text-[var(--color-muted-light)]">{criticalCount} critical</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-gray-400" />
+              <span className="text-[var(--color-muted-light)]">
+                {agents.length - healthyCount - degradedCount - criticalCount} offline
               </span>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Main content */}
       <div className="flex-1 flex min-h-0">
         {/* Tree of Life canvas — desktop */}
-        <div className="hidden md:block flex-1 relative">
+        <div className="hidden md:flex flex-1 relative items-center justify-center p-8">
           {loading ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <p className="text-sm text-[var(--color-muted)]">
-                Loading agents...
-              </p>
-            </div>
+            <p className="text-sm text-[var(--color-muted)]">Loading agents...</p>
           ) : (
-            <ReactFlow
-              nodes={nodes}
-              edges={edges}
-              nodeTypes={nodeTypes}
-              onNodeClick={onNodeClick}
-              fitView
-              fitViewOptions={{ padding: 0.3 }}
-              proOptions={{ hideAttribution: true }}
-              minZoom={0.4}
-              maxZoom={1.5}
-              className="!bg-[var(--color-admin-bg)]"
-            >
-              <Background
-                color="rgba(22, 26, 46, 0.5)"
-                gap={40}
-                size={1}
+            <div className="w-full max-w-[400px] h-full max-h-[600px]">
+              <TreeOfLife
+                mode="dashboard"
+                agents={agentStatuses}
+                onNodeClick={handleNodeClick}
+                highlightNode={selectedId}
               />
-              <Controls
-                showInteractive={false}
-                className="!bg-[var(--color-admin-surface)] !border-[var(--color-admin-border)] !shadow-none [&>button]:!bg-[var(--color-admin-surface)] [&>button]:!border-[var(--color-admin-border)] [&>button]:!fill-[var(--color-muted-light)] [&>button:hover]:!bg-[var(--color-admin-bg)]"
-              />
-            </ReactFlow>
+            </div>
           )}
         </div>
 
@@ -218,6 +190,9 @@ export default function TolaAdminPage() {
                   </div>
                   <span className="text-xs font-medium text-[var(--color-foreground-strong)]">
                     {agent.display_name}
+                  </span>
+                  <span className="text-[10px] text-[var(--color-muted)]">
+                    {GEOMETRY_LABELS[agent.geometry_engine]}
                   </span>
                   <span className="text-[10px] text-[var(--color-muted)] capitalize">
                     {status}

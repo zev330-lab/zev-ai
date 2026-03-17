@@ -5,7 +5,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
 import { HeroGradient } from '@/components/hero-gradient';
-import { SeedOfLife, FlowerOfLife, SriYantra, MetatronsCube } from '@/components/sacred-geometry';
+import { TreeOfLife } from '@/components/tree-of-life';
+import { SeedOfLife, MetatronsCube, SriYantra } from '@/components/sacred-geometry';
 
 export default function Home() {
   const heroRef = useRef<HTMLElement>(null);
@@ -18,71 +19,86 @@ export default function Home() {
 
   return (
     <>
-      {/* ═══════════════════════════════════════════
-          SECTION 1 — HERO
-          ═══════════════════════════════════════════ */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* ═══ SECTION 1 — HERO WITH TREE OF LIFE ═══ */}
+      <section ref={heroRef} className="relative min-h-screen flex items-center overflow-hidden">
         <HeroGradient />
-
-        {/* Ambient sacred geometry background */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.04] pointer-events-none" aria-hidden="true">
-          <FlowerOfLife size={600} animate={true} state="idle" color="#7c9bf5" />
-        </div>
 
         <motion.div
           style={{ opacity: heroOpacity, y: heroY }}
           className="relative z-10 mx-auto max-w-[1280px] px-6 md:px-12 w-full"
         >
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <h1 className="font-[family-name:var(--font-serif)] text-[clamp(3rem,8vw,7rem)] leading-[1.05] tracking-tight font-light max-w-4xl">
-              AI agent systems
-              <br />
-              <span className="italic text-accent">built on sacred geometry.</span>
-            </h1>
-          </motion.div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-0 items-center">
+            {/* Left — text + CTAs */}
+            <div>
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.05] tracking-tight font-light max-w-xl">
+                  AI agent systems
+                  <br />
+                  <span className="italic text-accent">built on sacred geometry.</span>
+                </h1>
+              </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <p className="mt-8 text-lg md:text-xl text-muted-light max-w-xl leading-relaxed">
-              I build multi-agent AI systems for businesses — intelligent orchestration
-              powered by the TOLA framework. Not slide decks. Production software
-              with 11 persistent agents running your operations.
-            </p>
-          </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <p className="mt-8 text-lg text-muted-light max-w-md leading-relaxed">
+                  11 specialized agents. 9 geometry engines. 22 structured communication
+                  paths. The TOLA framework builds, deploys, and runs multi-agent AI
+                  systems — not slide decks.
+                </p>
+              </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-12 flex flex-wrap items-center gap-6"
-          >
-            <Link
-              href="/discover"
-              className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
+                className="mt-12 flex flex-wrap items-center gap-6"
+              >
+                <Link
+                  href="/discover"
+                  className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  Start your AI assessment
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                  </svg>
+                </Link>
+                <Link
+                  href="/tola"
+                  className="inline-flex items-center gap-2 text-sm text-muted-light hover:text-foreground-strong transition-colors duration-300"
+                >
+                  See the framework
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                  </svg>
+                </Link>
+              </motion.div>
+            </div>
+
+            {/* Right — Tree of Life (hero mode) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="hidden lg:flex items-center justify-center"
             >
-              Start your AI assessment
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-              </svg>
-            </Link>
-            <Link
-              href="/tola"
-              className="inline-flex items-center gap-2 text-sm text-muted-light hover:text-foreground-strong transition-colors duration-300"
-            >
-              See the framework
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-              </svg>
-            </Link>
-          </motion.div>
+              <div className="w-[340px] h-[510px]">
+                <TreeOfLife mode="hero" />
+              </div>
+            </motion.div>
+          </div>
         </motion.div>
+
+        {/* Mobile: Tree behind text as ambient element */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[280px] h-[420px] opacity-[0.06] pointer-events-none lg:hidden" aria-hidden="true">
+          <TreeOfLife mode="hero" />
+        </div>
 
         {/* Scroll hint */}
         <motion.div
@@ -101,9 +117,7 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* ═══════════════════════════════════════════
-          SECTION 2 — THE PROBLEM
-          ═══════════════════════════════════════════ */}
+      {/* ═══ SECTION 2 — THE PROBLEM ═══ */}
       <section className="section-light">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-20 md:py-28">
           <Reveal>
@@ -121,8 +135,7 @@ export default function Home() {
                   Almost nobody&apos;s shipping them.
                 </h2>
                 <p className="text-muted-light text-lg leading-relaxed">
-                  You&apos;ve seen the demos. Sat through the pitches. Read the LinkedIn
-                  posts about autonomous AI transforming everything. And yet your team still
+                  You&apos;ve seen the demos. Sat through the pitches. And yet your team still
                   copy-pastes the same data between three spreadsheets every Monday.
                 </p>
               </div>
@@ -165,9 +178,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════
-          SECTION 3 — THE APPROACH (TOLA)
-          ═══════════════════════════════════════════ */}
+      {/* ═══ SECTION 3 — THE APPROACH (TOLA) ═══ */}
       <section className="overflow-hidden">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
@@ -186,7 +197,7 @@ export default function Home() {
               {
                 num: '01',
                 title: 'Assess',
-                body: '13-dimension research engine analyzes your business, industry, and operations. Constraint-based planning ensures every recommendation is grounded in reality, not theory.',
+                body: '13-dimension research engine analyzes your business, industry, and operations. Constraint-based planning ensures every recommendation is grounded in reality.',
                 icon: MetatronsCube,
               },
               {
@@ -198,7 +209,7 @@ export default function Home() {
               {
                 num: '03',
                 title: 'Operate',
-                body: 'Persistent runtime agents monitor, optimize, and evolve your system 24/7. Kill switches, audit logging, and tiered human oversight keep everything under control.',
+                body: 'Persistent runtime agents monitor, optimize, and evolve your system 24/7. Kill switches, audit logging, and 3-tier human oversight keep everything under control.',
                 icon: SriYantra,
               },
             ].map((phase, i) => (
@@ -237,15 +248,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════
-          SECTION 4 — PACKAGES
-          ═══════════════════════════════════════════ */}
+      {/* ═══ SECTION 4 — PACKAGES ═══ */}
       <section className="section-light">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
-            <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">
-              Packages
-            </p>
+            <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">Packages</p>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-16 md:mb-20">
               Four ways to work together
             </h2>
@@ -253,45 +260,17 @@ export default function Home() {
 
           <StaggerReveal className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              {
-                name: 'Assess',
-                desc: 'Deep-dive analysis of your business to find where AI creates real leverage. 13-dimension research + constraint-based roadmap.',
-                nodes: '4 agents',
-                price: 'From $2,500',
-              },
-              {
-                name: 'Build',
-                desc: 'Full design, development, and deployment of a multi-agent AI system integrated into your operations.',
-                nodes: '11 agents',
-                price: '$5k–$25k',
-              },
-              {
-                name: 'Optimize',
-                desc: 'Ongoing AI leadership. Continuous system development, monitoring, and iteration with full runtime agents.',
-                nodes: '11+ agents',
-                price: '$5k–$10k/mo',
-              },
-              {
-                name: 'Scale',
-                desc: 'Multi-system deployment across your organization. Shared intelligence, unified dashboard, cross-product orchestration.',
-                nodes: 'Unlimited',
-                price: 'Custom',
-              },
+              { name: 'Assess', desc: 'Deep-dive analysis to find where AI creates real leverage. 13-dimension research + constraint-based roadmap.', nodes: '4 agents', price: 'From $2,500' },
+              { name: 'Build', desc: 'Full design, development, and deployment of a multi-agent AI system integrated into your operations.', nodes: '11 agents', price: '$5k\u2013$25k' },
+              { name: 'Optimize', desc: 'Ongoing AI leadership. Continuous development, monitoring, and iteration with full runtime agents.', nodes: '11+ agents', price: '$5k\u2013$10k/mo' },
+              { name: 'Scale', desc: 'Multi-system deployment across your organization. Shared intelligence, unified dashboard, cross-product orchestration.', nodes: 'Unlimited', price: 'Custom' },
             ].map((pkg) => (
               <StaggerChild key={pkg.name}>
                 <div className="border border-border rounded-2xl p-8 h-full transition-all duration-500 hover:border-accent/20">
-                  <h3 className="text-xl font-semibold tracking-tight text-foreground-strong mb-2">
-                    {pkg.name}
-                  </h3>
-                  <p className="text-sm text-accent font-medium mb-4">
-                    {pkg.nodes} active
-                  </p>
-                  <p className="text-muted-light leading-relaxed text-sm mb-6">
-                    {pkg.desc}
-                  </p>
-                  <p className="text-sm font-medium text-foreground-strong">
-                    {pkg.price}
-                  </p>
+                  <h3 className="text-xl font-semibold tracking-tight text-foreground-strong mb-2">{pkg.name}</h3>
+                  <p className="text-sm text-accent font-medium mb-4">{pkg.nodes} active</p>
+                  <p className="text-muted-light leading-relaxed text-sm mb-6">{pkg.desc}</p>
+                  <p className="text-sm font-medium text-foreground-strong">{pkg.price}</p>
                 </div>
               </StaggerChild>
             ))}
@@ -299,10 +278,7 @@ export default function Home() {
 
           <Reveal>
             <div className="mt-12">
-              <Link
-                href="/services"
-                className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover transition-colors duration-300"
-              >
+              <Link href="/services" className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover transition-colors duration-300">
                 See full package details
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
@@ -313,25 +289,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════
-          SECTION 5 — SELF-REFERENTIAL PROOF
-          ═══════════════════════════════════════════ */}
+      {/* ═══ SECTION 5 — SELF-REFERENTIAL PROOF ═══ */}
       <section className="relative overflow-hidden">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
-            <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
-              The proof
-            </p>
+            <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">The proof</p>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-3xl mb-8">
-              This site runs on TOLA.
-              <br />
-              <span className="italic text-accent">Right now.</span>
+              This site runs on TOLA. <span className="italic text-accent">Right now.</span>
             </h2>
             <p className="text-muted-light text-lg max-w-[640px] leading-relaxed mb-12">
               zev.ai was built by TOLA and runs on TOLA. 11 persistent agents
-              monitor this site, research prospects, generate engagement sequences,
-              and maintain system health — all visible in the admin dashboard. The
-              framework that builds is the framework that runs is the framework being sold.
+              monitor this site, research prospects, and maintain system health — all
+              visible in the admin dashboard. The framework that builds is the
+              framework that runs is the framework being sold.
             </p>
           </Reveal>
 
@@ -340,13 +310,11 @@ export default function Home() {
               {[
                 { label: 'Persistent agents', value: '11' },
                 { label: 'Geometry engines', value: '9' },
-                { label: 'Infrastructure cost', value: '~$45/mo' },
+                { label: 'Communication paths', value: '22' },
                 { label: 'Uptime target', value: '99.9%' },
               ].map((stat) => (
                 <div key={stat.label}>
-                  <p className="text-[clamp(2rem,5vw,3rem)] font-[family-name:var(--font-serif)] font-light text-accent leading-none">
-                    {stat.value}
-                  </p>
+                  <p className="text-[clamp(2rem,5vw,3rem)] font-[family-name:var(--font-serif)] font-light text-accent leading-none">{stat.value}</p>
                   <p className="mt-2 text-sm text-muted-light">{stat.label}</p>
                 </div>
               ))}
@@ -354,10 +322,7 @@ export default function Home() {
           </Reveal>
 
           <Reveal>
-            <Link
-              href="/work"
-              className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover transition-colors duration-300"
-            >
+            <Link href="/work" className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover transition-colors duration-300">
               See the full case study
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
@@ -367,17 +332,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════
-          SECTION 6 — THE DIFFERENCE
-          ═══════════════════════════════════════════ */}
+      {/* ═══ SECTION 6 — BELIEFS ═══ */}
       <section className="section-light">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
             <div className="lg:col-span-3">
               <Reveal>
-                <p className="text-xs tracking-[0.2em] uppercase text-muted-light">
-                  What I believe
-                </p>
+                <p className="text-xs tracking-[0.2em] uppercase text-muted-light">What I believe</p>
               </Reveal>
             </div>
             <div className="lg:col-span-9 max-w-2xl">
@@ -403,9 +364,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════
-          SECTION 7 — CTA
-          ═══════════════════════════════════════════ */}
+      {/* ═══ SECTION 7 — CTA ═══ */}
       <section>
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
@@ -425,10 +384,7 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                   </svg>
                 </Link>
-                <a
-                  href="mailto:zev330@gmail.com"
-                  className="text-sm text-muted-light hover:text-foreground-strong transition-colors duration-300 py-3.5"
-                >
+                <a href="mailto:zev330@gmail.com" className="text-sm text-muted-light hover:text-foreground-strong transition-colors duration-300 py-3.5">
                   or email zev330@gmail.com
                 </a>
               </div>

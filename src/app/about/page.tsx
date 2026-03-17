@@ -54,7 +54,7 @@ export default function AboutPage() {
               <p className="text-muted-light text-lg leading-[1.8]">
                 TOLA — the Tree of Life Architecture — is a multi-agent AI operating
                 system. 11 specialized agents, each powered by a sacred geometry
-                reasoning engine, orchestrated through the Kabbalistic Tree of Life.
+                reasoning engine, orchestrated through the Tree of Life.
                 It sounds esoteric. It&apos;s not. It&apos;s a production framework
                 that builds, runs, and continuously improves real software systems.
               </p>

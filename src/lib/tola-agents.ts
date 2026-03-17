@@ -44,7 +44,7 @@ export interface TolaAgent {
   description: string | null;
   status: AgentStatus;
   tier: 1 | 2 | 3;
-  last_heartbeat: string | null; // ISO 8601 timestamp from Supabase
+  last_heartbeat: string | null;
   config: Record<string, unknown>;
   is_active: boolean;
   kill_switch: boolean;
@@ -53,7 +53,7 @@ export interface TolaAgent {
 }
 
 export interface TolaAgentLog {
-  id: string; // UUID
+  id: string;
   agent_id: AgentId | null;
   action: string;
   geometry_pattern: string | null;
@@ -67,7 +67,7 @@ export interface TolaAgentLog {
 }
 
 export interface TolaAgentMetric {
-  id: string; // UUID
+  id: string;
   agent_id: AgentId | null;
   metric: string;
   value: number;
@@ -76,8 +76,83 @@ export interface TolaAgentMetric {
 }
 
 // ---------------------------------------------------------------------------
-// Static agent data (position, description, etc.)
-// Positions are on an ~800 x 1000 canvas, mirroring Kabbalistic Tree of Life
+// Canonical Tree of Life node data
+// Positions normalized to viewBox 0 0 400 600
+// The Tree of Life is a universal sacred geometry structure found across
+// Egyptian, Hindu, Celtic, Greek, Buddhist, and indigenous traditions.
+// ---------------------------------------------------------------------------
+
+export interface TreeNode {
+  id: AgentId;
+  name: string;
+  engine: GeometryEngine;
+  description: string;
+  technicalEquivalent: string;
+  tier: 1 | 2 | 3;
+  x: number;
+  y: number;
+  phantom: boolean;
+}
+
+export const TREE_NODES: TreeNode[] = [
+  { id: 'crown',      name: 'Crown',      engine: 'seed_of_life',   description: 'Human decision authority — admin dashboard and approval queue',                  technicalEquivalent: 'Hub-and-Spoke / Fan-Out',                tier: 3, x: 200, y: 40,  phantom: false },
+  { id: 'visionary',  name: 'Visionary',  engine: 'metatrons_cube', description: 'Multi-source research engine — 13-dimension prospect analysis',                  technicalEquivalent: 'Complete Graph / All-to-All',            tier: 1, x: 320, y: 120, phantom: false },
+  { id: 'architect',  name: 'Architect',  engine: 'sri_yantra',     description: 'Constraint-based planning — pattern analysis and engagement scoping',             technicalEquivalent: 'Constraint Satisfaction / SAT Solver',   tier: 1, x: 80,  y: 120, phantom: false },
+  { id: 'oracle',     name: 'Oracle',     engine: 'torus',          description: 'Iterative synthesis — knowledge base and consulting methodology',                 technicalEquivalent: 'Iterative Refinement Loop',             tier: 1, x: 200, y: 200, phantom: true },
+  { id: 'catalyst',   name: 'Catalyst',   engine: 'lotus',          description: 'Progressive engagement — nurture sequences and relationship building',            technicalEquivalent: 'Sequential Pipeline / Progressive Disclosure', tier: 1, x: 320, y: 300, phantom: false },
+  { id: 'guardian',   name: 'Guardian',   engine: 'yin_yang',       description: 'Adversarial quality review — input validation and brand enforcement',             technicalEquivalent: 'Adversarial Debate / Red Team-Blue Team', tier: 1, x: 80,  y: 300, phantom: false },
+  { id: 'nexus',      name: 'Nexus',      engine: 'flower_of_life', description: 'Intelligent routing — inquiry classification and workflow orchestration',         technicalEquivalent: 'Weighted Graph Router / Load Balancer',  tier: 1, x: 200, y: 300, phantom: false },
+  { id: 'sentinel',   name: 'Sentinel',   engine: 'merkabah',       description: 'Triangulated health monitoring — API, database, and application verification',    technicalEquivalent: 'Dual-Team Verification / N-Version Programming', tier: 1, x: 320, y: 420, phantom: false },
+  { id: 'prism',      name: 'Prism',      engine: 'vortex',         description: 'Recursive quality refinement — content scoring and spiral testing',               technicalEquivalent: 'Recursive Refinement / Funnel Testing', tier: 1, x: 80,  y: 420, phantom: false },
+  { id: 'foundation', name: 'Foundation', engine: 'seed_of_life',   description: 'Infrastructure maintenance — database health, log cleanup, metric aggregation',   technicalEquivalent: 'Hub-and-Spoke / Fan-Out',               tier: 1, x: 200, y: 480, phantom: false },
+  { id: 'gateway',    name: 'Gateway',    engine: 'flower_of_life', description: 'The application itself — user interface and interconnected page delivery',        technicalEquivalent: 'Weighted Graph Router / Load Balancer',  tier: 1, x: 200, y: 560, phantom: false },
+];
+
+export const TREE_NODE_MAP: Record<AgentId, TreeNode> =
+  Object.fromEntries(TREE_NODES.map((n) => [n.id, n])) as Record<AgentId, TreeNode>;
+
+// ---------------------------------------------------------------------------
+// The 22 Paths — exactly 22 structured communication channels
+// Each path is a defined connection between two agents.
+// Paths touching Oracle are "phantom" (rendered dashed/translucent).
+// ---------------------------------------------------------------------------
+
+export interface TreePath {
+  source: AgentId;
+  target: AgentId;
+  phantom: boolean;
+}
+
+export const TREE_PATHS: TreePath[] = [
+  { source: 'crown',      target: 'visionary',   phantom: false },  // 1
+  { source: 'crown',      target: 'architect',   phantom: false },  // 2
+  { source: 'crown',      target: 'nexus',       phantom: false },  // 3
+  { source: 'visionary',  target: 'architect',   phantom: false },  // 4
+  { source: 'visionary',  target: 'oracle',      phantom: true  },  // 5
+  { source: 'visionary',  target: 'nexus',       phantom: false },  // 6
+  { source: 'visionary',  target: 'catalyst',    phantom: false },  // 7
+  { source: 'architect',  target: 'oracle',      phantom: true  },  // 8
+  { source: 'architect',  target: 'nexus',       phantom: false },  // 9
+  { source: 'architect',  target: 'guardian',    phantom: false },  // 10
+  { source: 'oracle',     target: 'nexus',       phantom: true  },  // 11
+  { source: 'catalyst',   target: 'guardian',    phantom: false },  // 12
+  { source: 'catalyst',   target: 'nexus',       phantom: false },  // 13
+  { source: 'catalyst',   target: 'sentinel',   phantom: false },  // 14
+  { source: 'guardian',   target: 'nexus',       phantom: false },  // 15
+  { source: 'guardian',   target: 'prism',       phantom: false },  // 16
+  { source: 'nexus',      target: 'sentinel',   phantom: false },  // 17
+  { source: 'nexus',      target: 'prism',       phantom: false },  // 18
+  { source: 'nexus',      target: 'foundation', phantom: false },  // 19
+  { source: 'sentinel',   target: 'foundation', phantom: false },  // 20
+  { source: 'prism',      target: 'foundation', phantom: false },  // 21
+  { source: 'foundation', target: 'gateway',    phantom: false },  // 22
+];
+
+// Backward compat: admin components may reference this
+export const TREE_OF_LIFE_EDGES = TREE_PATHS;
+
+// ---------------------------------------------------------------------------
+// Legacy static agent data (used by admin components during migration)
 // ---------------------------------------------------------------------------
 
 export interface TolaAgentStatic {
@@ -90,175 +165,34 @@ export interface TolaAgentStatic {
   position: { x: number; y: number };
 }
 
-export const TOLA_AGENTS: TolaAgentStatic[] = [
-  {
-    id: 'crown',
-    node_name: 'Crown',
-    geometry_engine: 'seed_of_life',
-    display_name: 'Crown',
-    description: 'Human decision authority — admin dashboard and approval queue',
-    tier: 3,
-    position: { x: 400, y: 0 },
-  },
-  {
-    id: 'visionary',
-    node_name: 'Visionary',
-    geometry_engine: 'metatrons_cube',
-    display_name: 'Visionary',
-    description: 'Multi-source research engine — 13-dimension prospect analysis',
-    tier: 1,
-    position: { x: 650, y: 150 },
-  },
-  {
-    id: 'architect',
-    node_name: 'Architect',
-    geometry_engine: 'sri_yantra',
-    display_name: 'Architect',
-    description: 'Constraint-based planning — pattern analysis and engagement scoping',
-    tier: 1,
-    position: { x: 150, y: 150 },
-  },
-  {
-    id: 'oracle',
-    node_name: 'Oracle',
-    geometry_engine: 'torus',
-    display_name: 'Oracle',
-    description: 'Iterative synthesis — knowledge base and consulting methodology',
-    tier: 1,
-    position: { x: 400, y: 280 },
-  },
-  {
-    id: 'catalyst',
-    node_name: 'Catalyst',
-    geometry_engine: 'lotus',
-    display_name: 'Catalyst',
-    description: 'Progressive engagement — nurture sequences and relationship building',
-    tier: 1,
-    position: { x: 650, y: 400 },
-  },
-  {
-    id: 'guardian',
-    node_name: 'Guardian',
-    geometry_engine: 'yin_yang',
-    display_name: 'Guardian',
-    description: 'Adversarial quality review — input validation and brand enforcement',
-    tier: 1,
-    position: { x: 150, y: 400 },
-  },
-  {
-    id: 'nexus',
-    node_name: 'Nexus',
-    geometry_engine: 'flower_of_life',
-    display_name: 'Nexus',
-    description: 'Intelligent routing — inquiry classification and workflow orchestration',
-    tier: 1,
-    position: { x: 400, y: 450 },
-  },
-  {
-    id: 'sentinel',
-    node_name: 'Sentinel',
-    geometry_engine: 'merkabah',
-    display_name: 'Sentinel',
-    description: 'Triangulated health monitoring — API, database, and application verification',
-    tier: 1,
-    position: { x: 650, y: 600 },
-  },
-  {
-    id: 'prism',
-    node_name: 'Prism',
-    geometry_engine: 'vortex',
-    display_name: 'Prism',
-    description: 'Recursive quality refinement — content scoring and spiral testing',
-    tier: 1,
-    position: { x: 150, y: 600 },
-  },
-  {
-    id: 'foundation',
-    node_name: 'Foundation',
-    geometry_engine: 'seed_of_life',
-    display_name: 'Foundation',
-    description: 'Infrastructure maintenance — database health, log cleanup, metric aggregation',
-    tier: 1,
-    position: { x: 400, y: 700 },
-  },
-  {
-    id: 'gateway',
-    node_name: 'Gateway',
-    geometry_engine: 'flower_of_life',
-    display_name: 'Gateway',
-    description: 'The application itself — user interface and interconnected page delivery',
-    tier: 1,
-    position: { x: 400, y: 900 },
-  },
-];
-
-// ---------------------------------------------------------------------------
-// Tree of Life edges — 22 traditional Kabbalistic paths
-// Format: [source AgentId, target AgentId]
-// Ordered by sephiroth number (1=Crown through 10=Gateway/Malkuth)
-// ---------------------------------------------------------------------------
-
-export const TREE_OF_LIFE_EDGES: Array<{ source: AgentId; target: AgentId }> = [
-  // Path 1 — Crown → Visionary  (Keter → Chokhmah)
-  { source: 'crown', target: 'visionary' },
-  // Path 2 — Crown → Architect  (Keter → Binah)
-  { source: 'crown', target: 'architect' },
-  // Path 3 — Crown → Oracle     (Keter → Da'at / hidden sephirah)
-  { source: 'crown', target: 'oracle' },
-  // Path 4 — Visionary → Architect  (Chokhmah → Binah)
-  { source: 'visionary', target: 'architect' },
-  // Path 5 — Visionary → Oracle     (Chokhmah → Chesed via Da'at)
-  { source: 'visionary', target: 'oracle' },
-  // Path 6 — Visionary → Catalyst   (Chokhmah → Chesed)
-  { source: 'visionary', target: 'catalyst' },
-  // Path 7 — Architect → Oracle     (Binah → Da'at)
-  { source: 'architect', target: 'oracle' },
-  // Path 8 — Architect → Guardian   (Binah → Gevurah)
-  { source: 'architect', target: 'guardian' },
-  // Path 9 — Oracle → Catalyst      (Da'at → Chesed)
-  { source: 'oracle', target: 'catalyst' },
-  // Path 10 — Oracle → Guardian     (Da'at → Gevurah)
-  { source: 'oracle', target: 'guardian' },
-  // Path 11 — Oracle → Nexus        (Da'at → Tiferet)
-  { source: 'oracle', target: 'nexus' },
-  // Path 12 — Catalyst → Guardian   (Chesed → Gevurah)
-  { source: 'catalyst', target: 'guardian' },
-  // Path 13 — Catalyst → Nexus      (Chesed → Tiferet)
-  { source: 'catalyst', target: 'nexus' },
-  // Path 14 — Catalyst → Sentinel   (Chesed → Netzach)
-  { source: 'catalyst', target: 'sentinel' },
-  // Path 15 — Guardian → Nexus      (Gevurah → Tiferet)
-  { source: 'guardian', target: 'nexus' },
-  // Path 16 — Guardian → Prism      (Gevurah → Hod)
-  { source: 'guardian', target: 'prism' },
-  // Path 17 — Nexus → Sentinel      (Tiferet → Netzach)
-  { source: 'nexus', target: 'sentinel' },
-  // Path 18 — Nexus → Prism         (Tiferet → Hod)
-  { source: 'nexus', target: 'prism' },
-  // Path 19 — Nexus → Foundation    (Tiferet → Yesod)
-  { source: 'nexus', target: 'foundation' },
-  // Path 20 — Sentinel → Prism      (Netzach → Hod)
-  { source: 'sentinel', target: 'prism' },
-  // Path 21 — Sentinel → Foundation (Netzach → Yesod)
-  { source: 'sentinel', target: 'foundation' },
-  // Path 22 — Prism → Foundation    (Hod → Yesod → Malkuth connection)
-  { source: 'prism', target: 'foundation' },
-  // Path 23 — Foundation → Gateway  (Yesod → Malkuth)
-  // Note: 23 edges emerge from the 11-node TOLA tree; the canonical 22-path
-  // count applies to the traditional 10-sephirot tree. Gateway (Malkuth) adds
-  // one additional descent path, completing the full emanation.
-  { source: 'foundation', target: 'gateway' },
-];
+export const TOLA_AGENTS: TolaAgentStatic[] = TREE_NODES.map((n) => ({
+  id: n.id,
+  node_name: n.name,
+  geometry_engine: n.engine,
+  display_name: n.name,
+  description: n.description,
+  tier: n.tier,
+  position: { x: n.x, y: n.y },
+}));
 
 // ---------------------------------------------------------------------------
 // Display maps
 // ---------------------------------------------------------------------------
 
+export const HEALTH_COLORS: Record<string, string> = {
+  healthy:  '#4ade80',
+  active:   '#7c9bf5',
+  degraded: '#f59e0b',
+  critical: '#ef4444',
+  offline:  '#6b7280',
+};
+
+// Backward compat
 export const STATUS_COLORS: Record<AgentStatus, string> = {
-  healthy:  '#22c55e', // green-500
-  degraded: '#eab308', // yellow-500 (gold)
-  critical: '#ef4444', // red-500
-  offline:  '#6b7280', // gray-500
+  healthy:  '#4ade80',
+  degraded: '#f59e0b',
+  critical: '#ef4444',
+  offline:  '#6b7280',
 };
 
 export const GEOMETRY_LABELS: Record<GeometryEngine, string> = {
@@ -272,3 +206,25 @@ export const GEOMETRY_LABELS: Record<GeometryEngine, string> = {
   merkabah:       'Merkabah',
   vortex:         'Vortex',
 };
+
+// ---------------------------------------------------------------------------
+// Technical equivalents for the /tola page jargon mapping
+// ---------------------------------------------------------------------------
+
+export const ENGINE_TECHNICAL_MAP: Array<{
+  engine: GeometryEngine;
+  label: string;
+  technical: string;
+  whatItDoes: string;
+  commonIn: string;
+}> = [
+  { engine: 'seed_of_life',   label: 'Seed of Life',    technical: 'Hub-and-Spoke / Fan-Out',                    whatItDoes: 'Spawns parallel specialist tasks from a central coordinator',                       commonIn: 'MapReduce, microservice orchestration' },
+  { engine: 'metatrons_cube', label: "Metatron's Cube",  technical: 'Complete Graph / All-to-All',                whatItDoes: 'Exhaustive parallel research across all information sources',                       commonIn: 'Ensemble methods, multi-source data fusion' },
+  { engine: 'sri_yantra',     label: 'Sri Yantra',       technical: 'Constraint Satisfaction / SAT Solver',       whatItDoes: 'Plans complex systems where every decision affects others',                         commonIn: 'Architecture planning, scheduling, optimization' },
+  { engine: 'torus',          label: 'Torus',            technical: 'Iterative Refinement Loop',                  whatItDoes: 'Cycles through analyze, synthesize, evaluate until convergence',                    commonIn: 'Gradient descent, RLHF, continuous improvement' },
+  { engine: 'lotus',          label: 'Lotus',            technical: 'Sequential Pipeline / Progressive Disclosure', whatItDoes: 'Builds layered experiences where each stage gates the next',                       commonIn: 'Onboarding flows, CI/CD pipelines, progressive enhancement' },
+  { engine: 'yin_yang',       label: 'Yin Yang',         technical: 'Adversarial Debate / Red Team-Blue Team',    whatItDoes: 'Generates opposing arguments and synthesizes balanced judgment',                    commonIn: 'Constitutional AI, adversarial validation, compliance review' },
+  { engine: 'flower_of_life', label: 'Flower of Life',   technical: 'Weighted Graph Router / Load Balancer',      whatItDoes: 'Routes messages through optimal paths with health-aware selection',                 commonIn: 'API gateways, service mesh, message queues' },
+  { engine: 'merkabah',       label: 'Merkabah',         technical: 'Dual-Team Verification / N-Version Programming', whatItDoes: 'Two independent teams evaluate the same input, consensus required',            commonIn: 'Safety-critical systems, financial auditing, redundant verification' },
+  { engine: 'vortex',         label: 'Vortex',           technical: 'Recursive Refinement / Funnel Testing',      whatItDoes: 'Spirals inward with increasingly strict criteria each pass',                        commonIn: 'QA pipelines, search refinement, anomaly detection' },
+];
