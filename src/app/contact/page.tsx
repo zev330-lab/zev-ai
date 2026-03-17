@@ -58,7 +58,7 @@ export default function ContactPage() {
               Let&apos;s talk.
             </h1>
             <p className="mt-6 text-lg text-muted-light max-w-xl leading-relaxed">
-              Tell me about your business and what you&apos;re exploring with AI agents.
+              Tell me about your business and what you&apos;re looking to improve.
               I&apos;ll get back to you within 24 hours.
             </p>
           </motion.div>

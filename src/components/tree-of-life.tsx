@@ -32,14 +32,20 @@ export interface TreeOfLifeProps {
 // ---------------------------------------------------------------------------
 
 function getNodeRadius(nodeId: AgentId, mode: TreeMode): number {
-  if (mode === 'compact') return nodeId === 'nexus' ? 16 : 12;
-  return nodeId === 'nexus' ? 36 : 30;
+  if (mode === 'compact') {
+    if (nodeId === 'nexus') return 14;
+    if (nodeId === 'oracle') return 10;
+    return 12;
+  }
+  if (nodeId === 'nexus') return 26;
+  if (nodeId === 'oracle') return 18;
+  return 20;
 }
 
 function getGeoSize(nodeId: AgentId, mode: TreeMode): number {
   if (mode === 'compact') return 0;
   const r = getNodeRadius(nodeId, mode);
-  return (r - 7) * 2; // 6-8px padding from edge
+  return (r - 5) * 2;
 }
 
 // ---------------------------------------------------------------------------
@@ -55,10 +61,10 @@ function isMiddlePillarPath(srcNode: TreeNode, tgtNode: TreeNode): boolean {
 // ---------------------------------------------------------------------------
 
 const MODE_CONFIG = {
-  hero:      { fontSize: 0,  engineFont: 0, labelOffset: 0,  ringWidth: 2.5, showLabels: false },
-  diagram:   { fontSize: 10, engineFont: 8, labelOffset: 38, ringWidth: 2.5, showLabels: true },
-  dashboard: { fontSize: 10, engineFont: 8, labelOffset: 38, ringWidth: 3,   showLabels: true },
-  compact:   { fontSize: 0,  engineFont: 0, labelOffset: 0,  ringWidth: 1.5, showLabels: false },
+  hero:      { fontSize: 0,  engineFont: 0, ringWidth: 2,   showLabels: false },
+  diagram:   { fontSize: 10, engineFont: 8, ringWidth: 2,   showLabels: true },
+  dashboard: { fontSize: 10, engineFont: 8, ringWidth: 2.5, showLabels: true },
+  compact:   { fontSize: 0,  engineFont: 0, ringWidth: 1.5, showLabels: false },
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -85,14 +91,14 @@ export function TreeOfLife({
 
   return (
     <svg
-      viewBox="0 0 400 700"
+      viewBox="0 0 400 600"
       className={`w-full h-full ${className}`}
       aria-label="Tree of Life — 11 agents connected by 22 paths"
     >
       <defs>
         {/* Phantom node glow filter */}
         <filter id={filterId} x="-80%" y="-80%" width="260%" height="260%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="6" />
+          <feGaussianBlur in="SourceGraphic" stdDeviation="8" />
         </filter>
 
         {/* Dashboard flow gradient */}
@@ -123,20 +129,20 @@ export function TreeOfLife({
           let dashArray: string | undefined;
 
           if (isOracle && isMiddle) {
-            opacity = 0.35;
-            width = 2;
+            opacity = 0.45;
+            width = 2.4;
             dashArray = '8 5';
           } else if (isOracle) {
-            opacity = 0.25;
-            width = 1.5;
+            opacity = 0.35;
+            width = 1.6;
             dashArray = '8 5';
           } else if (isMiddle) {
-            opacity = 0.5;
-            width = 2;
+            opacity = 0.6;
+            width = 2.4;
             dashArray = undefined;
           } else {
-            opacity = 0.35;
-            width = 1.5;
+            opacity = 0.45;
+            width = 1.6;
             dashArray = undefined;
           }
 
@@ -204,9 +210,9 @@ export function TreeOfLife({
                 <circle
                   cx={node.x}
                   cy={node.y}
-                  r={nodeR + 12}
+                  r={nodeR + 16}
                   fill="#7c9bf5"
-                  opacity={0.08}
+                  opacity={0.1}
                   filter={`url(#${filterId})`}
                 />
               )}
@@ -292,7 +298,7 @@ export function TreeOfLife({
               {cfg.showLabels && (
                 <text
                   x={node.x}
-                  y={node.y + cfg.labelOffset}
+                  y={node.y + nodeR + 8}
                   textAnchor="middle"
                   fill="var(--color-foreground-strong)"
                   fontSize={cfg.fontSize}
@@ -308,7 +314,7 @@ export function TreeOfLife({
               {cfg.engineFont > 0 && (
                 <text
                   x={node.x}
-                  y={node.y + cfg.labelOffset + cfg.engineFont + 3}
+                  y={node.y + nodeR + 8 + cfg.engineFont + 3}
                   textAnchor="middle"
                   fill="var(--color-muted)"
                   fontSize={cfg.engineFont}

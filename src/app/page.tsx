@@ -36,9 +36,9 @@ export default function Home() {
                 transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
               >
                 <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.05] tracking-tight font-light max-w-xl">
-                  AI agent systems
+                  AI systems that
                   <br />
-                  <span className="italic text-accent">built on sacred geometry.</span>
+                  <span className="italic text-accent">actually work.</span>
                 </h1>
               </motion.div>
 
@@ -88,7 +88,7 @@ export default function Home() {
               transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className="hidden lg:flex items-center justify-center"
             >
-              <div className="w-[320px] h-[560px]">
+              <div className="w-[340px] h-[510px]">
                 <TreeOfLife mode="hero" />
               </div>
             </motion.div>
@@ -96,7 +96,7 @@ export default function Home() {
         </motion.div>
 
         {/* Mobile: Tree behind text as ambient element */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[260px] h-[455px] opacity-[0.06] pointer-events-none lg:hidden" aria-hidden="true">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[260px] h-[390px] opacity-[0.06] pointer-events-none lg:hidden" aria-hidden="true">
           <TreeOfLife mode="hero" />
         </div>
 

@@ -77,8 +77,8 @@ export interface TolaAgentMetric {
 
 // ---------------------------------------------------------------------------
 // Canonical Tree of Life node data
-// Positions normalized to viewBox 0 0 400 700
-// 7 tiers at 100-unit intervals. Left pillar x=100, middle x=200, right x=300.
+// Positions normalized to viewBox 0 0 400 600 (2:3 portrait ratio)
+// Left pillar x=100 (25%), center x=200 (50%), right pillar x=300 (75%).
 // The Tree of Life is a universal sacred geometry structure found across
 // Egyptian, Hindu, Celtic, Greek, Buddhist, and indigenous traditions.
 // ---------------------------------------------------------------------------
@@ -96,24 +96,24 @@ export interface TreeNode {
 }
 
 export const TREE_NODES: TreeNode[] = [
-  // Tier 1 (y=50): Crown at center
-  { id: 'crown',      name: 'Crown',      engine: 'seed_of_life',   description: 'Human decision authority — admin dashboard and approval queue',                  technicalEquivalent: 'Hub-and-Spoke / Fan-Out',                tier: 3, x: 200, y: 50,  phantom: false },
-  // Tier 2 (y=150): Supernal pair
-  { id: 'architect',  name: 'Architect',  engine: 'sri_yantra',     description: 'Constraint-based planning — pattern analysis and engagement scoping',             technicalEquivalent: 'Constraint Satisfaction / SAT Solver',   tier: 1, x: 100, y: 150, phantom: false },
-  { id: 'visionary',  name: 'Visionary',  engine: 'metatrons_cube', description: 'Multi-source research engine — 13-dimension prospect analysis',                  technicalEquivalent: 'Complete Graph / All-to-All',            tier: 1, x: 300, y: 150, phantom: false },
-  // Tier 3 (y=250): Oracle — phantom node
-  { id: 'oracle',     name: 'Oracle',     engine: 'torus',          description: 'Iterative synthesis — knowledge base and consulting methodology',                 technicalEquivalent: 'Iterative Refinement Loop',             tier: 1, x: 200, y: 250, phantom: true },
-  // Tier 4 (y=350): Central triad — Nexus is the heart
-  { id: 'guardian',   name: 'Guardian',   engine: 'yin_yang',       description: 'Adversarial quality review — input validation and brand enforcement',             technicalEquivalent: 'Adversarial Debate / Red Team-Blue Team', tier: 1, x: 100, y: 350, phantom: false },
-  { id: 'nexus',      name: 'Nexus',      engine: 'flower_of_life', description: 'Intelligent routing — inquiry classification and workflow orchestration',         technicalEquivalent: 'Weighted Graph Router / Load Balancer',  tier: 1, x: 200, y: 350, phantom: false },
-  { id: 'catalyst',   name: 'Catalyst',   engine: 'lotus',          description: 'Progressive engagement — nurture sequences and relationship building',            technicalEquivalent: 'Sequential Pipeline / Progressive Disclosure', tier: 1, x: 300, y: 350, phantom: false },
-  // Tier 5 (y=450): Lower pair
-  { id: 'prism',      name: 'Prism',      engine: 'vortex',         description: 'Recursive quality refinement — content scoring and spiral testing',               technicalEquivalent: 'Recursive Refinement / Funnel Testing', tier: 1, x: 100, y: 450, phantom: false },
-  { id: 'sentinel',   name: 'Sentinel',   engine: 'merkabah',       description: 'Triangulated health monitoring — API, database, and application verification',    technicalEquivalent: 'Dual-Team Verification / N-Version Programming', tier: 1, x: 300, y: 450, phantom: false },
-  // Tier 6 (y=550): Foundation at center
-  { id: 'foundation', name: 'Foundation', engine: 'seed_of_life',   description: 'Infrastructure maintenance — database health, log cleanup, metric aggregation',   technicalEquivalent: 'Hub-and-Spoke / Fan-Out',               tier: 1, x: 200, y: 550, phantom: false },
-  // Tier 7 (y=650): Gateway at center
-  { id: 'gateway',    name: 'Gateway',    engine: 'flower_of_life', description: 'The application itself — user interface and interconnected page delivery',        technicalEquivalent: 'Weighted Graph Router / Load Balancer',  tier: 1, x: 200, y: 650, phantom: false },
+  // Crown — 7% height
+  { id: 'crown',      name: 'Crown',      engine: 'seed_of_life',   description: 'Human decision authority — admin dashboard and approval queue',                  technicalEquivalent: 'Hub-and-Spoke / Fan-Out',                tier: 3, x: 200, y: 42,  phantom: false },
+  // Supernal pair — 22% height
+  { id: 'architect',  name: 'Architect',  engine: 'sri_yantra',     description: 'Constraint-based planning — pattern analysis and engagement scoping',             technicalEquivalent: 'Constraint Satisfaction / SAT Solver',   tier: 1, x: 100, y: 132, phantom: false },
+  { id: 'visionary',  name: 'Visionary',  engine: 'metatrons_cube', description: 'Multi-source research engine — 13-dimension prospect analysis',                  technicalEquivalent: 'Complete Graph / All-to-All',            tier: 1, x: 300, y: 132, phantom: false },
+  // Oracle — phantom node — 35% height
+  { id: 'oracle',     name: 'Oracle',     engine: 'torus',          description: 'Iterative synthesis — knowledge base and consulting methodology',                 technicalEquivalent: 'Iterative Refinement Loop',             tier: 1, x: 200, y: 210, phantom: true },
+  // Central triad — 52% height (Nexus at 54%, slightly lower)
+  { id: 'guardian',   name: 'Guardian',   engine: 'yin_yang',       description: 'Adversarial quality review — input validation and brand enforcement',             technicalEquivalent: 'Adversarial Debate / Red Team-Blue Team', tier: 1, x: 100, y: 312, phantom: false },
+  { id: 'nexus',      name: 'Nexus',      engine: 'flower_of_life', description: 'Intelligent routing — inquiry classification and workflow orchestration',         technicalEquivalent: 'Weighted Graph Router / Load Balancer',  tier: 1, x: 200, y: 324, phantom: false },
+  { id: 'catalyst',   name: 'Catalyst',   engine: 'lotus',          description: 'Progressive engagement — nurture sequences and relationship building',            technicalEquivalent: 'Sequential Pipeline / Progressive Disclosure', tier: 1, x: 300, y: 312, phantom: false },
+  // Lower pair — 70% height
+  { id: 'prism',      name: 'Prism',      engine: 'vortex',         description: 'Recursive quality refinement — content scoring and spiral testing',               technicalEquivalent: 'Recursive Refinement / Funnel Testing', tier: 1, x: 100, y: 420, phantom: false },
+  { id: 'sentinel',   name: 'Sentinel',   engine: 'merkabah',       description: 'Triangulated health monitoring — API, database, and application verification',    technicalEquivalent: 'Dual-Team Verification / N-Version Programming', tier: 1, x: 300, y: 420, phantom: false },
+  // Foundation — 83% height
+  { id: 'foundation', name: 'Foundation', engine: 'seed_of_life',   description: 'Infrastructure maintenance — database health, log cleanup, metric aggregation',   technicalEquivalent: 'Hub-and-Spoke / Fan-Out',               tier: 1, x: 200, y: 498, phantom: false },
+  // Gateway — 95% height
+  { id: 'gateway',    name: 'Gateway',    engine: 'flower_of_life', description: 'The application itself — user interface and interconnected page delivery',        technicalEquivalent: 'Weighted Graph Router / Load Balancer',  tier: 1, x: 200, y: 570, phantom: false },
 ];
 
 export const TREE_NODE_MAP: Record<AgentId, TreeNode> =

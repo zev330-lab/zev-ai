@@ -302,8 +302,8 @@ export default function DiscoverPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
                   >
-                    A few questions so the TOLA agents can start analyzing your
-                    business before we meet. Takes about 5 minutes.
+                    A few questions so we can prepare for our conversation.
+                    Takes about 5 minutes.
                   </motion.p>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -616,8 +616,8 @@ export default function DiscoverPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.55, ease: EASE }}
                   >
-                    The Visionary agent is already analyzing your responses.
-                    I&apos;ll review the assessment before we meet.
+                    I&apos;ll review your responses and come prepared
+                    for our conversation.
                   </motion.p>
                   <motion.div
                     initial={{ opacity: 0 }}
