@@ -88,7 +88,7 @@ export default function Home() {
               transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
               className="hidden lg:flex items-center justify-center"
             >
-              <div className="w-[340px] h-[510px]">
+              <div className="w-[320px] h-[560px]">
                 <TreeOfLife mode="hero" />
               </div>
             </motion.div>
@@ -96,7 +96,7 @@ export default function Home() {
         </motion.div>
 
         {/* Mobile: Tree behind text as ambient element */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[280px] h-[420px] opacity-[0.06] pointer-events-none lg:hidden" aria-hidden="true">
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[260px] h-[455px] opacity-[0.06] pointer-events-none lg:hidden" aria-hidden="true">
           <TreeOfLife mode="hero" />
         </div>
 

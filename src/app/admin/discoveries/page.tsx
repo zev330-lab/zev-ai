@@ -22,6 +22,12 @@ interface Discovery {
   anything_else: string | null;
   status: string;
   notes: string | null;
+  research_brief: Record<string, unknown> | null;
+  assessment_doc: string | null;
+  meeting_prep_doc: string | null;
+  pipeline_status: string | null;
+  pipeline_error: string | null;
+  pipeline_completed_at: string | null;
 }
 
 const STATUSES = ['all', 'new', 'reviewed', 'meeting_scheduled', 'proposal_sent', 'engaged', 'archived'] as const;
@@ -69,6 +75,7 @@ export default function AdminDiscoveriesPage() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Discovery | null>(null);
   const [notes, setNotes] = useState('');
+  const [detailTab, setDetailTab] = useState<'overview' | 'research' | 'assessment' | 'meeting'>('overview');
 
   const fetchDiscoveries = useCallback(async () => {
     const params = new URLSearchParams();
@@ -98,6 +105,7 @@ export default function AdminDiscoveriesPage() {
   const openDetail = (d: Discovery) => {
     setSelected(d);
     setNotes(d.notes || '');
+    setDetailTab('overview');
     if (d.status === 'new') {
       updateDiscovery(d.id, { status: 'reviewed' });
     }
@@ -135,6 +143,10 @@ export default function AdminDiscoveriesPage() {
           <Link href="/admin" className="text-base font-semibold text-gray-900">zev.ai admin</Link>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
+          <Link href="/admin/tola" className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+            <TreeIcon />
+            TOLA Agents
+          </Link>
           <Link href="/admin" className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
             <InboxIcon />
             Contacts
@@ -211,6 +223,7 @@ export default function AdminDiscoveriesPage() {
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Company</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Role</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Team</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-500">Pipeline</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-500">Status</th>
                   </tr>
                 </thead>
@@ -229,6 +242,9 @@ export default function AdminDiscoveriesPage() {
                       <td className="px-4 py-3 text-gray-600">{d.role || '—'}</td>
                       <td className="px-4 py-3 text-gray-600">{d.team_size || '—'}</td>
                       <td className="px-4 py-3">
+                        <PipelineBadge status={d.pipeline_status} />
+                      </td>
+                      <td className="px-4 py-3">
                         <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${STATUS_COLORS[d.status] || STATUS_COLORS.new}`}>
                           {STATUS_LABELS[d.status] || d.status}
                         </span>
@@ -242,66 +258,167 @@ export default function AdminDiscoveriesPage() {
         </div>
       </div>
 
-      {/* Detail slide-out */}
+      {/* Tabbed detail slide-out */}
       {selected && (
         <div className="fixed inset-0 z-50 flex">
           <div className="flex-1 bg-black/20" onClick={() => setSelected(null)} />
-          <div className="w-full max-w-lg bg-white shadow-xl border-l border-gray-200 overflow-y-auto">
-            <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-gray-900">{selected.name}</h2>
-              <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+          <div className="w-full max-w-2xl bg-white shadow-xl border-l border-gray-200 overflow-y-auto">
+            {/* Header */}
+            <div className="px-6 py-5 border-b border-gray-200">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-base font-semibold text-gray-900">{selected.name}</h2>
+                <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+              </div>
+              <div className="flex items-center gap-3">
+                <PipelineBadge status={selected.pipeline_status} />
+                <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${STATUS_COLORS[selected.status] || STATUS_COLORS.new}`}>
+                  {STATUS_LABELS[selected.status] || selected.status}
+                </span>
+                {selected.pipeline_error && (
+                  <span className="text-xs text-red-600">Error: {selected.pipeline_error}</span>
+                )}
+              </div>
             </div>
-            <div className="px-6 py-5 space-y-5">
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Submitted</p>
-                <p className="text-sm text-gray-800">{formatDate(selected.created_at)}</p>
-              </div>
 
-              {detailFields.map(({ label, key }) => {
-                const val = selected[key];
-                if (!val) return null;
-                return (
-                  <div key={key}>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">{label}</p>
-                    <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
-                      {val}
-                      {key === 'email' && (
-                        <a href={`mailto:${val}`} className="text-blue-600 hover:underline text-sm ml-2">Reply</a>
-                      )}
-                    </p>
-                  </div>
-                );
-              })}
-
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Status</p>
-                <select
-                  value={selected.status}
-                  onChange={(e) => updateDiscovery(selected.id, { status: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200">
+              {(['overview', 'research', 'assessment', 'meeting'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setDetailTab(tab)}
+                  className={`px-4 py-2.5 text-xs font-medium capitalize transition-colors ${
+                    detailTab === tab
+                      ? 'border-b-2 border-blue-500 text-blue-600'
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
                 >
-                  {STATUSES.filter((s) => s !== 'all').map((s) => (
-                    <option key={s} value={s}>{STATUS_LABELS[s] || s}</option>
-                  ))}
-                </select>
-              </div>
+                  {tab === 'meeting' ? 'Meeting Prep' : tab}
+                </button>
+              ))}
+            </div>
 
-              <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Notes</p>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  onBlur={() => updateDiscovery(selected.id, { notes })}
-                  placeholder="Add internal notes..."
-                  rows={4}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+            {/* Tab content */}
+            <div className="px-6 py-5">
+              {detailTab === 'overview' && (
+                <div className="space-y-5">
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Submitted</p>
+                    <p className="text-sm text-gray-800">{formatDate(selected.created_at)}</p>
+                  </div>
+                  {detailFields.map(({ label, key }) => {
+                    const val = selected[key];
+                    if (!val) return null;
+                    const strVal = String(val);
+                    return (
+                      <div key={key}>
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">{label}</p>
+                        <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                          {strVal}
+                          {key === 'email' && (
+                            <a href={`mailto:${strVal}`} className="text-blue-600 hover:underline text-sm ml-2">Reply</a>
+                          )}
+                        </p>
+                      </div>
+                    );
+                  })}
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Status</p>
+                    <select
+                      value={selected.status}
+                      onChange={(e) => updateDiscovery(selected.id, { status: e.target.value })}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      {STATUSES.filter((s) => s !== 'all').map((s) => (
+                        <option key={s} value={s}>{STATUS_LABELS[s] || s}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Notes</p>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      onBlur={() => updateDiscovery(selected.id, { notes })}
+                      placeholder="Add internal notes..."
+                      rows={4}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {detailTab === 'research' && (
+                <div>
+                  {selected.research_brief ? (
+                    <pre className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed bg-gray-50 rounded-lg p-4 overflow-x-auto">
+                      {JSON.stringify(selected.research_brief, null, 2)}
+                    </pre>
+                  ) : (
+                    <p className="text-sm text-gray-500 py-8 text-center">
+                      {selected.pipeline_status === 'researching'
+                        ? 'Visionary is researching...'
+                        : selected.pipeline_status === 'pending'
+                          ? 'Pipeline not started yet.'
+                          : 'No research brief available.'}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {detailTab === 'assessment' && (
+                <div>
+                  {selected.assessment_doc ? (
+                    <div className="prose prose-sm max-w-none text-gray-800 whitespace-pre-wrap leading-relaxed">
+                      {selected.assessment_doc}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 py-8 text-center">
+                      {selected.pipeline_status === 'scoping'
+                        ? 'Architect is scoping...'
+                        : 'No assessment available.'}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {detailTab === 'meeting' && (
+                <div>
+                  {selected.meeting_prep_doc ? (
+                    <div className="prose prose-sm max-w-none text-gray-800 whitespace-pre-wrap leading-relaxed">
+                      {selected.meeting_prep_doc}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 py-8 text-center">
+                      {selected.pipeline_status === 'synthesizing'
+                        ? 'Oracle is synthesizing...'
+                        : 'No meeting prep available.'}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+const PIPELINE_COLORS: Record<string, string> = {
+  pending: 'bg-gray-100 text-gray-600',
+  researching: 'bg-blue-100 text-blue-800',
+  scoping: 'bg-purple-100 text-purple-800',
+  synthesizing: 'bg-indigo-100 text-indigo-800',
+  complete: 'bg-green-100 text-green-800',
+  failed: 'bg-red-100 text-red-800',
+};
+
+function PipelineBadge({ status }: { status: string | null }) {
+  if (!status) return <span className="text-xs text-gray-400">—</span>;
+  return (
+    <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full whitespace-nowrap ${PIPELINE_COLORS[status] || PIPELINE_COLORS.pending}`}>
+      {status}
+    </span>
   );
 }
 
@@ -311,6 +428,14 @@ function StatCard({ label, value, accent }: { label: string; value: number; acce
       <p className="text-xs text-gray-500 font-medium">{label}</p>
       <p className={`text-2xl font-semibold mt-1 ${accent ? 'text-amber-600' : 'text-gray-900'}`}>{value}</p>
     </div>
+  );
+}
+
+function TreeIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18m0-18l-4 4m4-4l4 4m-8 4h8m-10 4h12" />
+    </svg>
   );
 }
 

@@ -31,19 +31,36 @@ type AgentHandler = (
 ) => Promise<Record<string, unknown>>;
 
 // ---------------------------------------------------------------------------
+// Helper: invoke another agent in the fat function (pipeline chaining)
+// ---------------------------------------------------------------------------
+
+async function invokeAgent(agent: string, action: string, payload: Record<string, unknown> = {}): Promise<void> {
+  const baseUrl = Deno.env.get('SUPABASE_URL');
+  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!baseUrl || !serviceKey) return;
+
+  // Fire-and-forget — don't await the full response
+  fetch(`${baseUrl}/functions/v1/tola-agent`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${serviceKey}`,
+    },
+    body: JSON.stringify({ agent, action, ...payload }),
+  }).catch((err) => console.error(`Chain invoke ${agent}/${action} failed:`, err));
+}
+
+// ---------------------------------------------------------------------------
 // Sentinel — Merkabah health monitoring
-// Triangulated check: API reachability, DB connectivity, agent staleness
 // ---------------------------------------------------------------------------
 
 const sentinel: AgentHandler = async (supabase) => {
   const checks: Record<string, unknown> = {};
 
-  // 1. Database connectivity
   const dbStart = Date.now();
   const { error: dbError } = await supabase.from('tola_agents').select('id').limit(1);
   checks.db = { ok: !dbError, latency_ms: Date.now() - dbStart };
 
-  // 2. Check for stale agents (no heartbeat in 5 minutes)
   const { data: agents } = await supabase.from('tola_agents').select('id, last_heartbeat, status');
   const staleThreshold = Date.now() - 5 * 60 * 1000;
   const staleAgents = (agents ?? []).filter((a: { last_heartbeat: string | null }) => {
@@ -51,7 +68,6 @@ const sentinel: AgentHandler = async (supabase) => {
     return new Date(a.last_heartbeat).getTime() < staleThreshold;
   });
 
-  // Mark stale agents as degraded
   for (const stale of staleAgents) {
     if ((stale as { status: string }).status !== 'offline') {
       await supabase.from('tola_agents').update({ status: 'degraded' }).eq('id', (stale as { id: string }).id);
@@ -60,7 +76,6 @@ const sentinel: AgentHandler = async (supabase) => {
 
   checks.stale_agents = staleAgents.map((a: { id: string }) => a.id);
 
-  // 3. Record health metric
   const healthScore = staleAgents.length === 0 && !dbError ? 1.0 : dbError ? 0.0 : 0.5;
   await recordMetric(supabase, 'sentinel', 'system_health', healthScore, {
     db_ok: !dbError,
@@ -72,11 +87,9 @@ const sentinel: AgentHandler = async (supabase) => {
 
 // ---------------------------------------------------------------------------
 // Foundation — Seed of Life infrastructure maintenance
-// Cleanup old logs, aggregate daily metrics
 // ---------------------------------------------------------------------------
 
 const foundation: AgentHandler = async (supabase) => {
-  // 1. Clean up logs older than 30 days
   const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const { count: deletedLogs } = await supabase
     .from('tola_agent_log')
@@ -84,7 +97,6 @@ const foundation: AgentHandler = async (supabase) => {
     .lt('created_at', cutoff)
     .select('*', { count: 'exact', head: true });
 
-  // 2. Clean up metrics older than 90 days
   const metricCutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
   const { count: deletedMetrics } = await supabase
     .from('tola_agent_metrics')
@@ -92,13 +104,8 @@ const foundation: AgentHandler = async (supabase) => {
     .lt('created_at', metricCutoff)
     .select('*', { count: 'exact', head: true });
 
-  // 3. Count current totals for monitoring
-  const { count: totalLogs } = await supabase
-    .from('tola_agent_log')
-    .select('*', { count: 'exact', head: true });
-  const { count: totalMetrics } = await supabase
-    .from('tola_agent_metrics')
-    .select('*', { count: 'exact', head: true });
+  const { count: totalLogs } = await supabase.from('tola_agent_log').select('*', { count: 'exact', head: true });
+  const { count: totalMetrics } = await supabase.from('tola_agent_metrics').select('*', { count: 'exact', head: true });
 
   return {
     status: 'complete',
@@ -109,11 +116,9 @@ const foundation: AgentHandler = async (supabase) => {
 
 // ---------------------------------------------------------------------------
 // Nexus — Flower of Life intelligent routing
-// Classifies incoming contacts/discoveries by urgency
 // ---------------------------------------------------------------------------
 
 const nexus: AgentHandler = async (supabase) => {
-  // Fetch unclassified contacts (status = 'new')
   const { data: newContacts } = await supabase
     .from('contacts')
     .select('id, name, message')
@@ -123,7 +128,6 @@ const nexus: AgentHandler = async (supabase) => {
   let classified = 0;
 
   for (const contact of newContacts ?? []) {
-    // Simple keyword-based urgency scoring (Claude API integration in future)
     const msg = ((contact as { message: string }).message ?? '').toLowerCase();
     const urgencyKeywords = ['urgent', 'asap', 'immediately', 'emergency', 'deadline'];
     const highValueKeywords = ['enterprise', 'scale', 'multiple', 'team', 'budget'];
@@ -132,7 +136,6 @@ const nexus: AgentHandler = async (supabase) => {
     const isHighValue = highValueKeywords.some((k) => msg.includes(k));
 
     if (isUrgent || isHighValue) {
-      // Add notes for Crown review
       const notes = [
         isUrgent ? '[NEXUS: URGENT]' : '',
         isHighValue ? '[NEXUS: HIGH-VALUE]' : '',
@@ -142,7 +145,7 @@ const nexus: AgentHandler = async (supabase) => {
         .from('contacts')
         .update({ notes })
         .eq('id', (contact as { id: string }).id)
-        .is('notes', null); // Only if no existing notes
+        .is('notes', null);
 
       classified++;
     }
@@ -152,9 +155,531 @@ const nexus: AgentHandler = async (supabase) => {
 };
 
 // ---------------------------------------------------------------------------
-// Stub handlers for remaining agents
-// Each performs a minimal heartbeat and logs readiness.
-// Full implementations will be added as the system matures.
+// Guardian — Yin-Yang adversarial validation
+// Validates discovery form submissions for spam/quality
+// ---------------------------------------------------------------------------
+
+const guardian: AgentHandler = async (supabase, payload) => {
+  const action = payload.action as string;
+
+  if (action === 'validate-discovery') {
+    const discoveryId = payload.discovery_id as string;
+    if (!discoveryId) return { status: 'error', message: 'discovery_id required' };
+
+    const { data: discovery } = await supabase
+      .from('discoveries')
+      .select('*')
+      .eq('id', discoveryId)
+      .single();
+
+    if (!discovery) return { status: 'error', message: 'Discovery not found' };
+
+    // Basic validation checks
+    const issues: string[] = [];
+    const name = (discovery.name || '').trim();
+    const business = (discovery.business_overview || '').trim();
+    const painPoints = (discovery.pain_points || '').trim();
+
+    if (name.length < 2) issues.push('Name too short');
+    if (business.length < 10) issues.push('Business overview too brief');
+    if (painPoints.length < 10) issues.push('Pain points too brief');
+
+    // Spam indicators
+    const allText = `${name} ${business} ${painPoints} ${discovery.magic_wand || ''}`.toLowerCase();
+    const spamWords = ['buy now', 'click here', 'free money', 'casino', 'viagra', 'lottery'];
+    const hasSpam = spamWords.some((w) => allText.includes(w));
+    if (hasSpam) issues.push('Spam content detected');
+
+    if (issues.length > 0 && hasSpam) {
+      // Reject spam
+      await supabase.from('discoveries').update({
+        status: 'archived',
+        pipeline_status: 'failed',
+        pipeline_error: `Guardian rejected: ${issues.join(', ')}`,
+      }).eq('id', discoveryId);
+
+      return { status: 'rejected', issues };
+    }
+
+    // Valid — update status and chain to Visionary
+    await supabase.from('discoveries').update({
+      pipeline_status: 'researching',
+    }).eq('id', discoveryId);
+
+    // Chain to Visionary
+    await invokeAgent('visionary', 'research-discovery', { discovery_id: discoveryId });
+
+    return { status: 'validated', issues: issues.length > 0 ? issues : undefined, next: 'visionary' };
+  }
+
+  // Default: validate most recent unprocessed discovery
+  const { data: latest } = await supabase
+    .from('discoveries')
+    .select('id')
+    .eq('pipeline_status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!latest) return { status: 'idle', message: 'No pending discoveries' };
+
+  // Re-invoke with specific discovery
+  return guardian(supabase, { ...payload, action: 'validate-discovery', discovery_id: latest.id });
+};
+
+// ---------------------------------------------------------------------------
+// Visionary — Metatron's Cube deep research
+// Uses Claude API with web_search tool for 13-dimension analysis
+// ---------------------------------------------------------------------------
+
+const visionary: AgentHandler = async (supabase, payload) => {
+  const action = payload.action as string;
+
+  if (action === 'research-discovery') {
+    const discoveryId = payload.discovery_id as string;
+    if (!discoveryId) return { status: 'error', message: 'discovery_id required' };
+
+    const { data: discovery } = await supabase
+      .from('discoveries')
+      .select('*')
+      .eq('id', discoveryId)
+      .single();
+
+    if (!discovery) return { status: 'error', message: 'Discovery not found' };
+
+    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!anthropicKey) {
+      await supabase.from('discoveries').update({
+        pipeline_status: 'failed',
+        pipeline_error: 'ANTHROPIC_API_KEY not configured in Edge Function secrets',
+      }).eq('id', discoveryId);
+      return { status: 'error', message: 'ANTHROPIC_API_KEY not configured' };
+    }
+
+    try {
+      const prompt = `You are the Visionary agent in the TOLA framework — a deep research engine powered by Metatron's Cube geometry (exhaustive parallel research across all information sources).
+
+A prospect has submitted a discovery form. Research them thoroughly across these dimensions:
+
+**The Individual:**
+- Name: ${discovery.name}
+- Role: ${discovery.role || 'Not provided'}
+- Find: LinkedIn presence, published content, decision-making authority, background
+
+**The Company:**
+- Company: ${discovery.company || 'Not provided'}
+- Business: ${discovery.business_overview || 'Not provided'}
+- Find: What they do, revenue/size/market position, recent news, funding, leadership, tech stack (check job postings), culture
+
+**The Industry:**
+- Find: Market trends, AI/automation adoption by competitors, regulatory environment, common operational pain points
+
+**The Stated Problem:**
+- Pain Points: ${discovery.pain_points || 'Not provided'}
+- Repetitive Work: ${discovery.repetitive_work || 'Not provided'}
+- Magic Wand: ${discovery.magic_wand || 'Not provided'}
+- Success Vision: ${discovery.success_vision || 'Not provided'}
+- Find: Implicit needs beyond what they wrote, likely root causes, complexity assessment
+
+**AI Readiness:**
+- Current AI Experience: ${discovery.ai_experience || 'Not provided'}
+- AI Tools: ${discovery.ai_tools_detail || 'Not provided'}
+
+**Potential Solutions:**
+- Find: AI agent configurations that could address their problem, what similar companies have done, where TOLA multi-agent systems fit uniquely
+
+**Team Context:**
+- Team Size: ${discovery.team_size || 'Not provided'}
+${discovery.anything_else ? `- Additional Context: ${discovery.anything_else}` : ''}
+
+CRITICAL: If web search returns limited information about the individual or company, explicitly state what could NOT be found. Mark thin sections with [LIMITED DATA]. Do not invent or assume details. Honest gaps are more valuable than fabricated research.
+
+Return a JSON object with these keys:
+{
+  "individual": { "summary": "...", "details": "...", "data_quality": "rich|moderate|limited" },
+  "company": { "summary": "...", "details": "...", "data_quality": "rich|moderate|limited" },
+  "industry": { "summary": "...", "details": "...", "data_quality": "rich|moderate|limited" },
+  "stated_problem": { "analysis": "...", "implicit_needs": "...", "complexity": "low|medium|high" },
+  "ai_readiness": { "current_state": "...", "readiness_score": 1-10, "gaps": "..." },
+  "potential_solutions": { "recommendations": "...", "tola_fit": "..." },
+  "red_flags": ["..."],
+  "discovery_questions": ["..."]
+}`;
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4096,
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Claude API error ${response.status}: ${errText}`);
+      }
+
+      const result = await response.json();
+
+      // Extract text content from response
+      let researchText = '';
+      for (const block of result.content ?? []) {
+        if (block.type === 'text') {
+          researchText += block.text;
+        }
+      }
+
+      // Try to parse as JSON, fall back to raw text
+      let researchBrief: Record<string, unknown>;
+      try {
+        // Extract JSON from markdown code blocks if present
+        const jsonMatch = researchText.match(/```(?:json)?\s*([\s\S]*?)```/);
+        researchBrief = JSON.parse(jsonMatch ? jsonMatch[1] : researchText);
+      } catch {
+        researchBrief = { raw_research: researchText };
+      }
+
+      // Save to DB and chain to Architect
+      await supabase.from('discoveries').update({
+        research_brief: researchBrief,
+        pipeline_status: 'scoping',
+      }).eq('id', discoveryId);
+
+      // Record token usage
+      const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);
+      await recordMetric(supabase, 'visionary', 'research_tokens', tokensUsed, { discovery_id: discoveryId });
+
+      // Chain to Architect
+      await invokeAgent('architect', 'scope-discovery', { discovery_id: discoveryId });
+
+      return { status: 'complete', tokens_used: tokensUsed, research_sections: Object.keys(researchBrief).length };
+
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown research error';
+      await supabase.from('discoveries').update({
+        pipeline_status: 'failed',
+        pipeline_error: `Visionary research failed: ${errorMsg}`,
+      }).eq('id', discoveryId);
+      return { status: 'error', message: errorMsg };
+    }
+  }
+
+  // Default: research most recent discovery that needs it
+  const { data: latest } = await supabase
+    .from('discoveries')
+    .select('id')
+    .eq('pipeline_status', 'researching')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!latest) return { status: 'idle', message: 'No discoveries awaiting research' };
+  return visionary(supabase, { ...payload, action: 'research-discovery', discovery_id: latest.id });
+};
+
+// ---------------------------------------------------------------------------
+// Architect — Sri Yantra constraint-based scope assessment
+// ---------------------------------------------------------------------------
+
+const architect: AgentHandler = async (supabase, payload) => {
+  const action = payload.action as string;
+
+  if (action === 'scope-discovery') {
+    const discoveryId = payload.discovery_id as string;
+    if (!discoveryId) return { status: 'error', message: 'discovery_id required' };
+
+    const { data: discovery } = await supabase
+      .from('discoveries')
+      .select('*')
+      .eq('id', discoveryId)
+      .single();
+
+    if (!discovery) return { status: 'error', message: 'Discovery not found' };
+    if (!discovery.research_brief) return { status: 'error', message: 'No research brief — run Visionary first' };
+
+    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!anthropicKey) {
+      await supabase.from('discoveries').update({
+        pipeline_status: 'failed',
+        pipeline_error: 'ANTHROPIC_API_KEY not configured',
+      }).eq('id', discoveryId);
+      return { status: 'error', message: 'ANTHROPIC_API_KEY not configured' };
+    }
+
+    try {
+      const researchJSON = JSON.stringify(discovery.research_brief, null, 2);
+
+      const prompt = `You are the Architect agent in the TOLA framework — a constraint-satisfaction engine powered by Sri Yantra geometry (9 interlocking constraints that must all be satisfied simultaneously).
+
+You have the prospect's form data and the Visionary's research. Produce a scope assessment.
+
+**Form Data:**
+- Name: ${discovery.name}
+- Company: ${discovery.company || 'Not provided'}
+- Role: ${discovery.role || 'Not provided'}
+- Business: ${discovery.business_overview || 'Not provided'}
+- Pain Points: ${discovery.pain_points || 'Not provided'}
+- Team Size: ${discovery.team_size || 'Not provided'}
+- AI Experience: ${discovery.ai_experience || 'Not provided'}
+
+**Visionary Research:**
+${researchJSON}
+
+**9 Constraints Your Assessment Must Satisfy:**
+1. Address the prospect's STATED problem
+2. Address UNSTATED needs from research
+3. Technically feasible with current stack (Next.js, React, Supabase, Claude API)
+4. Fits prospect's likely budget range
+5. Realistic timeline for the complexity
+6. Accounts for prospect's technical maturity
+7. Addresses risk factors from research
+8. Creates natural Assess → Build → Optimize → Scale path
+9. Concrete enough to justify engagement fee
+
+Where research has [LIMITED DATA] tags, frame those areas as discovery questions rather than assumptions.
+
+**Output as markdown with this structure:**
+
+# Assessment: [Company Name]
+
+## Executive Summary
+(2-3 paragraphs)
+
+## Current State Analysis
+(from research)
+
+## Opportunity Map
+(3-5 AI agent opportunities, ranked by impact + feasibility)
+
+## Recommended Solutions
+
+### Starter Tier
+- TOLA nodes: [which agents]
+- Timeline: [estimate]
+- Investment: [range]
+- Delivers: [what]
+
+### Growth Tier
+- TOLA nodes: [which agents]
+- Timeline: [estimate]
+- Investment: [range]
+- Delivers: [what]
+
+### Enterprise Tier
+- TOLA nodes: [which agents]
+- Timeline: [estimate]
+- Investment: [range]
+- Delivers: [what]
+
+## Key Risks & Dependencies
+
+## Recommended Next Steps`;
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4096,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Claude API error ${response.status}: ${errText}`);
+      }
+
+      const result = await response.json();
+      let assessmentDoc = '';
+      for (const block of result.content ?? []) {
+        if (block.type === 'text') assessmentDoc += block.text;
+      }
+
+      await supabase.from('discoveries').update({
+        assessment_doc: assessmentDoc,
+        pipeline_status: 'synthesizing',
+      }).eq('id', discoveryId);
+
+      const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);
+      await recordMetric(supabase, 'architect', 'scope_tokens', tokensUsed, { discovery_id: discoveryId });
+
+      // Chain to Oracle
+      await invokeAgent('oracle', 'synthesize-discovery', { discovery_id: discoveryId });
+
+      return { status: 'complete', tokens_used: tokensUsed, doc_length: assessmentDoc.length };
+
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown scoping error';
+      await supabase.from('discoveries').update({
+        pipeline_status: 'failed',
+        pipeline_error: `Architect scoping failed: ${errorMsg}`,
+      }).eq('id', discoveryId);
+      return { status: 'error', message: errorMsg };
+    }
+  }
+
+  // Default: scope most recent discovery with research
+  const { data: latest } = await supabase
+    .from('discoveries')
+    .select('id')
+    .eq('pipeline_status', 'scoping')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!latest) return { status: 'idle', message: 'No discoveries awaiting scoping' };
+  return architect(supabase, { ...payload, action: 'scope-discovery', discovery_id: latest.id });
+};
+
+// ---------------------------------------------------------------------------
+// Oracle — Torus iterative synthesis (meeting prep)
+// ---------------------------------------------------------------------------
+
+const oracle: AgentHandler = async (supabase, payload) => {
+  const action = payload.action as string;
+
+  if (action === 'synthesize-discovery') {
+    const discoveryId = payload.discovery_id as string;
+    if (!discoveryId) return { status: 'error', message: 'discovery_id required' };
+
+    const { data: discovery } = await supabase
+      .from('discoveries')
+      .select('*')
+      .eq('id', discoveryId)
+      .single();
+
+    if (!discovery) return { status: 'error', message: 'Discovery not found' };
+    if (!discovery.research_brief || !discovery.assessment_doc) {
+      return { status: 'error', message: 'Missing research or assessment — run earlier steps first' };
+    }
+
+    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!anthropicKey) {
+      await supabase.from('discoveries').update({
+        pipeline_status: 'failed',
+        pipeline_error: 'ANTHROPIC_API_KEY not configured',
+      }).eq('id', discoveryId);
+      return { status: 'error', message: 'ANTHROPIC_API_KEY not configured' };
+    }
+
+    try {
+      const researchJSON = JSON.stringify(discovery.research_brief, null, 2);
+
+      const prompt = `You are the Oracle agent in the TOLA framework — an iterative synthesis engine powered by Torus geometry (continuous refinement loop that converges to insight).
+
+Synthesize the Visionary's research and the Architect's assessment into meeting preparation for Zev (the consultant).
+
+**Prospect:**
+- Name: ${discovery.name}
+- Company: ${discovery.company || 'Not provided'}
+- Role: ${discovery.role || 'Not provided'}
+
+**Visionary Research:**
+${researchJSON}
+
+**Architect Assessment:**
+${discovery.assessment_doc}
+
+**Produce meeting prep in this exact structure:**
+
+# Meeting Prep: ${discovery.name}${discovery.company ? ` — ${discovery.company}` : ''}
+
+## One-Paragraph Prospect Snapshot
+(Plain language summary — who they are, what they need, why they reached out)
+
+## Discovery Questions (7-10)
+(Specific to this prospect, informed by research. NOT generic. Example: "Your recent Series B suggests aggressive growth — how is your ops team scaling to match?" NOT: "Tell me about your company.")
+
+## Potential Objections & Responses
+(Pricing, timeline, "we tried AI before," build-vs-buy — with specific counters)
+
+## Talking Points
+(Connect their specific situation to TOLA's strengths)
+
+## Red Flags
+(Budget too low, unrealistic expectations, no decision authority, vendor-shopping)
+
+## Recommended Engagement Path
+(Which package first, upsell path, 12-month relationship vision)
+
+## Competitive Context
+(What alternatives they might be evaluating, how TOLA differs)
+
+Where research has [LIMITED DATA], convert gaps into priority discovery questions.`;
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 4096,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Claude API error ${response.status}: ${errText}`);
+      }
+
+      const result = await response.json();
+      let meetingPrepDoc = '';
+      for (const block of result.content ?? []) {
+        if (block.type === 'text') meetingPrepDoc += block.text;
+      }
+
+      await supabase.from('discoveries').update({
+        meeting_prep_doc: meetingPrepDoc,
+        pipeline_status: 'complete',
+        pipeline_completed_at: new Date().toISOString(),
+      }).eq('id', discoveryId);
+
+      const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);
+      await recordMetric(supabase, 'oracle', 'synthesis_tokens', tokensUsed, { discovery_id: discoveryId });
+
+      return { status: 'complete', tokens_used: tokensUsed, doc_length: meetingPrepDoc.length };
+
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown synthesis error';
+      await supabase.from('discoveries').update({
+        pipeline_status: 'failed',
+        pipeline_error: `Oracle synthesis failed: ${errorMsg}`,
+      }).eq('id', discoveryId);
+      return { status: 'error', message: errorMsg };
+    }
+  }
+
+  // Default: synthesize most recent discovery with research + scope
+  const { data: latest } = await supabase
+    .from('discoveries')
+    .select('id')
+    .eq('pipeline_status', 'synthesizing')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (!latest) return { status: 'idle', message: 'No discoveries awaiting synthesis' };
+  return oracle(supabase, { ...payload, action: 'synthesize-discovery', discovery_id: latest.id });
+};
+
+// ---------------------------------------------------------------------------
+// Remaining agent stubs
 // ---------------------------------------------------------------------------
 
 function createStub(agentId: string, geometryEngine: string): AgentHandler {
@@ -167,11 +692,7 @@ function createStub(agentId: string, geometryEngine: string): AgentHandler {
 }
 
 const crown: AgentHandler = createStub('crown', 'seed_of_life');
-const visionary: AgentHandler = createStub('visionary', 'metatrons_cube');
-const architect: AgentHandler = createStub('architect', 'sri_yantra');
-const oracle: AgentHandler = createStub('oracle', 'torus');
 const catalyst: AgentHandler = createStub('catalyst', 'lotus');
-const guardian: AgentHandler = createStub('guardian', 'yin_yang');
 const prism: AgentHandler = createStub('prism', 'vortex');
 const gateway: AgentHandler = createStub('gateway', 'flower_of_life');
 
@@ -193,7 +714,6 @@ const AGENTS: Record<string, AgentHandler> = {
   gateway,
 };
 
-// Geometry engine mapping for log enrichment
 const GEOMETRY_MAP: Record<string, string> = {
   crown: 'seed_of_life',
   visionary: 'metatrons_cube',
@@ -213,7 +733,6 @@ const GEOMETRY_MAP: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS });
   }
@@ -228,7 +747,6 @@ Deno.serve(async (req) => {
 
     const supabase = getServiceClient();
 
-    // Kill switch check
     const killed = await checkKillSwitch(supabase, agent);
     if (killed) {
       await logAction(supabase, agent, `${action}_blocked`, {
@@ -238,12 +756,10 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: `Agent ${agent} is disabled` }, 403);
     }
 
-    // Execute handler
     const start = Date.now();
     const result = await AGENTS[agent](supabase, { action, ...payload });
     const latencyMs = Date.now() - start;
 
-    // Log action + update heartbeat
     await Promise.all([
       logAction(supabase, agent, action, {
         geometryPattern: GEOMETRY_MAP[agent],

@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   // Only allow updating specific fields
-  const allowed = ['kill_switch', 'is_active', 'status', 'config'];
+  const allowed = ['kill_switch', 'is_active', 'status', 'config', 'tier'];
   const filtered: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in updates) {

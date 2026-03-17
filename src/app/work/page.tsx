@@ -60,7 +60,7 @@ export default function WorkPage() {
           >
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">Work</p>
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight max-w-3xl">
-              Proof of concept: this site.
+              Live implementation: this site.
             </h1>
             <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
               You&apos;re looking at a live TOLA deployment. Every page you&apos;ve
@@ -95,7 +95,7 @@ export default function WorkPage() {
                 </p>
               </div>
               <div className="flex justify-center">
-                <div className="w-full max-w-[320px] h-[480px]">
+                <div className="w-full max-w-[300px] h-[525px]">
                   <TreeOfLife mode="diagram" />
                 </div>
               </div>

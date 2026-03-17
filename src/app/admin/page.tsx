@@ -105,6 +105,10 @@ export default function AdminContactsPage() {
           <Link href="/admin" className="text-base font-semibold text-gray-900">zev.ai admin</Link>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
+          <Link href="/admin/tola" className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors">
+            <TreeIcon />
+            TOLA Agents
+          </Link>
           <Link href="/admin" className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-900">
             <InboxIcon />
             Contacts
@@ -278,6 +282,14 @@ function Field({ label, value, children }: { label: string; value: string; child
       <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">{label}</p>
       <p className="text-sm text-gray-800">{value}{children}</p>
     </div>
+  );
+}
+
+function TreeIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18m0-18l-4 4m4-4l4 4m-8 4h8m-10 4h12" />
+    </svg>
   );
 }
 

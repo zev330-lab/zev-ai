@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
 import { GEOMETRY_COMPONENTS } from '@/components/sacred-geometry';
 import {
   TREE_NODES,
@@ -22,24 +21,44 @@ export type TreeMode = 'hero' | 'diagram' | 'dashboard' | 'compact';
 
 export interface TreeOfLifeProps {
   mode: TreeMode;
-  /** Live agent statuses — keyed by AgentId. Dashboard mode uses this. */
   agents?: Record<string, { status: AgentStatus }>;
-  /** Fired when a node is clicked (dashboard/diagram modes). */
   onNodeClick?: (agentId: AgentId) => void;
-  /** Highlight a specific node (diagram mode — hover/tooltip). */
   highlightNode?: AgentId | null;
   className?: string;
 }
 
 // ---------------------------------------------------------------------------
-// Mode-specific sizing
+// Node sizing — Nexus (the heart) is larger
+// ---------------------------------------------------------------------------
+
+function getNodeRadius(nodeId: AgentId, mode: TreeMode): number {
+  if (mode === 'compact') return nodeId === 'nexus' ? 16 : 12;
+  return nodeId === 'nexus' ? 36 : 30;
+}
+
+function getGeoSize(nodeId: AgentId, mode: TreeMode): number {
+  if (mode === 'compact') return 0;
+  const r = getNodeRadius(nodeId, mode);
+  return (r - 7) * 2; // 6-8px padding from edge
+}
+
+// ---------------------------------------------------------------------------
+// Path classification
+// ---------------------------------------------------------------------------
+
+function isMiddlePillarPath(srcNode: TreeNode, tgtNode: TreeNode): boolean {
+  return srcNode.x === 200 && tgtNode.x === 200;
+}
+
+// ---------------------------------------------------------------------------
+// Mode-specific config
 // ---------------------------------------------------------------------------
 
 const MODE_CONFIG = {
-  hero:      { nodeR: 22, geoSize: 28, fontSize: 0,  engineFont: 0, pathOpacity: 0.15, pathWidth: 1.2, phantomPathOpacity: 0.08, ringWidth: 2.5, labelOffset: 0 },
-  diagram:   { nodeR: 20, geoSize: 24, fontSize: 9,  engineFont: 7, pathOpacity: 0.25, pathWidth: 1.2, phantomPathOpacity: 0.12, ringWidth: 2,   labelOffset: 30 },
-  dashboard: { nodeR: 22, geoSize: 26, fontSize: 9,  engineFont: 7, pathOpacity: 0.3,  pathWidth: 1.5, phantomPathOpacity: 0.15, ringWidth: 2.5, labelOffset: 32 },
-  compact:   { nodeR: 12, geoSize: 16, fontSize: 0,  engineFont: 0, pathOpacity: 0.12, pathWidth: 0.8, phantomPathOpacity: 0.06, ringWidth: 1.5, labelOffset: 0 },
+  hero:      { fontSize: 0,  engineFont: 0, labelOffset: 0,  ringWidth: 2.5, showLabels: false },
+  diagram:   { fontSize: 10, engineFont: 8, labelOffset: 38, ringWidth: 2.5, showLabels: true },
+  dashboard: { fontSize: 10, engineFont: 8, labelOffset: 38, ringWidth: 3,   showLabels: true },
+  compact:   { fontSize: 0,  engineFont: 0, labelOffset: 0,  ringWidth: 1.5, showLabels: false },
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -55,37 +74,33 @@ export function TreeOfLife({
 }: TreeOfLifeProps) {
   const cfg = MODE_CONFIG[mode];
 
-  // Health ring color for a node
   const getHealthColor = (node: TreeNode): string => {
-    if (mode === 'hero') return HEALTH_COLORS.active; // periwinkle glow for hero
+    if (mode === 'hero') return HEALTH_COLORS.active;
     const status = agents?.[node.id]?.status ?? 'offline';
     return HEALTH_COLORS[status] ?? HEALTH_COLORS.offline;
   };
 
-  // Should geometry animate?
   const shouldAnimate = mode !== 'compact';
-
-  // Phantom glow filter ID
   const filterId = useMemo(() => `phantom-glow-${mode}`, [mode]);
 
   return (
     <svg
-      viewBox="0 0 400 600"
+      viewBox="0 0 400 700"
       className={`w-full h-full ${className}`}
       aria-label="Tree of Life — 11 agents connected by 22 paths"
     >
       <defs>
-        {/* Phantom node glow */}
-        <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="3" />
+        {/* Phantom node glow filter */}
+        <filter id={filterId} x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="6" />
         </filter>
 
-        {/* Animated path gradient for dashboard mode */}
+        {/* Dashboard flow gradient */}
         {mode === 'dashboard' && (
           <linearGradient id="path-flow" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0" />
-            <stop offset="50%" stopColor="var(--color-accent)" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
+            <stop offset="0%" stopColor="#7c9bf5" stopOpacity="0" />
+            <stop offset="50%" stopColor="#7c9bf5" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#7c9bf5" stopOpacity="0" />
           </linearGradient>
         )}
       </defs>
@@ -95,8 +110,41 @@ export function TreeOfLife({
         {TREE_PATHS.map((path, i) => {
           const src = TREE_NODE_MAP[path.source];
           const tgt = TREE_NODE_MAP[path.target];
-          const isPhantom = path.phantom;
-          const opacity = isPhantom ? cfg.phantomPathOpacity : cfg.pathOpacity;
+          const isOracle = path.phantom;
+          const isMiddle = isMiddlePillarPath(src, tgt);
+
+          // Path styling per Crown spec:
+          // Standard: solid, opacity 0.35, width 1.5
+          // Oracle: dashed, opacity 0.25, width 1.5
+          // Middle pillar: solid, opacity 0.5, width 2
+          // Oracle + middle (path 11): dashed, opacity 0.35, width 2
+          let opacity: number;
+          let width: number;
+          let dashArray: string | undefined;
+
+          if (isOracle && isMiddle) {
+            opacity = 0.35;
+            width = 2;
+            dashArray = '8 5';
+          } else if (isOracle) {
+            opacity = 0.25;
+            width = 1.5;
+            dashArray = '8 5';
+          } else if (isMiddle) {
+            opacity = 0.5;
+            width = 2;
+            dashArray = undefined;
+          } else {
+            opacity = 0.35;
+            width = 1.5;
+            dashArray = undefined;
+          }
+
+          // Compact mode: thinner
+          if (mode === 'compact') {
+            width *= 0.5;
+            opacity *= 0.4;
+          }
 
           return (
             <line
@@ -105,10 +153,10 @@ export function TreeOfLife({
               y1={src.y}
               x2={tgt.x}
               y2={tgt.y}
-              stroke="var(--color-accent)"
-              strokeWidth={cfg.pathWidth}
+              stroke="#7c9bf5"
+              strokeWidth={width}
               strokeOpacity={opacity}
-              strokeDasharray={isPhantom ? '4 4' : undefined}
+              strokeDasharray={dashArray}
             />
           );
         })}
@@ -120,8 +168,12 @@ export function TreeOfLife({
           const healthColor = getHealthColor(node);
           const isHighlighted = highlightNode === node.id;
           const isPhantom = node.phantom;
+          const isNexus = node.id === 'nexus';
           const GeometryIcon = GEOMETRY_COMPONENTS[node.engine];
           const interactive = mode === 'dashboard' || mode === 'diagram';
+
+          const nodeR = getNodeRadius(node.id as AgentId, mode);
+          const geoSize = getGeoSize(node.id as AgentId, mode);
 
           return (
             <g
@@ -142,55 +194,82 @@ export function TreeOfLife({
                   : undefined
               }
             >
-              {/* Phantom glow background */}
+              {/* Tooltip for diagram mode */}
+              {mode === 'diagram' && (
+                <title>{node.name} — {node.description}</title>
+              )}
+
+              {/* Oracle: outer ethereal glow */}
               {isPhantom && (
                 <circle
                   cx={node.x}
                   cy={node.y}
-                  r={cfg.nodeR + 6}
-                  fill="var(--color-accent)"
-                  opacity={0.06}
+                  r={nodeR + 12}
+                  fill="#7c9bf5"
+                  opacity={0.08}
                   filter={`url(#${filterId})`}
                 />
               )}
 
-              {/* Health ring */}
-              <circle
-                cx={node.x}
-                cy={node.y}
-                r={cfg.nodeR}
-                fill="none"
-                stroke={healthColor}
-                strokeWidth={cfg.ringWidth}
-                strokeDasharray={isPhantom ? '5 3' : undefined}
-                opacity={isPhantom ? 0.5 : isHighlighted ? 1 : 0.8}
-                className={interactive ? 'transition-opacity duration-200 hover:opacity-100' : ''}
-              />
+              {/* Nexus: subtle prominence glow */}
+              {isNexus && mode !== 'compact' && (
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={nodeR + 8}
+                  fill={healthColor}
+                  opacity={0.06}
+                />
+              )}
+
+              {/* Oracle: periwinkle translucent fill */}
+              {isPhantom && (
+                <circle
+                  cx={node.x}
+                  cy={node.y}
+                  r={nodeR}
+                  fill="#7c9bf5"
+                  opacity={0.12}
+                />
+              )}
 
               {/* Node background fill */}
               <circle
                 cx={node.x}
                 cy={node.y}
-                r={cfg.nodeR - cfg.ringWidth}
+                r={nodeR - cfg.ringWidth}
                 fill="var(--color-background)"
-                opacity={isPhantom ? 0.7 : 1}
+                opacity={isPhantom ? 0.85 : 1}
+              />
+
+              {/* Health ring */}
+              <circle
+                cx={node.x}
+                cy={node.y}
+                r={nodeR}
+                fill="none"
+                stroke={healthColor}
+                strokeWidth={isNexus ? cfg.ringWidth + 1 : cfg.ringWidth}
+                strokeDasharray={isPhantom ? '8 5' : undefined}
+                opacity={isPhantom ? 0.6 : isHighlighted ? 1 : 0.85}
+                className={interactive ? 'transition-opacity duration-200 hover:opacity-100' : ''}
               />
 
               {/* Sacred geometry icon via foreignObject */}
               {mode !== 'compact' && GeometryIcon && (
                 <foreignObject
-                  x={node.x - cfg.geoSize / 2}
-                  y={node.y - cfg.geoSize / 2}
-                  width={cfg.geoSize}
-                  height={cfg.geoSize}
+                  x={node.x - geoSize / 2}
+                  y={node.y - geoSize / 2}
+                  width={geoSize}
+                  height={geoSize}
                   className="overflow-visible pointer-events-none"
                 >
                   <div
                     className="flex items-center justify-center w-full h-full"
-                    style={{ opacity: isPhantom ? 0.45 : 0.9 }}
+                    style={{ opacity: isPhantom ? 0.5 : 0.9 }}
                   >
                     <GeometryIcon
-                      size={cfg.geoSize * 0.8}
+                      size={geoSize * 0.85}
                       color={healthColor}
                       animate={shouldAnimate}
                     />
@@ -198,19 +277,19 @@ export function TreeOfLife({
                 </foreignObject>
               )}
 
-              {/* Compact mode: simple colored dot instead of geometry */}
+              {/* Compact mode: simple colored dot */}
               {mode === 'compact' && (
                 <circle
                   cx={node.x}
                   cy={node.y}
-                  r={cfg.nodeR * 0.45}
+                  r={nodeR * 0.45}
                   fill={healthColor}
                   opacity={isPhantom ? 0.4 : 0.8}
                 />
               )}
 
               {/* Node name label */}
-              {cfg.fontSize > 0 && (
+              {cfg.showLabels && (
                 <text
                   x={node.x}
                   y={node.y + cfg.labelOffset}
@@ -218,8 +297,8 @@ export function TreeOfLife({
                   fill="var(--color-foreground-strong)"
                   fontSize={cfg.fontSize}
                   fontFamily="system-ui, sans-serif"
-                  fontWeight={500}
-                  opacity={isPhantom ? 0.5 : 0.9}
+                  fontWeight={isNexus ? 600 : 500}
+                  opacity={isPhantom ? 0.55 : 0.9}
                 >
                   {node.name}
                 </text>

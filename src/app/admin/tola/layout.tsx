@@ -1,10 +1,15 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function TolaAdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   return (
     <div
       className="h-screen flex"
@@ -22,27 +27,9 @@ export default function TolaAdminLayout({
           </span>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
-          <Link
-            href="/admin/tola"
-            className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg bg-[var(--color-admin-surface)] text-[var(--color-foreground-strong)]"
-          >
-            <TreeIcon />
-            Agents
-          </Link>
-          <Link
-            href="/admin"
-            className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg text-[var(--color-muted-light)] hover:bg-[var(--color-admin-surface)] transition-colors"
-          >
-            <InboxIcon />
-            Contacts
-          </Link>
-          <Link
-            href="/admin/discoveries"
-            className="flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg text-[var(--color-muted-light)] hover:bg-[var(--color-admin-surface)] transition-colors"
-          >
-            <ClipboardIcon />
-            Discoveries
-          </Link>
+          <SidebarLink href="/admin/tola" icon={<TreeIcon />} label="TOLA Agents" active={pathname === '/admin/tola'} />
+          <SidebarLink href="/admin" icon={<InboxIcon />} label="Contacts" active={pathname === '/admin'} />
+          <SidebarLink href="/admin/discoveries" icon={<ClipboardIcon />} label="Discoveries" active={pathname === '/admin/discoveries'} />
         </nav>
         <div className="px-5 py-4 border-t border-[var(--color-admin-border)]">
           <Link
@@ -57,6 +44,22 @@ export default function TolaAdminLayout({
       {/* Main */}
       <main className="flex-1 flex flex-col min-w-0 min-h-0">{children}</main>
     </div>
+  );
+}
+
+function SidebarLink({ href, icon, label, active }: { href: string; icon: React.ReactNode; label: string; active: boolean }) {
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+        active
+          ? 'bg-[var(--color-admin-surface)] text-[var(--color-foreground-strong)]'
+          : 'text-[var(--color-muted-light)] hover:bg-[var(--color-admin-surface)]'
+      }`}
+    >
+      {icon}
+      {label}
+    </Link>
   );
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { TreeOfLife } from '@/components/tree-of-life';
 import { AgentPanel } from '@/components/admin/agent-panel';
 import { ActivityFeed } from '@/components/admin/activity-feed';
@@ -33,9 +33,24 @@ function staticToLive(agent: TolaAgentStatic): TolaAgent {
   };
 }
 
+interface AdminStats {
+  actions_today: number;
+  pipelines_today: number;
+  tier3_queue: number;
+}
+
 export default function TolaAdminPage() {
-  const { agents, loading } = useRealtimeAgents();
+  const { agents, loading, error } = useRealtimeAgents();
   const [selectedId, setSelectedId] = useState<AgentId | null>(null);
+  const [stats, setStats] = useState<AdminStats | null>(null);
+
+  // Fetch admin stats
+  useEffect(() => {
+    fetch('/api/admin/stats')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data) setStats(data); })
+      .catch(() => {});
+  }, []);
 
   const agentMap = useMemo(() => {
     const map = new Map<string, TolaAgent>();
@@ -64,34 +79,44 @@ export default function TolaAdminPage() {
     setSelectedId(agentId);
   }, []);
 
-  const handleToggleKillSwitch = useCallback(
-    async (agentId: string, value: boolean) => {
-      try {
-        await fetch('/api/admin/agents', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: agentId, kill_switch: value }),
-        });
-      } catch (err) {
-        console.error('Failed to toggle kill switch:', err);
-      }
-    },
-    [],
-  );
+  const handleToggleKillSwitch = useCallback(async (agentId: string, value: boolean) => {
+    try {
+      await fetch('/api/admin/agents', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: agentId, kill_switch: value }),
+      });
+    } catch (err) {
+      console.error('Failed to toggle kill switch:', err);
+    }
+  }, []);
+
+  const handleTierChange = useCallback(async (agentId: string, tier: number) => {
+    try {
+      await fetch('/api/admin/agents', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: agentId, tier }),
+      });
+    } catch (err) {
+      console.error('Failed to change tier:', err);
+    }
+  }, []);
 
   const healthyCount = agents.filter((a) => a.status === 'healthy').length;
   const degradedCount = agents.filter((a) => a.status === 'degraded').length;
   const criticalCount = agents.filter((a) => a.status === 'critical').length;
+  const offlineCount = agents.length > 0
+    ? agents.length - healthyCount - degradedCount - criticalCount
+    : 11;
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header with overview bar */}
+      {/* Header + overview stats */}
       <div className="px-6 py-4 border-b border-[var(--color-admin-border)] shrink-0">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">
-              Tree of Life
-            </h1>
+            <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">Tree of Life</h1>
             <p className="text-xs text-[var(--color-muted)] mt-0.5">
               {agents.length > 0
                 ? `${agents.length} agents \u00b7 ${healthyCount} healthy`
@@ -101,55 +126,60 @@ export default function TolaAdminPage() {
           <div className="hidden sm:flex items-center gap-4">
             {Object.entries(STATUS_COLORS).map(([status, color]) => (
               <div key={status} className="flex items-center gap-1.5">
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: color }}
-                />
-                <span className="text-[10px] text-[var(--color-muted)] capitalize">
-                  {status}
-                </span>
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+                <span className="text-[10px] text-[var(--color-muted)] capitalize">{status}</span>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Overview stats */}
-        {agents.length > 0 && (
-          <div className="flex items-center gap-6 text-xs">
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-green-400" />
-              <span className="text-[var(--color-muted-light)]">{healthyCount} healthy</span>
-            </div>
-            {degradedCount > 0 && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-amber-400" />
-                <span className="text-[var(--color-muted-light)]">{degradedCount} degraded</span>
-              </div>
-            )}
-            {criticalCount > 0 && (
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-red-400" />
-                <span className="text-[var(--color-muted-light)]">{criticalCount} critical</span>
-              </div>
-            )}
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 rounded-full bg-gray-400" />
-              <span className="text-[var(--color-muted-light)]">
-                {agents.length - healthyCount - degradedCount - criticalCount} offline
-              </span>
-            </div>
+        {/* Stats bar */}
+        <div className="flex items-center gap-6 text-xs flex-wrap">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-green-400" />
+            <span className="text-[var(--color-muted-light)]">{healthyCount} healthy</span>
           </div>
+          {degradedCount > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-amber-400" />
+              <span className="text-[var(--color-muted-light)]">{degradedCount} degraded</span>
+            </div>
+          )}
+          {criticalCount > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-red-400" />
+              <span className="text-[var(--color-muted-light)]">{criticalCount} critical</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-gray-400" />
+            <span className="text-[var(--color-muted-light)]">{offlineCount} offline</span>
+          </div>
+          {stats && (
+            <>
+              <div className="w-px h-3 bg-[var(--color-admin-border)]" />
+              <span className="text-[var(--color-muted-light)]">{stats.actions_today} actions today</span>
+              <span className="text-[var(--color-muted-light)]">{stats.pipelines_today} pipelines</span>
+              {stats.tier3_queue > 0 && (
+                <span className="text-amber-400 font-medium">{stats.tier3_queue} in review queue</span>
+              )}
+            </>
+          )}
+        </div>
+
+        {error && (
+          <p className="mt-2 text-xs text-red-400">Connection error: {error}</p>
         )}
       </div>
 
       {/* Main content */}
       <div className="flex-1 flex min-h-0">
-        {/* Tree of Life canvas — desktop */}
+        {/* Tree of Life canvas */}
         <div className="hidden md:flex flex-1 relative items-center justify-center p-8">
           {loading ? (
             <p className="text-sm text-[var(--color-muted)]">Loading agents...</p>
           ) : (
-            <div className="w-full max-w-[400px] h-full max-h-[600px]">
+            <div className="w-full max-w-[380px] h-full max-h-[665px]">
               <TreeOfLife
                 mode="dashboard"
                 agents={agentStatuses}
@@ -176,13 +206,7 @@ export default function TolaAdminPage() {
                   className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-4 flex flex-col items-center gap-2 transition-all duration-200 hover:border-[var(--color-accent)]/60 active:scale-[0.97] cursor-pointer"
                 >
                   <div className="relative">
-                    {GeometryIcon && (
-                      <GeometryIcon
-                        size={32}
-                        color="var(--color-accent)"
-                        animate
-                      />
-                    )}
+                    {GeometryIcon && <GeometryIcon size={32} color="var(--color-accent)" animate />}
                     <div
                       className="absolute -top-1 -right-3 w-2.5 h-2.5 rounded-full border-2 border-[var(--color-admin-surface)]"
                       style={{ backgroundColor: statusColor }}
@@ -194,21 +218,17 @@ export default function TolaAdminPage() {
                   <span className="text-[10px] text-[var(--color-muted)]">
                     {GEOMETRY_LABELS[agent.geometry_engine]}
                   </span>
-                  <span className="text-[10px] text-[var(--color-muted)] capitalize">
-                    {status}
-                  </span>
+                  <span className="text-[10px] text-[var(--color-muted)] capitalize">{status}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Activity feed sidebar — large screens */}
+        {/* Activity feed sidebar */}
         <div className="hidden lg:flex flex-col w-80 border-l border-[var(--color-admin-border)]">
           <div className="px-4 py-3 border-b border-[var(--color-admin-border)]">
-            <h2 className="text-sm font-medium text-[var(--color-foreground-strong)]">
-              Activity
-            </h2>
+            <h2 className="text-sm font-medium text-[var(--color-foreground-strong)]">Activity</h2>
           </div>
           <div className="flex-1 overflow-y-auto p-2">
             <ActivityFeed />
@@ -216,12 +236,13 @@ export default function TolaAdminPage() {
         </div>
       </div>
 
-      {/* Agent detail panel overlay */}
+      {/* Agent detail panel */}
       {selectedAgent && (
         <AgentPanel
           agent={selectedAgent}
           onClose={() => setSelectedId(null)}
           onToggleKillSwitch={handleToggleKillSwitch}
+          onTierChange={handleTierChange}
         />
       )}
     </div>

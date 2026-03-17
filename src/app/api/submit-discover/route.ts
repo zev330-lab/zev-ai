@@ -10,9 +10,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Name is required.' }, { status: 400 });
     }
 
-    // Insert into Supabase
+    // Insert into Supabase with pipeline status
     const supabase = getSupabaseClient();
-    const { error: dbError } = await supabase.from('discoveries').insert({
+    const { data: inserted, error: dbError } = await supabase.from('discoveries').insert({
       name: body.name.trim(),
       email: body.email?.trim() || null,
       company: body.company?.trim() || null,
@@ -26,7 +26,8 @@ export async function POST(request: Request) {
       magic_wand: body.magicWand?.trim() || null,
       success_vision: body.success?.trim() || null,
       anything_else: body.anythingElse?.trim() || null,
-    });
+      pipeline_status: 'pending',
+    }).select('id').single();
 
     if (dbError) {
       console.error('Supabase insert error:', dbError);
@@ -70,6 +71,22 @@ export async function POST(request: Request) {
       } catch (emailError) {
         console.error('Resend email error:', emailError);
       }
+    }
+
+    // Fire-and-forget: trigger Guardian validation → pipeline chain
+    if (inserted?.id && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/tola-agent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({
+          agent: 'guardian',
+          action: 'validate-discovery',
+          discovery_id: inserted.id,
+        }),
+      }).catch((err) => console.error('Pipeline trigger failed:', err));
     }
 
     return NextResponse.json({ success: true });
