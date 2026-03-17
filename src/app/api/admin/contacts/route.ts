@@ -3,9 +3,11 @@ import { cookies } from 'next/headers';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 async function isAuthed() {
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminPassword) return false;
   const cookieStore = await cookies();
   const auth = cookieStore.get('admin_auth')?.value;
-  return auth === process.env.ADMIN_PASSWORD;
+  return auth === adminPassword;
 }
 
 export async function GET(request: NextRequest) {

@@ -5,7 +5,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { useRef } from 'react';
 import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
 import { HeroGradient } from '@/components/hero-gradient';
-import { cn } from '@/lib/utils';
+import { SeedOfLife, FlowerOfLife, SriYantra, MetatronsCube } from '@/components/sacred-geometry';
 
 export default function Home() {
   const heroRef = useRef<HTMLElement>(null);
@@ -24,6 +24,11 @@ export default function Home() {
       <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <HeroGradient />
 
+        {/* Ambient sacred geometry background */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.04] pointer-events-none" aria-hidden="true">
+          <FlowerOfLife size={600} animate={true} state="idle" color="#7c9bf5" />
+        </div>
+
         <motion.div
           style={{ opacity: heroOpacity, y: heroY }}
           className="relative z-10 mx-auto max-w-[1280px] px-6 md:px-12 w-full"
@@ -34,9 +39,9 @@ export default function Home() {
             transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(3rem,8vw,7rem)] leading-[1.05] tracking-tight font-light max-w-4xl">
-              AI systems that
+              AI agent systems
               <br />
-              <span className="italic text-accent">actually work.</span>
+              <span className="italic text-accent">built on sacred geometry.</span>
             </h1>
           </motion.div>
 
@@ -46,9 +51,9 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
           >
             <p className="mt-8 text-lg md:text-xl text-muted-light max-w-xl leading-relaxed">
-              I build production AI for businesses — intelligent agents, automated
-              workflows, and custom tools that run inside your operations. Not slide
-              decks. Working software.
+              I build multi-agent AI systems for businesses — intelligent orchestration
+              powered by the TOLA framework. Not slide decks. Production software
+              with 11 persistent agents running your operations.
             </p>
           </motion.div>
 
@@ -56,14 +61,23 @@ export default function Home() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
-            className="mt-12"
+            className="mt-12 flex flex-wrap items-center gap-6"
           >
             <Link
-              href="/contact"
+              href="/discover"
               className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
             >
-              Start a conversation
+              Start your AI assessment
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+              </svg>
+            </Link>
+            <Link
+              href="/tola"
+              className="inline-flex items-center gap-2 text-sm text-muted-light hover:text-foreground-strong transition-colors duration-300"
+            >
+              See the framework
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
               </svg>
             </Link>
@@ -102,13 +116,13 @@ export default function Home() {
             <StaggerChild>
               <div className="max-w-[680px] pb-10 md:pb-14">
                 <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
-                  Everyone&apos;s talking about AI.
+                  Everyone&apos;s talking about AI agents.
                   <br />
-                  Almost nobody&apos;s shipping it.
+                  Almost nobody&apos;s shipping them.
                 </h2>
                 <p className="text-muted-light text-lg leading-relaxed">
                   You&apos;ve seen the demos. Sat through the pitches. Read the LinkedIn
-                  posts about how AI will change everything. And yet your team still
+                  posts about autonomous AI transforming everything. And yet your team still
                   copy-pastes the same data between three spreadsheets every Monday.
                 </p>
               </div>
@@ -120,7 +134,7 @@ export default function Home() {
                   <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
                     You got a strategy deck
                     <br />
-                    when you needed software.
+                    when you needed agents.
                   </h2>
                   <p className="text-muted-light text-lg leading-relaxed md:ml-auto">
                     Most AI consultants deliver a PDF and a roadmap. Six figures later,
@@ -132,32 +146,16 @@ export default function Home() {
             </StaggerChild>
 
             <StaggerChild>
-              <div className="border-t border-accent/25 pt-10 md:pt-14 pb-10 md:pb-14">
-                <div className="max-w-[680px]">
-                  <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
-                    Your competitors aren&apos;t waiting.
-                  </h2>
-                  <p className="text-muted-light text-lg leading-relaxed">
-                    While you&apos;re evaluating, someone in your market is deploying.
-                    The gap between businesses that use AI and those that don&apos;t
-                    widens every quarter. This isn&apos;t a future trend. It&apos;s
-                    a present advantage.
-                  </p>
-                </div>
-              </div>
-            </StaggerChild>
-
-            <StaggerChild>
               <div className="border-t border-accent/25 pt-10 md:pt-14">
-                <div className="max-w-[680px] md:ml-auto md:text-right">
+                <div className="max-w-[680px]">
                   <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
                     You don&apos;t need more advice.
                     <br />
                     You need a builder.
                   </h2>
-                  <p className="text-muted-light text-lg leading-relaxed md:ml-auto">
-                    Someone who understands your operations, identifies where AI
-                    creates real leverage, builds the system, and proves it works
+                  <p className="text-muted-light text-lg leading-relaxed">
+                    Someone who understands multi-agent orchestration, builds the system,
+                    deploys it with persistent runtime agents, and proves it works
                     before you pay full price.
                   </p>
                 </div>
@@ -168,18 +166,18 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════════════════════════
-          SECTION 3 — THE APPROACH
+          SECTION 3 — THE APPROACH (TOLA)
           ═══════════════════════════════════════════ */}
       <section className="overflow-hidden">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
-              How it works
+              The TOLA framework
             </p>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-16 md:mb-20">
-              Three phases. One goal:
+              Sacred geometry orchestration.
               <br />
-              <span className="italic text-accent">systems that deliver.</span>
+              <span className="italic text-accent">Not another chatbot.</span>
             </h2>
           </Reveal>
 
@@ -187,22 +185,28 @@ export default function Home() {
             {[
               {
                 num: '01',
-                title: 'Understand',
-                body: 'I learn your business before I touch technology. What works, what doesn\'t, where the real leverage is. Not a surface-level audit — a deep understanding of how your operations actually run.',
+                title: 'Assess',
+                body: '13-dimension research engine analyzes your business, industry, and operations. Constraint-based planning ensures every recommendation is grounded in reality, not theory.',
+                icon: MetatronsCube,
               },
               {
                 num: '02',
                 title: 'Build',
-                body: 'No reports. Real AI systems — agents, automations, workflows — integrated directly into your existing operations. Production code, not prototypes.',
+                body: '11 specialized agents orchestrated through the Tree of Life — each with a sacred geometry engine that defines how it processes information. Production code, deployed and running.',
+                icon: SeedOfLife,
               },
               {
                 num: '03',
-                title: 'Prove',
-                body: 'Every system has measurable impact. I track performance, optimize continuously, and identify the next opportunity. If it doesn\'t make your business measurably better, I haven\'t done my job.',
+                title: 'Operate',
+                body: 'Persistent runtime agents monitor, optimize, and evolve your system 24/7. Kill switches, audit logging, and tiered human oversight keep everything under control.',
+                icon: SriYantra,
               },
             ].map((phase, i) => (
               <Reveal key={phase.num} delay={i * 0.1}>
                 <div className="relative">
+                  <div className="mb-4">
+                    <phase.icon size={48} animate={true} state="idle" />
+                  </div>
                   <span className="text-[5rem] md:text-[6rem] font-[family-name:var(--font-serif)] font-light text-border leading-none select-none">
                     {phase.num}
                   </span>
@@ -216,157 +220,149 @@ export default function Home() {
               </Reveal>
             ))}
           </div>
+
+          <Reveal>
+            <div className="mt-16 md:mt-20">
+              <Link
+                href="/tola"
+                className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover transition-colors duration-300"
+              >
+                Learn how the framework works
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                </svg>
+              </Link>
+            </div>
+          </Reveal>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════
-          SECTION 4 — WHAT I BUILD
+          SECTION 4 — PACKAGES
           ═══════════════════════════════════════════ */}
       <section className="section-light">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">
-              Capabilities
+              Packages
             </p>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-16 md:mb-20">
-              What I build
+              Four ways to work together
             </h2>
           </Reveal>
 
-          <StaggerReveal className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-16 md:gap-y-20">
+          <StaggerReveal className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                name: 'Intelligent Agents',
-                desc: 'AI that handles real work — client communication, lead scoring, content generation, data analysis — running autonomously inside your business.',
+                name: 'Assess',
+                desc: 'Deep-dive analysis of your business to find where AI creates real leverage. 13-dimension research + constraint-based roadmap.',
+                nodes: '4 agents',
+                price: 'From $2,500',
               },
               {
-                name: 'Workflow Automation',
-                desc: 'End-to-end automation of manual processes. Not simple if-then rules — intelligent systems that adapt and handle edge cases.',
+                name: 'Build',
+                desc: 'Full design, development, and deployment of a multi-agent AI system integrated into your operations.',
+                nodes: '11 agents',
+                price: '$5k–$25k',
               },
               {
-                name: 'AI-Powered Platforms',
-                desc: 'Full-stack applications with AI at the core. Customer-facing tools, internal dashboards, data pipelines — complete systems, not bolt-on features.',
+                name: 'Optimize',
+                desc: 'Ongoing AI leadership. Continuous system development, monitoring, and iteration with full runtime agents.',
+                nodes: '11+ agents',
+                price: '$5k–$10k/mo',
               },
               {
-                name: 'Content at Scale',
-                desc: 'AI-driven content generation that actually ranks. SEO-optimized pages, market analysis, personalized communications — thousands of pages, not dozens.',
+                name: 'Scale',
+                desc: 'Multi-system deployment across your organization. Shared intelligence, unified dashboard, cross-product orchestration.',
+                nodes: 'Unlimited',
+                price: 'Custom',
               },
-              {
-                name: 'Decision Systems',
-                desc: 'Automated data collection, scoring, and routing. Raw information becomes prioritized actions with intelligent decision logic.',
-              },
-              {
-                name: 'Custom AI Tools',
-                desc: 'Purpose-built for your domain. Chatbots, recommendation engines, document processors — whatever your business actually needs.',
-              },
-            ].map((cap) => (
-              <StaggerChild key={cap.name}>
-                <div className="group">
-                  <div className="flex items-start gap-4">
-                    <div className="w-2 h-2 rounded-full bg-accent mt-3 shrink-0 group-hover:scale-150 transition-transform duration-500" />
-                    <div>
-                      <h3 className="text-lg font-semibold tracking-tight mb-2">
-                        {cap.name}
-                      </h3>
-                      <p className="text-muted-light leading-relaxed">
-                        {cap.desc}
-                      </p>
-                    </div>
-                  </div>
+            ].map((pkg) => (
+              <StaggerChild key={pkg.name}>
+                <div className="border border-border rounded-2xl p-8 h-full transition-all duration-500 hover:border-accent/20">
+                  <h3 className="text-xl font-semibold tracking-tight text-foreground-strong mb-2">
+                    {pkg.name}
+                  </h3>
+                  <p className="text-sm text-accent font-medium mb-4">
+                    {pkg.nodes} active
+                  </p>
+                  <p className="text-muted-light leading-relaxed text-sm mb-6">
+                    {pkg.desc}
+                  </p>
+                  <p className="text-sm font-medium text-foreground-strong">
+                    {pkg.price}
+                  </p>
                 </div>
               </StaggerChild>
             ))}
           </StaggerReveal>
+
+          <Reveal>
+            <div className="mt-12">
+              <Link
+                href="/services"
+                className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover transition-colors duration-300"
+              >
+                See full package details
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+                </svg>
+              </Link>
+            </div>
+          </Reveal>
         </div>
       </section>
 
       {/* ═══════════════════════════════════════════
-          SECTION 5 — SCALE
+          SECTION 5 — SELF-REFERENTIAL PROOF
           ═══════════════════════════════════════════ */}
       <section className="relative overflow-hidden">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
-              Scale
+              The proof
             </p>
-            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-16 md:mb-20">
-              Systems built to your size
+            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-3xl mb-8">
+              This site runs on TOLA.
+              <br />
+              <span className="italic text-accent">Right now.</span>
             </h2>
+            <p className="text-muted-light text-lg max-w-[640px] leading-relaxed mb-12">
+              zev.ai was built by TOLA and runs on TOLA. 11 persistent agents
+              monitor this site, research prospects, generate engagement sequences,
+              and maintain system health — all visible in the admin dashboard. The
+              framework that builds is the framework that runs is the framework being sold.
+            </p>
           </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 mb-16 md:mb-20">
-            {[
-              {
-                tier: 'Starter System',
-                tagline: 'For teams exploring AI\u2019s impact',
-                items: [
-                  '5–10 AI-powered workflows',
-                  'Process automation + content generation',
-                  'Integration with existing tools',
-                ],
-              },
-              {
-                tier: 'Growth Engine',
-                tagline: 'For businesses ready to scale',
-                items: [
-                  '50–200 pages of AI-generated content',
-                  '5–10 intelligent agents',
-                  'Custom dashboards + analytics',
-                  'Full backend infrastructure',
-                ],
-              },
-              {
-                tier: 'Enterprise Platform',
-                tagline: 'Full-stack AI transformation',
-                items: [
-                  '1,000+ pages of dynamic content',
-                  '15–25+ specialized AI agents',
-                  'Multi-system integrations',
-                  'Complete data infrastructure',
-                  'Ongoing optimization + monitoring',
-                ],
-              },
-            ].map((scale, i) => (
-              <Reveal key={scale.tier} delay={i * 0.1}>
-                <div className={cn(
-                  'relative border border-border rounded-2xl p-8 md:p-10 h-full transition-all duration-500',
-                  i === 2 ? 'md:scale-[1.03] border-accent/20' : ''
-                )}>
-                  <h3 className="text-xl font-semibold tracking-tight text-foreground-strong mb-2">
-                    {scale.tier}
-                  </h3>
-                  <p className="text-sm text-accent font-medium mb-6">
-                    {scale.tagline}
+          <Reveal>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+              {[
+                { label: 'Persistent agents', value: '11' },
+                { label: 'Geometry engines', value: '9' },
+                { label: 'Infrastructure cost', value: '~$45/mo' },
+                { label: 'Uptime target', value: '99.9%' },
+              ].map((stat) => (
+                <div key={stat.label}>
+                  <p className="text-[clamp(2rem,5vw,3rem)] font-[family-name:var(--font-serif)] font-light text-accent leading-none">
+                    {stat.value}
                   </p>
-                  <ul className="space-y-3">
-                    {scale.items.map((item) => (
-                      <li key={item} className="flex items-start gap-3 text-sm text-muted-light leading-relaxed">
-                        <div className="w-1 h-1 rounded-full bg-accent mt-2 shrink-0" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
+                  <p className="mt-2 text-sm text-muted-light">{stat.label}</p>
                 </div>
-              </Reveal>
-            ))}
-          </div>
+              ))}
+            </div>
+          </Reveal>
 
           <Reveal>
-            <div className="border-t border-border pt-10">
-              <p className="text-muted-light max-w-[680px] leading-relaxed">
-                My largest system to date: a full-stack real estate platform with
-                2,000+ pages and 18 AI agents, built entirely with AI-native development.{' '}
-                <Link
-                  href="/work"
-                  className="text-accent hover:text-accent-hover transition-colors duration-300 inline-flex items-center gap-1"
-                >
-                  See the details
-                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-                  </svg>
-                </Link>
-              </p>
-            </div>
+            <Link
+              href="/work"
+              className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover transition-colors duration-300"
+            >
+              See the full case study
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+              </svg>
+            </Link>
           </Reveal>
         </div>
       </section>
@@ -388,17 +384,17 @@ export default function Home() {
               <StaggerReveal className="divide-y divide-surface-light-border">
                 <StaggerChild>
                   <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] tracking-tight py-8 first:pt-0">
-                    AI should build things, not just analyze them.
+                    AI should build systems, not just answer questions.
                   </p>
                 </StaggerChild>
                 <StaggerChild>
                   <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] tracking-tight py-8">
-                    The best AI strategy is a working prototype.
+                    The best AI strategy is a working prototype with agents running.
                   </p>
                 </StaggerChild>
                 <StaggerChild>
                   <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] tracking-tight py-8 last:pb-0">
-                    Small teams with AI beat big teams without it.
+                    Small teams with sacred geometry orchestration beat big teams without it.
                   </p>
                 </StaggerChild>
               </StaggerReveal>
@@ -417,14 +413,14 @@ export default function Home() {
               <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight mb-8">
                 Tell me what&apos;s broken.
                 <br />
-                I&apos;ll tell you what I&apos;d build.
+                I&apos;ll show you the agents I&apos;d build.
               </h2>
               <div className="flex flex-col sm:flex-row items-start gap-6">
                 <Link
-                  href="/contact"
+                  href="/discover"
                   className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  Let&apos;s talk
+                  Start your AI assessment
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                   </svg>

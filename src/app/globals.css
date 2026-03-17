@@ -1,19 +1,24 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #1e2330;
-  --color-foreground: #e4e7eb;
-  --color-foreground-strong: #f4f5f7;
-  --color-accent: #5ba8b5;
-  --color-accent-hover: #72bec9;
-  --color-muted: #5c6272;
-  --color-muted-light: #9298a6;
-  --color-border: #2a3042;
-  --color-surface: #242a38;
-  --color-surface-light: #f6f5f2;
+  /* TOLA v3.0 — Sacred Geometry Design System */
+  --color-background: #0a0e1a;
+  --color-foreground: #d0d0da;
+  --color-foreground-strong: #f0f0f5;
+  --color-accent: #7c9bf5;
+  --color-accent-hover: #96aff8;
+  --color-muted: #4a4e5e;
+  --color-muted-light: #c4b5e0;
+  --color-border: #1a1e2e;
+  --color-surface: #10142a;
+  --color-surface-light: #f4f3f0;
   --color-surface-light-foreground: #1c1e24;
   --color-surface-light-muted: #5f6370;
   --color-surface-light-border: #e2e0dc;
+  /* Admin dashboard (darker) */
+  --color-admin-bg: #08090f;
+  --color-admin-surface: #0d1020;
+  --color-admin-border: #161a2e;
   --font-sans: var(--font-sora);
   --font-serif: var(--font-source-serif);
 }
@@ -37,7 +42,7 @@ body {
 }
 
 ::selection {
-  background: rgba(91, 168, 181, 0.2);
+  background: rgba(124, 155, 245, 0.25);
   color: #fff;
 }
 
@@ -79,4 +84,43 @@ body {
 
 .section-light .divide-surface-light-border > * + * {
   border-color: var(--color-surface-light-border);
+}
+
+/* Sacred geometry ambient animation */
+@keyframes geometry-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes geometry-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+@keyframes geometry-breathe {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+
+.animate-geometry-rotate {
+  animation: geometry-rotate 20s linear infinite;
+  will-change: transform;
+}
+
+.animate-geometry-pulse {
+  animation: geometry-pulse 3s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-geometry-breathe {
+  animation: geometry-breathe 4s ease-in-out infinite;
+  will-change: opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-geometry-rotate,
+  .animate-geometry-pulse,
+  .animate-geometry-breathe {
+    animation: none;
+  }
 }

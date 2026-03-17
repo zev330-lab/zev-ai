@@ -10,9 +10,5 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="min-h-screen bg-gray-50 text-gray-900" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 }
