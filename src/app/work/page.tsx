@@ -79,7 +79,7 @@ export default function WorkPage() {
               <div>
                 <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">Case study</p>
                 <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.15] tracking-tight mb-8">
-                  How TOLA built this website
+                  Built with TOLA
                 </h2>
                 <p className="text-lg text-muted-light leading-relaxed mb-8">
                   11 specialized agents. 9 sacred geometry engines. 22 structured

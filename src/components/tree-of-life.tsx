@@ -82,7 +82,8 @@ export function TreeOfLife({
 
   const getHealthColor = (node: TreeNode): string => {
     if (mode === 'hero') return HEALTH_COLORS.active;
-    const status = agents?.[node.id]?.status ?? 'offline';
+    if (!agents) return HEALTH_COLORS.healthy;
+    const status = agents[node.id]?.status ?? 'offline';
     return HEALTH_COLORS[status] ?? HEALTH_COLORS.offline;
   };
 
