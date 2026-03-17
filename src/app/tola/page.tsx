@@ -84,7 +84,7 @@ export default function TolaPage() {
                 </p>
               </div>
               <div className="hidden lg:flex justify-center">
-                <div className="w-full max-w-[300px] h-[450px]">
+                <div className="w-full max-w-[300px] h-[420px]">
                   <TreeOfLife mode="diagram" />
                 </div>
               </div>

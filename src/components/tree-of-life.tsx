@@ -33,19 +33,19 @@ export interface TreeOfLifeProps {
 
 function getNodeRadius(nodeId: AgentId, mode: TreeMode): number {
   if (mode === 'compact') {
-    if (nodeId === 'nexus') return 14;
-    if (nodeId === 'oracle') return 10;
-    return 12;
+    if (nodeId === 'nexus') return 18;
+    if (nodeId === 'oracle') return 12;
+    return 14;
   }
-  if (nodeId === 'nexus') return 26;
-  if (nodeId === 'oracle') return 18;
-  return 20;
+  if (nodeId === 'nexus') return 36;
+  if (nodeId === 'oracle') return 24;
+  return 28;
 }
 
 function getGeoSize(nodeId: AgentId, mode: TreeMode): number {
   if (mode === 'compact') return 0;
   const r = getNodeRadius(nodeId, mode);
-  return (r - 5) * 2;
+  return (r - 6) * 2;
 }
 
 // ---------------------------------------------------------------------------
@@ -53,7 +53,7 @@ function getGeoSize(nodeId: AgentId, mode: TreeMode): number {
 // ---------------------------------------------------------------------------
 
 function isMiddlePillarPath(srcNode: TreeNode, tgtNode: TreeNode): boolean {
-  return srcNode.x === 200 && tgtNode.x === 200;
+  return srcNode.x === 250 && tgtNode.x === 250;
 }
 
 // ---------------------------------------------------------------------------
@@ -91,9 +91,9 @@ export function TreeOfLife({
 
   return (
     <svg
-      viewBox="0 0 400 600"
+      viewBox="0 0 500 700"
       className={`w-full h-full ${className}`}
-      aria-label="Tree of Life — 11 agents connected by 22 paths"
+      aria-label="Tree of Life — 11 agents connected by 24 paths"
     >
       <defs>
         {/* Phantom node glow filter */}

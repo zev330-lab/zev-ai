@@ -179,7 +179,7 @@ export default function TolaAdminPage() {
           {loading ? (
             <p className="text-sm text-[var(--color-muted)]">Loading agents...</p>
           ) : (
-            <div className="w-full max-w-[380px] h-full max-h-[570px]">
+            <div className="w-full max-w-[380px] h-full max-h-[532px]">
               <TreeOfLife
                 mode="dashboard"
                 agents={agentStatuses}
