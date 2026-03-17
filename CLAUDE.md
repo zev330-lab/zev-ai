@@ -1,141 +1,122 @@
-# zev.ai — AI Consulting Website
-
-## Supabase Setup (Manual Steps)
-1. Create a Supabase project at supabase.com/dashboard
-2. Run `supabase-setup.sql` in the SQL Editor (creates `contacts` + `discoveries` tables with RLS)
-3. Copy project URL + anon key + service role key from Settings > API
-4. Set env vars in Vercel (Settings > Environment Variables):
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `RESEND_API_KEY` (from resend.com)
-   - `ADMIN_PASSWORD` (choose a strong password)
-5. Redeploy after setting env vars: `vercel --prod --yes --scope steinmetz-real-estate-professionlas`
+# zev.ai — AI Consulting Website + TOLA v3.0 Agent Framework
 
 ## Overview
-Flagship website for Zev Steinmetz's AI consulting practice. Apple.com-quality cinematic scroll experience. 8 pages (5 public + 3 private) with alternating dark/light sections, scroll-triggered animations, and large confident typography. Supabase backend for form submissions + admin dashboard for lead management.
+Flagship website for Zev Steinmetz's AI consulting practice. Self-referential TOLA showcase — built BY TOLA agents, runs ON TOLA agents, describes TOLA. 11 specialized agents, 9 sacred geometry engines, 22 structured communication paths orchestrated through the Tree of Life.
 
 ## Stack
 - **Framework:** Next.js 16 (App Router), TypeScript
 - **Styling:** Tailwind CSS v4 (inline @theme)
-- **Animations:** Framer Motion (useScroll, useTransform, useInView, stagger reveals, parallax)
+- **Animations:** Framer Motion (useScroll, useTransform, useInView, stagger reveals)
 - **Fonts:** Sora (sans, body) + Source Serif 4 (serif, headings/editorial)
-- **Backend:** Supabase (PostgreSQL + RLS), Resend (email notifications)
-- **Deployment:** Vercel
-- **Domain:** zev.ai (pending DNS setup)
+- **Backend:** Supabase (PostgreSQL + RLS + Realtime + Edge Functions)
+- **AI:** Claude API (Sonnet) with web_search tool
+- **Email:** Resend (form notifications)
+- **Deployment:** Vercel + Supabase Edge Functions
+- **Domain:** zev.ai (pending DNS)
+
+## TOLA v3.0 Agent Architecture
+
+### 11 Agents (Tree of Life nodes)
+Crown (human authority), Visionary (research), Architect (planning), Oracle (synthesis, phantom),
+Guardian (validation), Nexus (routing, center), Catalyst (engagement), Sentinel (monitoring),
+Prism (testing), Foundation (infrastructure), Gateway (application)
+
+### Runtime
+- **Edge Function:** Single "fat function" (`supabase/functions/tola-agent/`) routing to all 11 agents
+- **Fully implemented:** Sentinel (health), Foundation (cleanup), Nexus (classification), Guardian (validation), Visionary (Claude + web_search research), Architect (scope assessment), Oracle (meeting prep synthesis)
+- **Stubs:** Crown, Catalyst, Prism, Gateway
+- **Supabase project:** ctrzkvdqkcqgejaedkbr
+
+### Assessment Pipeline
+Discovery form → Guardian validates → Visionary researches (Claude + web_search) → Architect scopes (9 constraints) → Oracle synthesizes meeting prep → Crown review queue.
+Each step is a separate Edge Function invocation chained via fire-and-forget fetch().
+
+### Pipeline Statuses
+pending → researching → scoping → synthesizing → complete | failed
+
+### 3-Tier Decision Model
+- **Tier 1 (80%):** Autonomous — UX, technical, operational
+- **Tier 2 (15%):** Notify & proceed — dependencies, infrastructure, trade-offs
+- **Tier 3 (5%):** Full stop — brand, creative, security, scope
+
+## Pages
+
+### Public (7)
+- `/` — Hero with Tree of Life diagram, Problem, Approach, Capabilities, Scale, Difference, CTA
+- `/tola` — Framework deep-dive: 22 paths, jargon mapping table, 3-tier model, 9 geometry explainers, 11 nodes, build+runtime
+- `/services` — 4 service tiers with pricing
+- `/work` — Live implementation case study with Tree of Life diagram
+- `/about` — Philosophy + builder background
+- `/contact` — Form → Supabase contacts
+- `/discover` — 12-step intake form → assessment pipeline
+
+### Admin (4) — not in nav, noindex
+- `/admin/tola` — Interactive Tree of Life dashboard: live health rings, click-to-expand agent panel, manual trigger, kill switch, tier selector, activity feed, stats bar
+- `/admin` — Contacts list + detail
+- `/admin/discoveries` — Discoveries with pipeline status, tabbed detail (Overview, Research, Assessment, Meeting Prep)
+- `/admin/login` — Password auth
+
+## API Routes
+- `POST /api/submit-contact` — Insert contact, send email
+- `POST /api/submit-discover` — Insert discovery, trigger assessment pipeline
+- `POST /api/admin/login` — Auth cookie
+- `GET|PATCH /api/admin/contacts` — CRUD
+- `GET|PATCH /api/admin/discoveries` — CRUD
+- `GET|PATCH /api/admin/agents` — Agent list/update (kill_switch, tier, is_active, status, config)
+- `GET /api/admin/agents/[id]/logs` — Per-agent activity log
+- `POST /api/admin/agents/trigger` — Invoke Edge Function for any agent
+- `GET /api/admin/stats` — Actions today, pipelines today, Tier 3 queue count
+
+## Database (Supabase)
+
+### Tables
+- **contacts** — id, name, email, company, message, status, notes
+- **discoveries** — 13 form fields + research_brief (JSONB), assessment_doc (TEXT), meeting_prep_doc (TEXT), pipeline_status, pipeline_error, pipeline_completed_at
+- **tola_agents** — id, node_name, geometry_engine, display_name, description, status, tier, last_heartbeat, config, is_active, kill_switch
+- **tola_agent_log** — agent_id, action, geometry_pattern, input, output, confidence, tier_used, tokens_used, latency_ms
+- **tola_agent_metrics** — agent_id, metric, value, geometry_state
+
+### Migrations
+- `001_tola_runtime.sql` — Agent tables, seed data, RLS, Realtime
+- `002_assessment_pipeline.sql` — Pipeline columns on discoveries
+
+## Canonical Components
+
+### Tree of Life (`src/components/tree-of-life.tsx`)
+- Single SVG component, 4 modes: hero, diagram, dashboard, compact
+- viewBox 0 0 400 700, 7 tiers at 100-unit intervals
+- Nexus: radius 36 (larger than standard 30)
+- Oracle: phantom (dashed border, periwinkle glow, 50% geometry opacity)
+- 22 paths with middle-pillar emphasis (opacity 0.5, width 2)
+
+### Sacred Geometry (`src/components/sacred-geometry/`)
+- 9 SVG components: SeedOfLife, MetatronsCube, SriYantra, Torus, Lotus, YinYang, FlowerOfLife, Merkabah, Vortex
+- Barrel exported via index.ts with GEOMETRY_COMPONENTS record
+
+## Required Secrets
+
+### Vercel env vars
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+- `RESEND_API_KEY`, `ADMIN_PASSWORD`
+
+### Supabase Edge Function secrets
+- `ANTHROPIC_API_KEY` — **REQUIRED for assessment pipeline.** Set via: Supabase Dashboard > Project Settings > Edge Functions > Secrets, or `supabase secrets set ANTHROPIC_API_KEY=sk-ant-...`
 
 ## Design System
 - **Background:** dark navy (#1e2330)
 - **Foreground:** off-white (#e4e7eb), strong (#f4f5f7)
 - **Accent:** teal (#5ba8b5), hover (#72bec9)
-- **Muted:** #5c6272, light (#9298a6)
-- **Borders:** #2a3042
-- **Surface:** #242a38 (dark), #f6f5f2 (light sections)
-- **Sections:** Alternating dark/light via `.section-light` CSS utility
-- **CTA style:** Teal rounded-full buttons with arrow icons
-- **Easing:** `[0.16, 1, 0.3, 1]` throughout
-
-## Pages
-### Public (5)
-- `/` — 7 cinematic sections: Hero, Problem, Approach, Capabilities, Scale, Difference, CTA
-- `/services` — 4 service tiers with pricing
-- `/work` — Featured project narrative + stats
-- `/about` — Philosophy + builder background
-- `/contact` — Form (→ Supabase `contacts` table) + sidebar. Loading/success/error states. Resend email notification to zev@zev.ai.
-
-### Private (3) — not in nav, noindex
-- `/discover` — Typeform-style multi-step client discovery intake form. 12 questions (one per screen), animated transitions, selection chips, review screen. Submits to Supabase `discoveries` table via API. Mailto fallback if API fails. "Copy all answers" backup button.
-- `/admin` — Admin dashboard: contacts list, status management (new/read/replied/archived), notes, search, filter. Light theme, sidebar nav, slide-out detail panel.
-- `/admin/discoveries` — Discovery submissions list with full detail view. Statuses: new/reviewed/meeting_scheduled/proposal_sent/engaged/archived.
-
-## API Routes
-- `POST /api/submit-contact` — Validates, inserts into `contacts`, sends Resend notification
-- `POST /api/submit-discover` — Validates, inserts into `discoveries`, sends Resend notification
-- `POST /api/admin/login` — Password check, sets httpOnly auth cookie (7-day expiry)
-- `GET /api/admin/contacts` — List contacts (supports ?status= and ?search= filters)
-- `PATCH /api/admin/contacts` — Update contact status/notes
-- `GET /api/admin/discoveries` — List discoveries (supports ?status= and ?search= filters)
-- `PATCH /api/admin/discoveries` — Update discovery status/notes
-
-## Database (Supabase)
-- **`contacts`** — id, created_at, name, email, company, message, status, notes
-- **`discoveries`** — id, created_at, name, email, company, role, business_overview, team_size, pain_points, repetitive_work, ai_experience, ai_tools_detail, magic_wand, success_vision, anything_else, status, notes
-- **RLS:** anon can INSERT; service_role has full access
-
-## Admin Auth
-- Simple password auth via `ADMIN_PASSWORD` env var
-- Middleware redirects unauthenticated `/admin/*` requests to `/admin/login`
-- Auth stored in httpOnly cookie, 7-day expiry
-
-## Key Components
-- `Navbar` — Sticky, 5 links + CTA button. Desktop at lg+, hamburger below.
-- `Footer` — Logo, description, email, LinkedIn, copyright.
-- `Reveal` / `StaggerReveal` / `StaggerChild` — Scroll-triggered animation wrappers.
-- `AnimatedNumber` — Count-up animation on scroll.
-- `HeroGradient` — Subtle ambient gradient orbs.
-- `JsonLd` — Schema.org structured data.
-
-## What's NOT Built Yet
-- [ ] Live AI chat (real Claude API integration)
-- [ ] Calendly embed
-- [ ] Blog (when real content exists)
-- [ ] Case studies (when 3+ real ones with permission)
-- [ ] Analytics (GA, PostHog)
-- [ ] Custom domain DNS
-- [ ] Resend domain verification (currently using onboarding@resend.dev)
-
-## Working Rules
-- Design north star: apple.com — cinematic, confident, every animation serves the narrative
-- Confidence is quiet. Desperation is loud.
-- Every word earns its place or gets cut.
-- Dark mode only, no light mode (except admin dashboard — light theme for work tool)
-- Alternating dark/light sections for rhythm and readability
-- Performance target: 95+ Lighthouse scores
-- Never commit .env files
-
-## File Organization
-```
-src/
-├── app/
-│   ├── layout.tsx              # Root layout
-│   ├── page.tsx                # Home
-│   ├── globals.css             # Tailwind v4 @theme
-│   ├── sitemap.ts / robots.ts
-│   ├── services/               # Services page
-│   ├── work/                   # Work page
-│   ├── about/                  # About page
-│   ├── contact/                # Contact form (wired to API)
-│   ├── discover/               # Multi-step intake form (wired to API)
-│   ├── admin/                  # Admin dashboard
-│   │   ├── login/page.tsx      # Password login
-│   │   ├── page.tsx            # Contacts view
-│   │   └── discoveries/page.tsx # Discoveries view
-│   └── api/
-│       ├── submit-contact/     # Public form endpoint
-│       ├── submit-discover/    # Public form endpoint
-│       └── admin/              # Auth + CRUD endpoints
-│           ├── login/
-│           ├── contacts/
-│           └── discoveries/
-├── components/
-│   ├── navbar.tsx / footer.tsx
-│   ├── reveal.tsx / animated-number.tsx
-│   ├── hero-gradient.tsx / json-ld.tsx
-├── lib/
-│   ├── constants.ts
-│   ├── supabase.ts             # Client + Admin Supabase instances
-│   └── utils.ts
-├── middleware.ts                # Admin route protection
-supabase-setup.sql              # DB schema + RLS policies
-.env.example                    # All required env vars
-```
+- **Periwinkle:** #7c9bf5 (Tree of Life, health rings)
+- **Sections:** Alternating dark/light via `.section-light`
+- **Admin:** Dark theme using --color-admin-* CSS variables
+- **Easing:** [0.16, 1, 0.3, 1] throughout
+- **CRITICAL:** No Kabbalah/Hebrew references in public-facing code. Agents use secular names (Crown, Visionary, etc.)
 
 ## Deployment
 - **Repo:** github.com/zev330-lab/zev-ai
 - **Host:** Vercel
 - **Live URL:** https://zev-ai-swart.vercel.app
 - **Vercel Team:** steinmetz-real-estate-professionlas
-- **Build:** `npm run build`
-- **Dev:** `npm run dev`
-- **Deploy:** `vercel --prod --yes --scope steinmetz-real-estate-professionlas`
-- **Status:** Backend + admin dashboard deployed (2026-03-13). Forms wired to Supabase. Needs env vars set in Vercel to go live.
+- **Deploy:** `vercel --prod`
+- **Edge Functions:** `supabase functions deploy tola-agent --no-verify-jwt`
+- **Migrations:** `supabase db push`
