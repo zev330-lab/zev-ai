@@ -111,6 +111,52 @@ export default function AdminDiscoveriesPage() {
     }
   };
 
+  const triggerPipeline = async (id: string) => {
+    await fetch('/api/admin/agents/trigger', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agent: 'guardian', action: 'validate-discovery', discovery_id: id }),
+    });
+    fetchDiscoveries();
+  };
+
+  const rerunPipeline = async (id: string) => {
+    await fetch('/api/admin/discoveries', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id,
+        pipeline_status: 'pending',
+        pipeline_error: null,
+        research_brief: null,
+        assessment_doc: null,
+        meeting_prep_doc: null,
+        pipeline_completed_at: null,
+      }),
+    });
+    await triggerPipeline(id);
+    if (selected?.id === id) {
+      setSelected((prev) => prev ? { ...prev, pipeline_status: 'pending', pipeline_error: null } : prev);
+    }
+  };
+
+  const deleteDiscovery = async (id: string) => {
+    if (!confirm('Delete this discovery permanently?')) return;
+    await fetch('/api/admin/discoveries', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    setSelected(null);
+    fetchDiscoveries();
+  };
+
+  const scheduleCalendarUrl = (d: Discovery) => {
+    const text = encodeURIComponent(`Discovery Call${d.company ? ` - ${d.company}` : ''}`);
+    const details = encodeURIComponent(`Meeting with ${d.name}${d.email ? `\nEmail: ${d.email}` : ''}${d.company ? `\nCompany: ${d.company}` : ''}`);
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&details=${details}`;
+  };
+
   const total = discoveries.length;
   const newCount = discoveries.filter((d) => d.status === 'new').length;
   const thisWeek = discoveries.filter((d) => Date.now() - new Date(d.created_at).getTime() < 7 * 86400000).length;
@@ -269,7 +315,7 @@ export default function AdminDiscoveriesPage() {
                 <h2 className="text-base font-semibold text-gray-900">{selected.name}</h2>
                 <button onClick={() => setSelected(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 mb-3">
                 <PipelineBadge status={selected.pipeline_status} />
                 <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${STATUS_COLORS[selected.status] || STATUS_COLORS.new}`}>
                   {STATUS_LABELS[selected.status] || selected.status}
@@ -277,6 +323,38 @@ export default function AdminDiscoveriesPage() {
                 {selected.pipeline_error && (
                   <span className="text-xs text-red-600">Error: {selected.pipeline_error}</span>
                 )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                {(!selected.pipeline_status || selected.pipeline_status === 'pending') && (
+                  <button
+                    onClick={() => triggerPipeline(selected.id)}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  >
+                    Run Pipeline
+                  </button>
+                )}
+                {selected.pipeline_status && selected.pipeline_status !== 'pending' && (
+                  <button
+                    onClick={() => rerunPipeline(selected.id)}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                  >
+                    Re-run Pipeline
+                  </button>
+                )}
+                <a
+                  href={scheduleCalendarUrl(selected)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+                >
+                  Schedule Meeting
+                </a>
+                <button
+                  onClick={() => deleteDiscovery(selected.id)}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors ml-auto"
+                >
+                  Delete
+                </button>
               </div>
             </div>
 

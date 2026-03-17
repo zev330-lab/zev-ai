@@ -86,7 +86,12 @@ export async function POST(request: Request) {
           action: 'validate-discovery',
           discovery_id: inserted.id,
         }),
-      }).catch((err) => console.error('Pipeline trigger failed:', err));
+      })
+        .then((r) => console.log(`Pipeline trigger for ${inserted.id}: ${r.status}`))
+        .catch((err) => console.error('Pipeline trigger failed:', err));
+    } else if (inserted?.id) {
+      console.warn('Pipeline trigger skipped — missing SUPABASE env vars.',
+        { url: !!process.env.NEXT_PUBLIC_SUPABASE_URL, key: !!process.env.SUPABASE_SERVICE_ROLE_KEY });
     }
 
     return NextResponse.json({ success: true });
