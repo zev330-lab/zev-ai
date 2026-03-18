@@ -7,7 +7,7 @@ export async function callClaude(
   anthropicKey: string,
   body: Record<string, unknown>,
   timeoutMs = 150_000,
-  maxRetries = 1,
+  maxRetries = 3,
 ): Promise<Response> {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const controller = new AbortController();
@@ -88,6 +88,14 @@ export function triggerNext(
   } catch {
     // Ignore — fire-and-forget is fine
   }
+}
+
+/**
+ * Sleep for the given number of milliseconds.
+ * Used to space out pipeline steps and avoid rate limits.
+ */
+export function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
