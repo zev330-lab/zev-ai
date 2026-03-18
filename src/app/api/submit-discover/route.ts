@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
 import { Resend } from 'resend';
 
 export async function POST(request: Request) {
@@ -10,8 +10,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Name is required.' }, { status: 400 });
     }
 
-    // Insert into Supabase with pipeline status
-    const supabase = getSupabaseClient();
+    // Insert into Supabase with pipeline status (service role bypasses RLS)
+    const supabase = getSupabaseAdmin();
     const { data: inserted, error: dbError } = await supabase.from('discoveries').insert({
       name: body.name.trim(),
       email: body.email?.trim() || null,
@@ -34,10 +34,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to save submission.' }, { status: 500 });
     }
 
-    // Send email notification
+    // Send emails via Resend
     if (process.env.RESEND_API_KEY) {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
+      // 1. Notification to Zev
       try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
         const fields = [
           `Name: ${body.name}`,
           body.email ? `Email: ${body.email}` : '',
@@ -69,23 +71,53 @@ export async function POST(request: Request) {
           text: `New discovery form submission on zev.ai\n\n${fields}`,
         });
       } catch (emailError) {
-        console.error('Resend email error:', emailError);
+        console.error('Resend notification email error:', emailError);
+      }
+
+      // 2. Confirmation to prospect
+      if (body.email?.trim()) {
+        try {
+          const firstName = body.name.trim().split(/\s+/)[0];
+          await resend.emails.send({
+            from: 'Zev Steinmetz <onboarding@resend.dev>',
+            to: body.email.trim(),
+            subject: `Got it, ${firstName} — I'm preparing for our conversation`,
+            text: [
+              `Hi ${firstName},`,
+              '',
+              `Thanks for taking the time to fill out the discovery form. I've received your responses and I'm already preparing for our conversation.`,
+              '',
+              `Here's what happens next:`,
+              `- I'll review your answers and do some research on ${body.company || 'your business'}`,
+              `- I'll come to our meeting with specific ideas tailored to your situation`,
+              `- No generic pitch — just an honest conversation about where AI can (and can't) help`,
+              '',
+              `If you have any questions before we meet, just reply to this email.`,
+              '',
+              `Looking forward to it,`,
+              `Zev`,
+              '',
+              `—`,
+              `Zev Steinmetz`,
+              `zev.ai`,
+            ].join('\n'),
+          });
+        } catch (confirmError) {
+          console.error('Resend confirmation email error:', confirmError);
+        }
       }
     }
 
-    // Fire-and-forget: trigger Guardian validation → pipeline chain
+    // Trigger pipeline: Guardian → Visionary → Architect → Oracle
+    // Each step is a separate Edge Function that chains to the next via fire-and-forget.
     if (inserted?.id && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/tola-agent`, {
+      fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/pipeline-guardian`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
         },
-        body: JSON.stringify({
-          agent: 'guardian',
-          action: 'validate-discovery',
-          discovery_id: inserted.id,
-        }),
+        body: JSON.stringify({ discovery_id: inserted.id }),
       })
         .then((r) => console.log(`Pipeline trigger for ${inserted.id}: ${r.status}`))
         .catch((err) => console.error('Pipeline trigger failed:', err));

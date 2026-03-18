@@ -115,7 +115,7 @@ export default function AdminDiscoveriesPage() {
     await fetch('/api/admin/agents/trigger', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agent: 'guardian', action: 'validate-discovery', discovery_id: id }),
+      body: JSON.stringify({ agent: 'pipeline-guardian', discovery_id: id }),
     });
     fetchDiscoveries();
   };

@@ -26,14 +26,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
   }
 
+  // Pipeline functions are standalone Edge Functions with their own URL
+  const isPipelineFunction = agent.startsWith('pipeline-');
+  const functionUrl = isPipelineFunction
+    ? `${supabaseUrl}/functions/v1/${agent}`
+    : `${supabaseUrl}/functions/v1/tola-agent`;
+  const functionBody = isPipelineFunction
+    ? JSON.stringify(payload)
+    : JSON.stringify({ agent, action: action || 'default', ...payload });
+
   try {
-    const res = await fetch(`${supabaseUrl}/functions/v1/tola-agent`, {
+    const res = await fetch(functionUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${serviceKey}`,
       },
-      body: JSON.stringify({ agent, action: action || 'default', ...payload }),
+      body: functionBody,
     });
 
     const data = await res.json();
