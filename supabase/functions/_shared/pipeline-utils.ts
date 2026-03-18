@@ -69,6 +69,7 @@ export async function failPipeline(
   await supabase.from('discoveries').update({
     pipeline_status: 'failed',
     pipeline_error: `${step} failed: ${errorMsg}`,
+    pipeline_started_at: null,
   }).eq('id', discoveryId);
 }
 

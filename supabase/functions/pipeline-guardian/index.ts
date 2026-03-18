@@ -1,6 +1,6 @@
 // =============================================================================
 // Pipeline Step 1: Guardian — Validates discovery, sets status to 'researching'
-// pg_net DB trigger on pipeline_status change fires the next step automatically
+// pg_cron worker polls and dispatches the next step after 60s cooldown
 // =============================================================================
 
 import { getServiceClient } from '../_shared/supabase.ts';
@@ -59,9 +59,10 @@ Deno.serve(async (req) => {
       return jsonResponse({ status: 'rejected', issues });
     }
 
-    // --- Valid: update status and trigger next step ---
+    // --- Valid: advance to researching (pg_cron worker dispatches Visionary) ---
     await supabase.from('discoveries').update({
       pipeline_status: 'researching',
+      pipeline_started_at: null,
     }).eq('id', discovery_id);
 
     await Promise.all([
@@ -73,7 +74,7 @@ Deno.serve(async (req) => {
       updateHeartbeat(supabase, 'guardian'),
     ]);
 
-    // pg_net trigger on pipeline_status='researching' fires pipeline-visionary
+    // pg_cron worker will dispatch pipeline-visionary after 60s cooldown
     return jsonResponse({ status: 'validated', next: 'pipeline-visionary' });
 
   } catch (err) {

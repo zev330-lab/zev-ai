@@ -108,8 +108,9 @@ export async function POST(request: Request) {
       }
     }
 
-    // Trigger pipeline: Guardian → Visionary → Architect → Oracle
-    // Each step is a separate Edge Function that chains to the next via fire-and-forget.
+    // Trigger Guardian immediately (fast, no Claude call).
+    // Even if this fire-and-forget fails, the pg_cron worker polls every 60s
+    // and will pick up any discovery with pipeline_status='pending'.
     if (inserted?.id && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
       fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/pipeline-guardian`, {
         method: 'POST',
@@ -120,10 +121,7 @@ export async function POST(request: Request) {
         body: JSON.stringify({ discovery_id: inserted.id }),
       })
         .then((r) => console.log(`Pipeline trigger for ${inserted.id}: ${r.status}`))
-        .catch((err) => console.error('Pipeline trigger failed:', err));
-    } else if (inserted?.id) {
-      console.warn('Pipeline trigger skipped — missing SUPABASE env vars.',
-        { url: !!process.env.NEXT_PUBLIC_SUPABASE_URL, key: !!process.env.SUPABASE_SERVICE_ROLE_KEY });
+        .catch((err) => console.error('Pipeline trigger failed (pg_cron will retry):', err));
     }
 
     return NextResponse.json({ success: true });

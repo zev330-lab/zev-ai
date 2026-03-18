@@ -125,10 +125,13 @@ Where research has [LIMITED DATA] tags, frame those areas as discovery questions
       if (block.type === 'text') assessmentDoc += block.text;
     }
 
-    // --- Save and chain ---
+    // --- Save and advance (pg_cron worker dispatches Oracle after cooldown) ---
     await supabase.from('discoveries').update({
       assessment_doc: assessmentDoc,
       pipeline_status: 'synthesizing',
+      pipeline_step_completed_at: new Date().toISOString(),
+      pipeline_started_at: null,
+      pipeline_retry_count: 0,
     }).eq('id', discovery_id);
 
     const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);
@@ -144,7 +147,7 @@ Where research has [LIMITED DATA] tags, frame those areas as discovery questions
       updateHeartbeat(supabase, 'architect'),
     ]);
 
-    // pg_net trigger on pipeline_status='synthesizing' fires pipeline-oracle
+    // pg_cron worker will dispatch pipeline-oracle after 60s cooldown
     return jsonResponse({ status: 'complete', tokens_used: tokensUsed, next: 'pipeline-oracle' });
 
   } catch (err) {

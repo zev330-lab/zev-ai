@@ -117,10 +117,13 @@ Return a JSON object with these keys:
       researchBrief = { raw_research: researchText };
     }
 
-    // --- Save and chain ---
+    // --- Save and advance (pg_cron worker dispatches Architect after cooldown) ---
     await supabase.from('discoveries').update({
       research_brief: researchBrief,
       pipeline_status: 'scoping',
+      pipeline_step_completed_at: new Date().toISOString(),
+      pipeline_started_at: null,
+      pipeline_retry_count: 0,
     }).eq('id', discovery_id);
 
     const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);
@@ -136,7 +139,7 @@ Return a JSON object with these keys:
       updateHeartbeat(supabase, 'visionary'),
     ]);
 
-    // pg_net trigger on pipeline_status='scoping' fires pipeline-architect
+    // pg_cron worker will dispatch pipeline-architect after 60s cooldown
     return jsonResponse({ status: 'complete', tokens_used: tokensUsed, next: 'pipeline-architect' });
 
   } catch (err) {

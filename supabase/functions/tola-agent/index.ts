@@ -31,23 +31,53 @@ type AgentHandler = (
 ) => Promise<Record<string, unknown>>;
 
 // ---------------------------------------------------------------------------
-// Helper: invoke another agent in the fat function (pipeline chaining)
+// Helper: Call Claude API with AbortController timeout
 // ---------------------------------------------------------------------------
 
-async function invokeAgent(agent: string, action: string, payload: Record<string, unknown> = {}): Promise<void> {
-  const baseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-  if (!baseUrl || !serviceKey) return;
+async function callClaude(
+  anthropicKey: string,
+  body: Record<string, unknown>,
+  timeoutMs = 150_000,
+  maxRetries = 1,
+): Promise<Response> {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': anthropicKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
 
-  // Fire-and-forget — don't await the full response
-  fetch(`${baseUrl}/functions/v1/tola-agent`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${serviceKey}`,
-    },
-    body: JSON.stringify({ agent, action, ...payload }),
-  }).catch((err) => console.error(`Chain invoke ${agent}/${action} failed:`, err));
+      // Retry on rate limit (429) — respect retry-after header
+      if (response.status === 429 && attempt < maxRetries) {
+        const retryAfter = parseInt(response.headers.get('retry-after') || '60', 10);
+        const waitMs = Math.min(retryAfter * 1000, 90_000); // cap at 90s
+        console.log(`[callClaude] Rate limited (429). Waiting ${waitMs / 1000}s before retry ${attempt + 1}/${maxRetries}`);
+        clearTimeout(timer);
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
+        continue;
+      }
+
+      return response;
+    } catch (err) {
+      clearTimeout(timer);
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        throw new Error(`Claude API timed out after ${Math.round(timeoutMs / 1000)}s`);
+      }
+      throw err;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  // Should not reach here, but satisfy TypeScript
+  throw new Error('callClaude: exhausted retries');
 }
 
 // ---------------------------------------------------------------------------
@@ -201,15 +231,12 @@ const guardian: AgentHandler = async (supabase, payload) => {
       return { status: 'rejected', issues };
     }
 
-    // Valid — update status and chain to Visionary
+    // Valid — update status (pipeline runner drives the next step)
     await supabase.from('discoveries').update({
       pipeline_status: 'researching',
     }).eq('id', discoveryId);
 
-    // Chain to Visionary
-    await invokeAgent('visionary', 'research-discovery', { discovery_id: discoveryId });
-
-    return { status: 'validated', issues: issues.length > 0 ? issues : undefined, next: 'visionary' };
+    return { status: 'validated', issues: issues.length > 0 ? issues : undefined };
   }
 
   // Default: validate most recent unprocessed discovery
@@ -247,7 +274,10 @@ const visionary: AgentHandler = async (supabase, payload) => {
 
     if (!discovery) return { status: 'error', message: 'Discovery not found' };
 
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
+    const rawKey = Deno.env.get('ANTHROPIC_API_KEY');
+    // Strip non-printable chars, whitespace, and surrounding quotes (common dashboard paste issues)
+    const anthropicKey = rawKey?.replace(/[^\x20-\x7E]/g, '').trim().replace(/^["']|["']$/g, '');
+    console.log(`[Visionary] ANTHROPIC_API_KEY: ${anthropicKey ? `${anthropicKey.substring(0, 12)}... (${anthropicKey.length} chars)` : 'NOT SET'} raw length=${rawKey?.length ?? 0}`);
     if (!anthropicKey) {
       await supabase.from('discoveries').update({
         pipeline_status: 'failed',
@@ -306,23 +336,17 @@ Return a JSON object with these keys:
   "discovery_questions": ["..."]
 }`;
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': anthropicKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4096,
-          tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-          messages: [{ role: 'user', content: prompt }],
-        }),
-      });
+      const response = await callClaude(anthropicKey, {
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: prompt }],
+      }, 180_000); // 3 min — web_search is slow
 
+      console.log(`[Visionary] Claude API response status: ${response.status}`);
       if (!response.ok) {
         const errText = await response.text();
+        console.error(`[Visionary] Claude API error body: ${errText}`);
         throw new Error(`Claude API error ${response.status}: ${errText}`);
       }
 
@@ -355,9 +379,6 @@ Return a JSON object with these keys:
       // Record token usage
       const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);
       await recordMetric(supabase, 'visionary', 'research_tokens', tokensUsed, { discovery_id: discoveryId });
-
-      // Chain to Architect
-      await invokeAgent('architect', 'scope-discovery', { discovery_id: discoveryId });
 
       return { status: 'complete', tokens_used: tokensUsed, research_sections: Object.keys(researchBrief).length };
 
@@ -404,7 +425,7 @@ const architect: AgentHandler = async (supabase, payload) => {
     if (!discovery) return { status: 'error', message: 'Discovery not found' };
     if (!discovery.research_brief) return { status: 'error', message: 'No research brief — run Visionary first' };
 
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
+    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')?.replace(/[^\x20-\x7E]/g, '').trim().replace(/^["']|["']$/g, '');
     if (!anthropicKey) {
       await supabase.from('discoveries').update({
         pipeline_status: 'failed',
@@ -482,19 +503,11 @@ Where research has [LIMITED DATA] tags, frame those areas as discovery questions
 
 ## Recommended Next Steps`;
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': anthropicKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4096,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-      });
+      const response = await callClaude(anthropicKey, {
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: prompt }],
+      }, 120_000);
 
       if (!response.ok) {
         const errText = await response.text();
@@ -514,9 +527,6 @@ Where research has [LIMITED DATA] tags, frame those areas as discovery questions
 
       const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);
       await recordMetric(supabase, 'architect', 'scope_tokens', tokensUsed, { discovery_id: discoveryId });
-
-      // Chain to Oracle
-      await invokeAgent('oracle', 'synthesize-discovery', { discovery_id: discoveryId });
 
       return { status: 'complete', tokens_used: tokensUsed, doc_length: assessmentDoc.length };
 
@@ -565,7 +575,7 @@ const oracle: AgentHandler = async (supabase, payload) => {
       return { status: 'error', message: 'Missing research or assessment — run earlier steps first' };
     }
 
-    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
+    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')?.replace(/[^\x20-\x7E]/g, '').trim().replace(/^["']|["']$/g, '');
     if (!anthropicKey) {
       await supabase.from('discoveries').update({
         pipeline_status: 'failed',
@@ -619,19 +629,11 @@ ${discovery.assessment_doc}
 
 Where research has [LIMITED DATA], convert gaps into priority discovery questions.`;
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': anthropicKey,
-          'anthropic-version': '2023-06-01',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 4096,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-      });
+      const response = await callClaude(anthropicKey, {
+        model: 'claude-sonnet-4-6',
+        max_tokens: 4096,
+        messages: [{ role: 'user', content: prompt }],
+      }, 120_000);
 
       if (!response.ok) {
         const errText = await response.text();
@@ -697,6 +699,100 @@ const prism: AgentHandler = createStub('prism', 'vortex');
 const gateway: AgentHandler = createStub('gateway', 'flower_of_life');
 
 // ---------------------------------------------------------------------------
+// Pipeline runner — sequential in-process orchestration
+// Replaces unreliable fire-and-forget HTTP chains.
+// Each step saves to DB before proceeding, so pipeline is RESUMABLE:
+// if the function gets killed, re-triggering picks up from the last checkpoint.
+// ---------------------------------------------------------------------------
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Map pipeline_status values to the step index that PRODUCED that status.
+// Used to determine which steps have already completed on resume.
+const STATUS_STEP_INDEX: Record<string, number> = {
+  pending: -1,       // no steps completed
+  researching: 0,    // guardian completed
+  scoping: 1,        // visionary completed
+  synthesizing: 2,   // architect completed
+  complete: 3,       // oracle completed (all done)
+};
+
+const pipeline: AgentHandler = async (supabase, payload) => {
+  const discoveryId = payload.discovery_id as string;
+  if (!discoveryId) return { status: 'error', message: 'discovery_id required' };
+
+  // Check current status to support resume
+  const { data: discovery } = await supabase
+    .from('discoveries')
+    .select('pipeline_status')
+    .eq('id', discoveryId)
+    .single();
+
+  if (!discovery) return { status: 'error', message: 'Discovery not found' };
+
+  const currentStatus = discovery.pipeline_status as string;
+  const completedIndex = STATUS_STEP_INDEX[currentStatus] ?? -1;
+
+  if (currentStatus === 'complete') {
+    return { status: 'already_complete', message: 'Pipeline already finished' };
+  }
+  if (currentStatus === 'failed') {
+    // Reset to the step that needs re-running (based on what data exists)
+    console.log(`[Pipeline] Resuming from failed state for ${discoveryId}`);
+  }
+
+  const steps: { name: string; handler: AgentHandler; action: string }[] = [
+    { name: 'guardian', handler: guardian, action: 'validate-discovery' },
+    { name: 'visionary', handler: visionary, action: 'research-discovery' },
+    { name: 'architect', handler: architect, action: 'scope-discovery' },
+    { name: 'oracle', handler: oracle, action: 'synthesize-discovery' },
+  ];
+
+  const completed: string[] = [];
+  const skipped: string[] = [];
+
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+
+    // Skip steps that already completed (resume support)
+    if (i <= completedIndex) {
+      console.log(`[Pipeline] Skipping ${step.name} (already completed)`);
+      skipped.push(step.name);
+      continue;
+    }
+
+    console.log(`[Pipeline] Starting ${step.name} for ${discoveryId}`);
+    const start = Date.now();
+
+    const result = await step.handler(supabase, {
+      action: step.action,
+      discovery_id: discoveryId,
+    });
+
+    const elapsed = Date.now() - start;
+    console.log(`[Pipeline] ${step.name} → ${result.status} (${elapsed}ms)`);
+
+    await updateHeartbeat(supabase, step.name);
+
+    if (result.status === 'error' || result.status === 'rejected') {
+      return {
+        status: 'failed',
+        failed_step: step.name,
+        completed_steps: completed,
+        skipped_steps: skipped,
+        error: result.message ?? result.status,
+      };
+    }
+
+    completed.push(step.name);
+  }
+
+  return { status: 'complete', completed_steps: completed, skipped_steps: skipped };
+};
+
+// ---------------------------------------------------------------------------
 // Agent registry
 // ---------------------------------------------------------------------------
 
@@ -712,6 +808,7 @@ const AGENTS: Record<string, AgentHandler> = {
   prism,
   foundation,
   gateway,
+  pipeline,
 };
 
 const GEOMETRY_MAP: Record<string, string> = {
@@ -726,6 +823,7 @@ const GEOMETRY_MAP: Record<string, string> = {
   prism: 'vortex',
   foundation: 'seed_of_life',
   gateway: 'flower_of_life',
+  pipeline: 'flower_of_life',
 };
 
 // ---------------------------------------------------------------------------
@@ -747,27 +845,34 @@ Deno.serve(async (req) => {
 
     const supabase = getServiceClient();
 
-    const killed = await checkKillSwitch(supabase, agent);
-    if (killed) {
-      await logAction(supabase, agent, `${action}_blocked`, {
-        geometryPattern: GEOMETRY_MAP[agent],
-        output: { reason: 'kill_switch_engaged' },
-      });
-      return jsonResponse({ error: `Agent ${agent} is disabled` }, 403);
+    // Pipeline is a meta-agent — skip kill switch and agent-level logging
+    const isMetaAgent = agent === 'pipeline';
+
+    if (!isMetaAgent) {
+      const killed = await checkKillSwitch(supabase, agent);
+      if (killed) {
+        await logAction(supabase, agent, `${action}_blocked`, {
+          geometryPattern: GEOMETRY_MAP[agent],
+          output: { reason: 'kill_switch_engaged' },
+        });
+        return jsonResponse({ error: `Agent ${agent} is disabled` }, 403);
+      }
     }
 
     const start = Date.now();
     const result = await AGENTS[agent](supabase, { action, ...payload });
     const latencyMs = Date.now() - start;
 
-    await Promise.all([
-      logAction(supabase, agent, action, {
-        geometryPattern: GEOMETRY_MAP[agent],
-        output: result,
-        latencyMs,
-      }),
-      updateHeartbeat(supabase, agent),
-    ]);
+    if (!isMetaAgent) {
+      await Promise.all([
+        logAction(supabase, agent, action, {
+          geometryPattern: GEOMETRY_MAP[agent],
+          output: result,
+          latencyMs,
+        }),
+        updateHeartbeat(supabase, agent),
+      ]);
+    }
 
     return jsonResponse({ agent, action, result, latency_ms: latencyMs });
   } catch (err) {

@@ -29,10 +29,18 @@ Prism (testing), Foundation (infrastructure), Gateway (application)
 
 ### Assessment Pipeline
 Discovery form → Guardian validates → Visionary researches (Claude + web_search) → Architect scopes (9 constraints) → Oracle synthesizes meeting prep → Crown review queue.
-Each step is a separate Edge Function invocation chained via fire-and-forget fetch().
+Each step is a separate Edge Function (`pipeline-guardian`, `pipeline-visionary`, `pipeline-architect`, `pipeline-oracle`).
+
+**Chaining:** pg_cron polls every 60s (`advance_pipeline()`), dispatches next step via pg_net with 300s timeout.
+**Rate limiting:** 60-second global cooldown between Claude API calls (tracked via `pipeline_step_completed_at`).
+**Retry:** Auto-retries on 429/529/timeout errors up to 5 times. Stuck in-flight steps recovered after 5 min.
+**Config:** `_pipeline_config` table stores `supabase_url` and `service_role_key` for pg_net dispatch.
 
 ### Pipeline Statuses
 pending → researching → scoping → synthesizing → complete | failed
+
+### Pipeline Columns (discoveries table)
+`pipeline_status`, `pipeline_error`, `pipeline_completed_at`, `pipeline_step_completed_at` (cooldown tracking), `pipeline_started_at` (in-flight guard), `pipeline_retry_count`
 
 ### 3-Tier Decision Model
 - **Tier 1 (80%):** Autonomous — UX, technical, operational
@@ -71,7 +79,8 @@ pending → researching → scoping → synthesizing → complete | failed
 
 ### Tables
 - **contacts** — id, name, email, company, message, status, notes
-- **discoveries** — 13 form fields + research_brief (JSONB), assessment_doc (TEXT), meeting_prep_doc (TEXT), pipeline_status, pipeline_error, pipeline_completed_at
+- **discoveries** — 13 form fields + research_brief (JSONB), assessment_doc (TEXT), meeting_prep_doc (TEXT), pipeline_status, pipeline_error, pipeline_completed_at, pipeline_step_completed_at, pipeline_started_at, pipeline_retry_count
+- **_pipeline_config** — key/value store for pg_net dispatch (supabase_url, service_role_key)
 - **tola_agents** — id, node_name, geometry_engine, display_name, description, status, tier, last_heartbeat, config, is_active, kill_switch
 - **tola_agent_log** — agent_id, action, geometry_pattern, input, output, confidence, tier_used, tokens_used, latency_ms
 - **tola_agent_metrics** — agent_id, metric, value, geometry_state
@@ -79,6 +88,10 @@ pending → researching → scoping → synthesizing → complete | failed
 ### Migrations
 - `001_tola_runtime.sql` — Agent tables, seed data, RLS, Realtime
 - `002_assessment_pipeline.sql` — Pipeline columns on discoveries
+- `003_pipeline_pg_net_trigger.sql` — (legacy) pg_net trigger chaining, _pipeline_config table
+- `004_pipeline_retry_cron.sql` — (legacy) pg_cron retry for rate-limited failures
+- `005_pipeline_cron_worker.sql` — pg_cron polling worker replaces trigger-based chaining
+- `006_fix_pgnet_timeout.sql` — Fix pg_net 2s default timeout → 300s for Claude API calls
 
 ## Canonical Components
 
@@ -118,5 +131,6 @@ pending → researching → scoping → synthesizing → complete | failed
 - **Live URL:** https://zev-ai-swart.vercel.app
 - **Vercel Team:** steinmetz-real-estate-professionlas
 - **Deploy:** `vercel --prod`
-- **Edge Functions:** `supabase functions deploy tola-agent --no-verify-jwt`
+- **Edge Functions:** `supabase functions deploy tola-agent --no-verify-jwt` (also deploy pipeline-guardian, pipeline-visionary, pipeline-architect, pipeline-oracle)
 - **Migrations:** `supabase db push`
+- **Pipeline config:** After fresh migration, set `service_role_key` in `_pipeline_config` table via Supabase REST API or SQL editor

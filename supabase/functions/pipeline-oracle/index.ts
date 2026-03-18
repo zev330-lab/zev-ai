@@ -106,6 +106,9 @@ Where research has [LIMITED DATA], convert gaps into priority discovery question
       meeting_prep_doc: meetingPrepDoc,
       pipeline_status: 'complete',
       pipeline_completed_at: new Date().toISOString(),
+      pipeline_step_completed_at: new Date().toISOString(),
+      pipeline_started_at: null,
+      pipeline_retry_count: 0,
     }).eq('id', discovery_id);
 
     const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);
