@@ -4,7 +4,7 @@
 
 import { getServiceClient } from '../_shared/supabase.ts';
 import { logAction, updateHeartbeat, recordMetric } from '../_shared/agent-utils.ts';
-import { callClaude, getAnthropicKey, delay, failPipeline, jsonResponse, CORS_HEADERS } from '../_shared/pipeline-utils.ts';
+import { callClaude, getAnthropicKey, failPipeline, jsonResponse, CORS_HEADERS } from '../_shared/pipeline-utils.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -19,10 +19,6 @@ Deno.serve(async (req) => {
     discoveryId = body.discovery_id;
     const discovery_id = discoveryId;
     if (!discovery_id) return jsonResponse({ error: 'discovery_id required' }, 400);
-
-    // Wait 60s for rate limit window to reset after Architect's Claude call
-    console.log('[Oracle] Waiting 60s for rate limit cooldown...');
-    await delay(60_000);
 
     const supabase = getServiceClient();
 

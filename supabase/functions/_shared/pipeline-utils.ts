@@ -58,7 +58,6 @@ export function getAnthropicKey(): string | null {
 
 /**
  * Fire-and-forget call to the next pipeline function.
- * Uses waitUntil if available, otherwise just don't await.
  */
 export function triggerNext(
   functionName: string,
@@ -88,14 +87,6 @@ export function triggerNext(
   } catch {
     // Ignore — fire-and-forget is fine
   }
-}
-
-/**
- * Sleep for the given number of milliseconds.
- * Used to space out pipeline steps and avoid rate limits.
- */
-export function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
