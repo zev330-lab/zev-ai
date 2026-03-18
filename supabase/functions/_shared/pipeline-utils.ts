@@ -6,8 +6,8 @@ import type { SupabaseClient } from 'jsr:@supabase/supabase-js@2';
 export async function callClaude(
   anthropicKey: string,
   body: Record<string, unknown>,
-  timeoutMs = 150_000,
-  maxRetries = 3,
+  timeoutMs = 120_000,
+  maxRetries = 1,
 ): Promise<Response> {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const controller = new AbortController();
@@ -24,10 +24,10 @@ export async function callClaude(
         signal: controller.signal,
       });
 
-      // Retry on 429 (rate limit) or 529 (overloaded)
+      // Retry on 429 (rate limit) or 529 (overloaded) — one retry with short wait
       if ((response.status === 429 || response.status === 529) && attempt < maxRetries) {
-        const retryAfter = parseInt(response.headers.get('retry-after') || '30', 10);
-        const waitMs = Math.min(retryAfter * 1000, 60_000);
+        const retryAfter = parseInt(response.headers.get('retry-after') || '15', 10);
+        const waitMs = Math.min(retryAfter * 1000, 30_000);
         console.log(`[callClaude] ${response.status} error. Waiting ${waitMs / 1000}s before retry ${attempt + 1}/${maxRetries}`);
         clearTimeout(timer);
         await new Promise((resolve) => setTimeout(resolve, waitMs));
