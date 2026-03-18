@@ -24,10 +24,11 @@ export async function callClaude(
         signal: controller.signal,
       });
 
-      if (response.status === 429 && attempt < maxRetries) {
-        const retryAfter = parseInt(response.headers.get('retry-after') || '60', 10);
-        const waitMs = Math.min(retryAfter * 1000, 90_000);
-        console.log(`[callClaude] Rate limited (429). Waiting ${waitMs / 1000}s before retry ${attempt + 1}/${maxRetries}`);
+      // Retry on 429 (rate limit) or 529 (overloaded)
+      if ((response.status === 429 || response.status === 529) && attempt < maxRetries) {
+        const retryAfter = parseInt(response.headers.get('retry-after') || '30', 10);
+        const waitMs = Math.min(retryAfter * 1000, 60_000);
+        console.log(`[callClaude] ${response.status} error. Waiting ${waitMs / 1000}s before retry ${attempt + 1}/${maxRetries}`);
         clearTimeout(timer);
         await new Promise((resolve) => setTimeout(resolve, waitMs));
         continue;
