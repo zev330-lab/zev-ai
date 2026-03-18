@@ -4,7 +4,7 @@
 
 import { getServiceClient } from '../_shared/supabase.ts';
 import { logAction, updateHeartbeat, recordMetric } from '../_shared/agent-utils.ts';
-import { callClaude, getAnthropicKey, triggerNext, failPipeline, jsonResponse, CORS_HEADERS } from '../_shared/pipeline-utils.ts';
+import { callClaude, getAnthropicKey, failPipeline, jsonResponse, CORS_HEADERS } from '../_shared/pipeline-utils.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -144,9 +144,7 @@ Where research has [LIMITED DATA] tags, frame those areas as discovery questions
       updateHeartbeat(supabase, 'architect'),
     ]);
 
-    // Fire-and-forget: trigger Oracle
-    await triggerNext('pipeline-oracle', discovery_id);
-
+    // pg_net trigger on pipeline_status='synthesizing' fires pipeline-oracle
     return jsonResponse({ status: 'complete', tokens_used: tokensUsed, next: 'pipeline-oracle' });
 
   } catch (err) {

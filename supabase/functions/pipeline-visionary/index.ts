@@ -4,7 +4,7 @@
 
 import { getServiceClient } from '../_shared/supabase.ts';
 import { logAction, updateHeartbeat, recordMetric } from '../_shared/agent-utils.ts';
-import { callClaude, getAnthropicKey, triggerNext, failPipeline, jsonResponse, CORS_HEADERS } from '../_shared/pipeline-utils.ts';
+import { callClaude, getAnthropicKey, failPipeline, jsonResponse, CORS_HEADERS } from '../_shared/pipeline-utils.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -136,9 +136,7 @@ Return a JSON object with these keys:
       updateHeartbeat(supabase, 'visionary'),
     ]);
 
-    // Fire-and-forget: trigger Architect
-    await triggerNext('pipeline-architect', discovery_id);
-
+    // pg_net trigger on pipeline_status='scoping' fires pipeline-architect
     return jsonResponse({ status: 'complete', tokens_used: tokensUsed, next: 'pipeline-architect' });
 
   } catch (err) {

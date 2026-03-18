@@ -57,51 +57,6 @@ export function getAnthropicKey(): string | null {
 }
 
 /**
- * Trigger the next pipeline function.
- *
- * Strategy: Start the fetch, then race it against a 5s timer.
- * Once 5s pass, the HTTP request has been sent to Supabase's edge
- * (TCP + TLS + headers are flushed). We abort and return — the
- * target function is already executing server-side regardless of
- * whether we read the response.
- */
-export async function triggerNext(
-  functionName: string,
-  discoveryId: string,
-): Promise<void> {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const controller = new AbortController();
-
-  try {
-    const fetchPromise = fetch(`${supabaseUrl}/functions/v1/${functionName}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${serviceKey}`,
-      },
-      body: JSON.stringify({ discovery_id: discoveryId }),
-      signal: controller.signal,
-    });
-
-    // Wait up to 5s for the request to be sent and accepted
-    const result = await Promise.race([
-      fetchPromise.then((r) => ({ ok: true, status: r.status })),
-      new Promise<{ ok: boolean; status: string }>((resolve) =>
-        setTimeout(() => resolve({ ok: true, status: 'timeout-but-sent' }), 5_000)
-      ),
-    ]);
-
-    console.log(`[triggerNext] ${functionName} for ${discoveryId}: ${result.status}`);
-  } catch (err) {
-    console.error(`[triggerNext] ${functionName} failed:`, err);
-  } finally {
-    // Abort to free resources — the request is already in flight server-side
-    controller.abort();
-  }
-}
-
-/**
  * Fail a discovery pipeline with an error message.
  */
 export async function failPipeline(

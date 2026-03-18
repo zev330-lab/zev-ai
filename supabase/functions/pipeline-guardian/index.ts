@@ -1,10 +1,11 @@
 // =============================================================================
-// Pipeline Step 1: Guardian — Validates discovery, then triggers Visionary
+// Pipeline Step 1: Guardian — Validates discovery, sets status to 'researching'
+// pg_net DB trigger on pipeline_status change fires the next step automatically
 // =============================================================================
 
 import { getServiceClient } from '../_shared/supabase.ts';
 import { logAction, updateHeartbeat } from '../_shared/agent-utils.ts';
-import { triggerNext, jsonResponse, CORS_HEADERS } from '../_shared/pipeline-utils.ts';
+import { jsonResponse, CORS_HEADERS } from '../_shared/pipeline-utils.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -72,9 +73,7 @@ Deno.serve(async (req) => {
       updateHeartbeat(supabase, 'guardian'),
     ]);
 
-    // Fire-and-forget: trigger Visionary
-    await triggerNext('pipeline-visionary', discovery_id);
-
+    // pg_net trigger on pipeline_status='researching' fires pipeline-visionary
     return jsonResponse({ status: 'validated', next: 'pipeline-visionary' });
 
   } catch (err) {
