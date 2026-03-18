@@ -145,7 +145,7 @@ Where research has [LIMITED DATA] tags, frame those areas as discovery questions
     ]);
 
     // Fire-and-forget: trigger Oracle
-    triggerNext('pipeline-oracle', discovery_id);
+    await triggerNext('pipeline-oracle', discovery_id);
 
     return jsonResponse({ status: 'complete', tokens_used: tokensUsed, next: 'pipeline-oracle' });
 

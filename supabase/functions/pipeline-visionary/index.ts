@@ -137,7 +137,7 @@ Return a JSON object with these keys:
     ]);
 
     // Fire-and-forget: trigger Architect
-    triggerNext('pipeline-architect', discovery_id);
+    await triggerNext('pipeline-architect', discovery_id);
 
     return jsonResponse({ status: 'complete', tokens_used: tokensUsed, next: 'pipeline-architect' });
 

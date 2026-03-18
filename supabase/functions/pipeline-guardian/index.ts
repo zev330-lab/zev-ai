@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     ]);
 
     // Fire-and-forget: trigger Visionary
-    triggerNext('pipeline-visionary', discovery_id);
+    await triggerNext('pipeline-visionary', discovery_id);
 
     return jsonResponse({ status: 'validated', next: 'pipeline-visionary' });
 
