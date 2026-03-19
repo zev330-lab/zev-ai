@@ -67,15 +67,18 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `/approach` — Nature-inspired architecture: philosophy, Tree of Life diagram, 9 coordination patterns modeled on nature, 3-tier human oversight, build+runtime duality
 - `/work` — Case studies (Problem → Process → Payoff): Steinmetz RE (18 agents, 2000+ pages), Blank Industries (unified BI), KabbalahQ.ai (adaptive learning)
 - `/about` — Zev's story: real estate → AI builder, William Raveis background, hands-on builder emphasis
-- `/blog` — Placeholder (coming soon)
+- `/blog` — Blog listing with category filtering (6 content pillars), card grid, dynamic from blog_posts table
+- `/blog/[slug]` — Dynamic post pages: ToC sidebar, author bio, related posts, JSON-LD BlogPosting + FAQPage schemas
+- `/blog/rss.xml` — RSS feed of published posts
 - `/contact` — Form → Supabase contacts
 - `/discover` — 12-step intake form → assessment pipeline
 - `/tola` — Redirects to /approach
 
-### Admin (6) — not in nav, noindex, dark theme operations center
+### Admin (7) — not in nav, noindex, dark theme operations center
 - `/admin` — Dashboard home: stat cards (total, success rate, active agents, avg time), pipeline stage breakdown, activity feed
 - `/admin/tola` — Tree of Life Operating System: full interactive 11-node graph with 24 animated paths, real-time agent health via Supabase Realtime, sacred geometry animations, click-to-expand agent panels, mobile card stack fallback, activity feed footer
 - `/admin/discoveries` — Sortable list with real-time progress bars (0-100%, color-coded staleness), 5-tab detail (overview, research, assessment, meeting prep, proposal) with markdown rendering, proposal generation/PDF/regeneration
+- `/admin/content` — Content engine: Blog Posts list + Social Queue, post detail with preview/edit/social/review tabs, approve/publish workflow, "Generate New Post" button triggers pipeline
 - `/admin/agents` — Agent card grid (Guardian, Visionary, Architect, Oracle, Sentinel) with stats, Tree of Life diagram, activity feed, click-to-expand panel
 - `/admin/contacts` — Contact list with status badges, search, detail slide-out
 - `/admin/login` — Password auth
@@ -90,6 +93,9 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `GET /api/admin/agents/[id]/logs` — Per-agent activity log
 - `POST /api/admin/agents/trigger` — Invoke Edge Function for any agent
 - `GET /api/admin/stats` — Dashboard stats: total discoveries, success rate, active agents, avg pipeline time, actions/pipelines today, tier 3 queue, stage breakdown
+- `GET|POST|PATCH|DELETE /api/admin/content` — Blog post CRUD with publish workflow (generates schema_data, moves social_posts to social_queue, triggers ISR revalidation)
+- `GET|PATCH|DELETE /api/admin/social` — Social queue CRUD with platform filtering
+- `GET /api/blog` — Public: list published blog posts
 
 ## Database (Supabase)
 
@@ -100,6 +106,8 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - **tola_agents** — id, node_name, geometry_engine, display_name, description, status, tier, last_heartbeat, config, is_active, kill_switch
 - **tola_agent_log** — agent_id, action, geometry_pattern, input, output, confidence, tier_used, tokens_used, latency_ms
 - **tola_agent_metrics** — agent_id, metric, value, geometry_state
+- **blog_posts** — id, slug (unique), title, excerpt, content (markdown), category, tags (text[]), status (draft/topic_research/outlining/drafting/reviewing/social_gen/review/published/archived), author, reading_time_min, seo_title, seo_description, schema_data (JSONB), social_posts (JSONB), generation_data (JSONB), generation_started_at, pipeline_step_completed_at, generation_error, created_at, updated_at, published_at
+- **social_queue** — id, blog_post_id (FK), platform (linkedin/twitter/instagram/tiktok/threads), content, image_prompt, status (draft/approved/scheduled/posted), scheduled_for, posted_at, created_at
 
 ### Migrations
 - `001_tola_runtime.sql` — Agent tables, seed data, RLS, Realtime
@@ -110,6 +118,32 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `006_fix_pgnet_timeout.sql` — Fix pg_net 2s default timeout → 300s for Claude API calls
 - `007_pipeline_progress_pct.sql` — Add progress_pct column to discoveries for real-time progress tracking
 - `008_proposal_data.sql` — Add proposal_data JSONB and include_pricing boolean to discoveries
+- `009_blog_content.sql` — blog_posts + social_queue tables, advance_content_pipeline() cron, weekly auto-generation cron
+
+### Content Generation Pipeline
+Edge Function `pipeline-content-engine` — 5-step content generation with pg_cron advancement:
+1. **topic_research** (Visionary) — web_search for trending AI topics, cross-ref existing posts, select topic from 6 pillars
+2. **outlining** (Architect) — AEO-optimized outline with question-format headers, FAQ section, target keywords
+3. **drafting** (Oracle) — Full 1,500-2,500 word blog post in Zev's voice
+4. **reviewing** (Guardian) — Quality score, SEO score, brand consistency check, issue flagging
+5. **social_gen** (Catalyst) — 3-5 platform-specific social variants (LinkedIn, Twitter, Instagram, Threads)
+
+Status flow: topic_research → outlining → drafting → reviewing → social_gen → review (human approval) → published
+Each step respects 60s Claude API cooldown. pg_cron polls every 60s via `advance_content_pipeline()`.
+Weekly auto-generation: pg_cron creates new post every Sunday 8am EST.
+
+### Content Pillars (6)
+AI Implementation Guides, AI Strategy for Leaders, Industry-Specific AI, AI Tools & Comparisons, Case Studies, AI Trends
+
+### Blog SEO/AEO
+- JSON-LD BlogPosting schema on every published post
+- FAQPage schema extracted from ## Frequently Asked Questions sections
+- Person schema for Zev Steinmetz on homepage
+- OpenGraph + Twitter card meta per post
+- Question-format H2/H3 headers for Answer Engine Optimization
+- robots.txt: GPTBot, ClaudeBot, PerplexityBot explicitly allowed
+- Dynamic sitemap includes published blog posts
+- RSS feed at /blog/rss.xml
 
 ## Canonical Components
 
