@@ -1,13 +1,67 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Reveal } from '@/components/reveal';
+import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
+
+interface BlogPost {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  tags: string[];
+  reading_time_min: number;
+  published_at: string;
+  author: string;
+}
+
+const CATEGORIES = [
+  'All',
+  'AI Implementation Guides',
+  'AI Strategy for Leaders',
+  'Industry-Specific AI',
+  'AI Tools & Comparisons',
+  'Case Studies',
+  'AI Trends',
+];
+
+function relativeDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
 
 export default function BlogPage() {
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState('All');
+
+  useEffect(() => {
+    async function fetchPosts() {
+      try {
+        const res = await fetch('/api/blog');
+        if (res.ok) {
+          const data = await res.json();
+          setPosts(data);
+        }
+      } catch {
+        // Blog table may not exist yet — show empty state
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPosts();
+  }, []);
+
+  const filtered = activeCategory === 'All'
+    ? posts
+    : posts.filter((p) => p.category === activeCategory);
+
   return (
     <>
-      <section className="pt-36 md:pt-44 pb-20">
+      {/* Hero */}
+      <section className="pt-36 md:pt-44 pb-12">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -16,46 +70,107 @@ export default function BlogPage() {
           >
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">Blog</p>
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight max-w-3xl">
-              Coming soon.
+              AI implementation
+              <br />
+              <span className="italic text-accent">insights.</span>
             </h1>
             <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
-              Practical insights on AI implementation, multi-agent systems, and turning
-              AI investment into measurable business outcomes. Subscribe to get notified
-              when we publish.
+              Practical strategies for deploying AI systems that drive real business outcomes.
+              No hype, no theory — just what works.
             </p>
           </motion.div>
         </div>
       </section>
 
-      <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
-          <Reveal>
-            <div className="max-w-2xl">
-              <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,2.5rem)] leading-[1.15] tracking-tight mb-6">
-                Topics we&apos;ll cover
-              </h2>
-              <div className="space-y-4">
-                {[
-                  'When AI agents make sense (and when they don\'t)',
-                  'Building multi-agent systems that actually ship',
-                  'The real cost of AI implementation',
-                  'Measuring ROI on AI investments',
-                  'Lessons from deploying AI across industries',
-                  'How to evaluate AI consultants and vendors',
-                ].map((topic) => (
-                  <div key={topic} className="flex items-start gap-4">
-                    <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2.5 shrink-0" />
-                    <p className="text-muted-light leading-relaxed">{topic}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Reveal>
+      {/* Category filter */}
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
+          <div className="flex gap-2 overflow-x-auto pb-4 pt-2 -mb-px scrollbar-hide">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-4 py-2 text-sm whitespace-nowrap rounded-full transition-colors cursor-pointer ${
+                  activeCategory === cat
+                    ? 'bg-accent text-background font-medium'
+                    : 'text-muted-light hover:text-foreground-strong border border-border hover:border-accent/30'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
 
-          <Reveal>
-            <div className="mt-16">
-              <p className="text-muted-light mb-6">
-                In the meantime, start a conversation about your AI needs.
+      {/* Posts grid */}
+      <section>
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-16 md:py-24">
+          {loading ? (
+            <p className="text-center text-muted-light py-20">Loading posts...</p>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-20">
+              <Reveal>
+                <h2 className="font-[family-name:var(--font-serif)] text-2xl md:text-3xl tracking-tight mb-4">
+                  {posts.length === 0 ? 'Coming soon.' : 'No posts in this category yet.'}
+                </h2>
+                <p className="text-muted-light text-lg mb-8 max-w-lg mx-auto">
+                  {posts.length === 0
+                    ? 'We\'re working on our first posts. In the meantime, start a conversation about your AI needs.'
+                    : 'Check back soon or explore another category.'}
+                </p>
+                {posts.length === 0 && (
+                  <Link
+                    href="/discover"
+                    className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    Start Your Discovery
+                  </Link>
+                )}
+              </Reveal>
+            </div>
+          ) : (
+            <StaggerReveal className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filtered.map((post) => (
+                <StaggerChild key={post.id}>
+                  <Link href={`/blog/${post.slug}`} className="group block h-full">
+                    <article className="border border-border rounded-2xl p-8 h-full transition-all duration-500 hover:border-accent/30 flex flex-col">
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="text-[11px] tracking-wide uppercase text-accent font-medium">
+                          {post.category}
+                        </span>
+                        <span className="text-[11px] text-muted">&middot;</span>
+                        <span className="text-[11px] text-muted">{post.reading_time_min} min read</span>
+                      </div>
+                      <h2 className="text-lg font-semibold tracking-tight text-foreground-strong mb-3 group-hover:text-accent transition-colors">
+                        {post.title}
+                      </h2>
+                      <p className="text-sm text-muted-light leading-relaxed flex-1 mb-6">
+                        {post.excerpt}
+                      </p>
+                      <div className="flex items-center justify-between text-xs text-muted">
+                        <span>{relativeDate(post.published_at)}</span>
+                        <span className="text-accent group-hover:translate-x-1 transition-transform">&rarr;</span>
+                      </div>
+                    </article>
+                  </Link>
+                </StaggerChild>
+              ))}
+            </StaggerReveal>
+          )}
+        </div>
+      </section>
+
+      {/* CTA */}
+      {posts.length > 0 && (
+        <section className="section-light">
+          <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-20 md:py-28">
+            <Reveal>
+              <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,2.5rem)] leading-[1.15] tracking-tight mb-4">
+                Ready to put AI to work?
+              </h2>
+              <p className="text-muted-light mb-8 max-w-xl">
+                Reading is good. Building is better. Start your discovery to find where AI creates the highest leverage in your business.
               </p>
               <Link
                 href="/discover"
@@ -66,10 +181,10 @@ export default function BlogPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                 </svg>
               </Link>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+            </Reveal>
+          </div>
+        </section>
+      )}
     </>
   );
 }

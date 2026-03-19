@@ -8,17 +8,28 @@ export function JsonLd() {
         name: 'zev.ai',
         url: 'https://zev.ai',
         description: 'AI implementation consulting — production AI systems built for businesses.',
-        founder: {
-          '@type': 'Person',
-          name: 'Zev Steinmetz',
-          jobTitle: 'AI Implementation Consultant',
-          address: {
-            '@type': 'PostalAddress',
-            addressLocality: 'Newton',
-            addressRegion: 'MA',
-            addressCountry: 'US',
-          },
+        founder: { '@id': 'https://zev.ai/#person' },
+      },
+      {
+        '@type': 'Person',
+        '@id': 'https://zev.ai/#person',
+        name: 'Zev Steinmetz',
+        jobTitle: 'AI Implementation Consultant',
+        url: 'https://zev.ai/about',
+        worksFor: { '@id': 'https://zev.ai/#organization' },
+        address: {
+          '@type': 'PostalAddress',
+          addressLocality: 'Newton',
+          addressRegion: 'MA',
+          addressCountry: 'US',
         },
+        knowsAbout: [
+          'Artificial Intelligence',
+          'Multi-Agent Systems',
+          'AI Implementation',
+          'Business Automation',
+          'Real Estate Technology',
+        ],
       },
       {
         '@type': 'WebSite',
@@ -42,7 +53,7 @@ export function JsonLd() {
               itemOffered: {
                 '@type': 'Service',
                 name: 'AI Readiness Assessment',
-                description: 'Structured deep-dive into your business to identify where AI creates real value.',
+                description: 'Structured deep-dive into your business to identify where AI creates real value. Starting from $2,500.',
               },
             },
             {
@@ -50,15 +61,15 @@ export function JsonLd() {
               itemOffered: {
                 '@type': 'Service',
                 name: 'AI Implementation',
-                description: 'Design, build, and deploy AI systems integrated into your operations.',
+                description: 'Design, build, and deploy production AI systems integrated into your operations. Starting from $5,000.',
               },
             },
             {
               '@type': 'Offer',
               itemOffered: {
                 '@type': 'Service',
-                name: 'Fractional AI Officer',
-                description: 'Ongoing AI leadership embedded in your team.',
+                name: 'Ongoing AI Optimization',
+                description: 'Fractional AI leadership embedded in your team. Starting from $5,000/month.',
               },
             },
           ],

@@ -1,16 +1,41 @@
 import type { MetadataRoute } from 'next';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://zev.ai';
 
-  return [
+  const staticRoutes: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
     { url: `${baseUrl}/services`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
     { url: `${baseUrl}/approach`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
     { url: `${baseUrl}/work`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
     { url: `${baseUrl}/discover`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.9 },
+    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.6 },
   ];
+
+  // Fetch published blog posts for dynamic sitemap entries
+  let blogRoutes: MetadataRoute.Sitemap = [];
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data: posts } = await supabase
+      .from('blog_posts')
+      .select('slug, updated_at, published_at')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false });
+
+    if (posts) {
+      blogRoutes = posts.map((post) => ({
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: new Date(post.updated_at || post.published_at),
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+      }));
+    }
+  } catch {
+    // Blog table may not exist yet — just return static routes
+  }
+
+  return [...staticRoutes, ...blogRoutes];
 }
