@@ -63,6 +63,7 @@ Deno.serve(async (req) => {
     await supabase.from('discoveries').update({
       pipeline_status: 'researching',
       pipeline_started_at: null,
+      progress_pct: 10,
     }).eq('id', discovery_id);
 
     await Promise.all([

@@ -29,6 +29,10 @@ Deno.serve(async (req) => {
       .single();
 
     if (!discovery) return jsonResponse({ error: 'Discovery not found' }, 404);
+
+    // Progress: Architect started
+    await supabase.from('discoveries').update({ progress_pct: 40 }).eq('id', discovery_id);
+
     if (!discovery.research_brief) {
       return jsonResponse({ error: 'No research brief — run Visionary first' }, 400);
     }
@@ -108,6 +112,9 @@ Where research has [LIMITED DATA] tags, frame those areas as discovery questions
 
 ## Recommended Next Steps`;
 
+    // Progress: Claude API call starting
+    await supabase.from('discoveries').update({ progress_pct: 45 }).eq('id', discovery_id);
+
     const response = await callClaude(anthropicKey, {
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
@@ -132,6 +139,7 @@ Where research has [LIMITED DATA] tags, frame those areas as discovery questions
       pipeline_step_completed_at: new Date().toISOString(),
       pipeline_started_at: null,
       pipeline_retry_count: 0,
+      progress_pct: 65,
     }).eq('id', discovery_id);
 
     const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);

@@ -29,6 +29,10 @@ Deno.serve(async (req) => {
       .single();
 
     if (!discovery) return jsonResponse({ error: 'Discovery not found' }, 404);
+
+    // Progress: Oracle started
+    await supabase.from('discoveries').update({ progress_pct: 70 }).eq('id', discovery_id);
+
     if (!discovery.research_brief || !discovery.assessment_doc) {
       return jsonResponse({ error: 'Missing research or assessment — run earlier steps first' }, 400);
     }
@@ -84,6 +88,9 @@ ${discovery.assessment_doc}
 
 Where research has [LIMITED DATA], convert gaps into priority discovery questions.`;
 
+    // Progress: Claude API call starting
+    await supabase.from('discoveries').update({ progress_pct: 75 }).eq('id', discovery_id);
+
     const response = await callClaude(anthropicKey, {
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
@@ -101,6 +108,9 @@ Where research has [LIMITED DATA], convert gaps into priority discovery question
       if (block.type === 'text') meetingPrepDoc += block.text;
     }
 
+    // Progress: meeting prep extracted
+    await supabase.from('discoveries').update({ progress_pct: 90 }).eq('id', discovery_id);
+
     // --- Save and mark complete ---
     await supabase.from('discoveries').update({
       meeting_prep_doc: meetingPrepDoc,
@@ -109,6 +119,7 @@ Where research has [LIMITED DATA], convert gaps into priority discovery question
       pipeline_step_completed_at: new Date().toISOString(),
       pipeline_started_at: null,
       pipeline_retry_count: 0,
+      progress_pct: 100,
     }).eq('id', discovery_id);
 
     const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);

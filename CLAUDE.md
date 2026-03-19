@@ -40,7 +40,14 @@ Each step is a separate Edge Function (`pipeline-guardian`, `pipeline-visionary`
 pending → researching → scoping → synthesizing → complete | failed
 
 ### Pipeline Columns (discoveries table)
-`pipeline_status`, `pipeline_error`, `pipeline_completed_at`, `pipeline_step_completed_at` (cooldown tracking), `pipeline_started_at` (in-flight guard), `pipeline_retry_count`
+`pipeline_status`, `pipeline_error`, `pipeline_completed_at`, `pipeline_step_completed_at` (cooldown tracking), `pipeline_started_at` (in-flight guard), `pipeline_retry_count`, `progress_pct` (0-100 integer)
+
+### Pipeline Progress Tracking
+Each stage updates `progress_pct` as it works:
+- Guardian: 0% start → 10% validated
+- Visionary: 15% start → 20% Claude API call → 35% research complete
+- Architect: 40% start → 45% Claude API call → 65% assessment complete
+- Oracle: 70% start → 75% Claude API call → 90% meeting prep complete → 100% done
 
 ### 3-Tier Decision Model
 - **Tier 1 (80%):** Autonomous — UX, technical, operational
@@ -58,10 +65,11 @@ pending → researching → scoping → synthesizing → complete | failed
 - `/contact` — Form → Supabase contacts
 - `/discover` — 12-step intake form → assessment pipeline
 
-### Admin (4) — not in nav, noindex
-- `/admin/tola` — Interactive Tree of Life dashboard: live health rings, click-to-expand agent panel, manual trigger, kill switch, tier selector, activity feed, stats bar
-- `/admin` — Contacts list + detail
-- `/admin/discoveries` — Discoveries with pipeline status, tabbed detail (Overview, Research, Assessment, Meeting Prep)
+### Admin (5) — not in nav, noindex, dark theme operations center
+- `/admin` — Dashboard home: stat cards (total, success rate, active agents, avg time), pipeline stage breakdown, activity feed
+- `/admin/discoveries` — Sortable list with real-time progress bars (0-100%, color-coded staleness), 4-tab detail with markdown rendering
+- `/admin/agents` — Agent card grid (Guardian, Visionary, Architect, Oracle, Sentinel) with stats, Tree of Life diagram, activity feed, click-to-expand panel
+- `/admin/contacts` — Contact list with status badges, search, detail slide-out
 - `/admin/login` — Password auth
 
 ## API Routes
@@ -73,13 +81,13 @@ pending → researching → scoping → synthesizing → complete | failed
 - `GET|PATCH /api/admin/agents` — Agent list/update (kill_switch, tier, is_active, status, config)
 - `GET /api/admin/agents/[id]/logs` — Per-agent activity log
 - `POST /api/admin/agents/trigger` — Invoke Edge Function for any agent
-- `GET /api/admin/stats` — Actions today, pipelines today, Tier 3 queue count
+- `GET /api/admin/stats` — Dashboard stats: total discoveries, success rate, active agents, avg pipeline time, actions/pipelines today, tier 3 queue, stage breakdown
 
 ## Database (Supabase)
 
 ### Tables
 - **contacts** — id, name, email, company, message, status, notes
-- **discoveries** — 13 form fields + research_brief (JSONB), assessment_doc (TEXT), meeting_prep_doc (TEXT), pipeline_status, pipeline_error, pipeline_completed_at, pipeline_step_completed_at, pipeline_started_at, pipeline_retry_count
+- **discoveries** — 13 form fields + research_brief (JSONB), assessment_doc (TEXT), meeting_prep_doc (TEXT), pipeline_status, pipeline_error, pipeline_completed_at, pipeline_step_completed_at, pipeline_started_at, pipeline_retry_count, progress_pct (INT 0-100)
 - **_pipeline_config** — key/value store for pg_net dispatch (supabase_url, service_role_key)
 - **tola_agents** — id, node_name, geometry_engine, display_name, description, status, tier, last_heartbeat, config, is_active, kill_switch
 - **tola_agent_log** — agent_id, action, geometry_pattern, input, output, confidence, tier_used, tokens_used, latency_ms
@@ -92,6 +100,7 @@ pending → researching → scoping → synthesizing → complete | failed
 - `004_pipeline_retry_cron.sql` — (legacy) pg_cron retry for rate-limited failures
 - `005_pipeline_cron_worker.sql` — pg_cron polling worker replaces trigger-based chaining
 - `006_fix_pgnet_timeout.sql` — Fix pg_net 2s default timeout → 300s for Claude API calls
+- `007_pipeline_progress_pct.sql` — Add progress_pct column to discoveries for real-time progress tracking
 
 ## Canonical Components
 

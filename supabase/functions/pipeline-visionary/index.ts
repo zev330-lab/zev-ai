@@ -30,6 +30,9 @@ Deno.serve(async (req) => {
 
     if (!discovery) return jsonResponse({ error: 'Discovery not found' }, 404);
 
+    // Progress: Visionary started
+    await supabase.from('discoveries').update({ progress_pct: 15 }).eq('id', discovery_id);
+
     const anthropicKey = getAnthropicKey();
     console.log(`[Visionary] ANTHROPIC_API_KEY: ${anthropicKey ? `${anthropicKey.substring(0, 12)}... (${anthropicKey.length} chars)` : 'NOT SET'}`);
 
@@ -88,6 +91,9 @@ Return a JSON object with these keys:
   "discovery_questions": ["..."]
 }`;
 
+    // Progress: Claude API call starting
+    await supabase.from('discoveries').update({ progress_pct: 20 }).eq('id', discovery_id);
+
     const response = await callClaude(anthropicKey, {
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
@@ -124,6 +130,7 @@ Return a JSON object with these keys:
       pipeline_step_completed_at: new Date().toISOString(),
       pipeline_started_at: null,
       pipeline_retry_count: 0,
+      progress_pct: 35,
     }).eq('id', discovery_id);
 
     const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);
