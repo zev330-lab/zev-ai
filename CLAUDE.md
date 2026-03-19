@@ -74,14 +74,18 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `/discover` — 12-step intake form → assessment pipeline
 - `/tola` — Redirects to /approach
 
-### Admin (9) — not in nav, noindex, dark theme operations center
-- `/admin/tola` — TOLA Operating System (React Flow): 11-node graph with 22 paths, real-time agent health, MiniMap, Controls, click-to-expand panels with sub-agent sections
-- `/admin` — Dashboard home: stat cards (total, success rate, active agents, avg time), pipeline stage breakdown, activity feed
-- `/admin/discoveries` — Sortable list with real-time progress bars (0-100%, color-coded staleness), 5-tab detail (overview, research, assessment, meeting prep, proposal)
+### Admin (11) — not in nav, noindex, dark theme operations center
+Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Family > Knowledge > Agents > Contacts
+
+- `/admin/tola` — TOLA Operating System (React Flow): 11-node graph with 22 paths, real-time agent health, MiniMap, Controls, click-to-expand panels with sub-agent sections for Architect/Foundation/Catalyst/Oracle
+- `/admin` — Dashboard home: stat cards, pipeline stage breakdown, activity feed
+- `/admin/discoveries` — Sortable list with real-time progress bars (0-100%, color-coded staleness), 5-tab detail
 - `/admin/content` — Content engine: Blog Posts + Social Queue, approve/publish workflow, calendar view, platform previews
-- `/admin/projects` — Project Command Center (Architect sub-agent): card grid with milestone progress, time tracking, Log Time modal, milestone management. Seeded with 6 projects.
-- `/admin/finance` — Financial Overview (Foundation sub-agent): revenue/outstanding/hours metrics, invoice CRUD with status workflow, Recharts monthly trend chart
-- `/admin/agents` — Agent card grid with stats, Tree of Life diagram, activity feed, click-to-expand panel
+- `/admin/projects` — Project Command Center (Architect sub-agent): card grid with milestone progress, time tracking, Log Time modal. Seeded with 6 projects.
+- `/admin/finance` — Financial Overview (Foundation sub-agent): revenue/outstanding/hours metrics, invoice CRUD, Recharts chart
+- `/admin/family` — Family Hub (Catalyst sub-agent): Today view, kanban tasks (To Do/In Progress/Done), quick capture bar, events list, notes feed, family member avatar filters. Seeded with family member placeholders.
+- `/admin/knowledge` — Knowledge Base (Oracle sub-agent): prominent search bar, source-categorized entries (Meeting/Voice Memo/Article/Insight/Lesson/Discovery), quick capture, "Sync from Discoveries" + "Sync from Blog" auto-ingestion, pgvector similarity search
+- `/admin/agents` — Agent card grid with stats, Tree of Life diagram, activity feed
 - `/admin/contacts` — Contact list with status badges, search, detail slide-out
 - `/admin/login` — Password auth
 
@@ -101,6 +105,8 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `GET /api/blog` — Public: list published blog posts
 - `GET|POST|PATCH|DELETE /api/admin/projects` — Project CRUD with milestones and time entries (uses _type param)
 - `GET|POST|PATCH /api/admin/finance` — Finance metrics, invoice CRUD, monthly metrics
+- `GET|POST|PATCH|DELETE /api/admin/family` — Family tasks/events/notes CRUD (uses _type and view params)
+- `GET|POST|PATCH|DELETE /api/admin/knowledge` — Knowledge entries CRUD, sync_discoveries, sync_blog actions
 
 ## Database (Supabase)
 
@@ -119,6 +125,11 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - **project_time_entries** — id, project_id (FK), description, hours (decimal), date, billable, hourly_rate
 - **invoices** — id, project_id (FK nullable), client_name, amount, status (draft/sent/paid/overdue), issued_date, due_date, paid_date, description
 - **monthly_metrics** — id, month (date), revenue, costs, hours_billed, pipeline_value, new_clients
+- **family_members** — id, name, role (self/spouse/child/parent), avatar_color (hex)
+- **family_tasks** — id, title, description, assigned_to (FK), created_by_context, status (pending/in_progress/done), priority (low/medium/high/urgent), due_date, recurring, recurrence_pattern, completed_at
+- **family_events** — id, title, description, date, time_start, time_end, family_member_ids (uuid[]), location, reminder_sent
+- **family_notes** — id, content, context, tags (text[])
+- **knowledge_entries** — id, title, content, source (meeting/voice_memo/article/insight/lesson/discovery), source_ref, tags (text[]), embedding (vector(1536) via pgvector), created_at, updated_at
 
 ### Migrations
 - `001_tola_runtime.sql` — Agent tables, seed data, RLS, Realtime
@@ -133,6 +144,7 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `010_social_agent.sql` — social_accounts table, content_pillar/review_notes on social_queue, daily social agent cron (Mon-Fri noon UTC)
 - `011_stalled_detection.sql` — Stalled pipeline detection (30min timeout), email alerts via Resend
 - `012_projects_finance.sql` — projects, project_milestones, project_time_entries, invoices, monthly_metrics tables + seed data
+- `013_family_knowledge.sql` — family_members/tasks/events/notes, knowledge_entries with vector(1536), pgvector extension, search_knowledge() function, family seed data
 
 ### Content Generation Pipeline
 Edge Function `pipeline-content-engine` — 5-step content generation with pg_cron advancement:
