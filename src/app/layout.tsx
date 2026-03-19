@@ -27,6 +27,7 @@ export const metadata: Metadata = {
     template: `%s | ${SITE.name}`,
   },
   description: SITE.description,
+  keywords: ['AI consulting', 'multi-agent systems', 'AI implementation', 'AI strategy', 'production AI', 'business automation'],
   openGraph: {
     type: 'website',
     locale: 'en_US',

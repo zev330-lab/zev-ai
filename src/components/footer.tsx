@@ -12,13 +12,13 @@ export function Footer() {
               <span className="text-accent">.ai</span>
             </Link>
             <p className="mt-4 text-sm text-muted max-w-xs leading-relaxed">
-              AI agent systems built on sacred geometry.
+              AI systems that drive revenue.
               Real implementation, not strategy decks.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8 text-sm text-muted">
             <Link
-              href="/tola"
+              href="/approach"
               className="inline-flex items-center gap-1.5 text-muted-light/60 hover:text-accent transition-colors duration-300"
             >
               <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -30,7 +30,7 @@ export function Footer() {
                 <circle cx="5" cy="16" r="1.5" />
                 <circle cx="19" cy="16" r="1.5" />
               </svg>
-              Powered by TOLA v3.0
+              Our Approach
             </Link>
             <a
               href={`mailto:${SITE.email}`}

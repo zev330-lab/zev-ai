@@ -69,10 +69,10 @@ export function Navbar() {
               </Link>
             ))}
             <Link
-              href="/contact"
+              href="/discover"
               className="text-[13px] tracking-wide bg-accent text-background px-5 py-2 rounded-full font-medium transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
             >
-              Start a conversation
+              Start Your Discovery
             </Link>
           </div>
 
@@ -126,6 +126,12 @@ export function Navbar() {
                   {link.label}
                 </Link>
               ))}
+              <Link
+                href="/discover"
+                className="mt-4 inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide"
+              >
+                Start Your Discovery
+              </Link>
             </div>
           </motion.div>
         )}

@@ -4,47 +4,68 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
 import { AnimatedNumber } from '@/components/animated-number';
-import { TreeOfLife } from '@/components/tree-of-life';
-import { GEOMETRY_COMPONENTS } from '@/components/sacred-geometry';
 
-const STATS = [
-  { value: 11, suffix: '', label: 'Runtime Agents' },
-  { value: 9, suffix: '', label: 'Geometry Engines' },
-  { value: 22, suffix: '', label: 'Communication Paths' },
-  { value: 4, suffix: '', label: 'Build Phases' },
-];
-
-const ASPECTS = [
+const CASE_STUDIES = [
   {
-    label: 'Self-Referential',
-    title: 'Built by the system it describes',
-    body: 'This website was designed, developed, tested, and deployed by TOLA agents. The Visionary researched the landscape. The Architect planned the implementation. The Guardian reviewed every component. The Prism tested every page. The same agents that built it now run it.',
-    engine: 'metatrons_cube' as const,
+    num: '01',
+    company: 'Steinmetz Real Estate',
+    industry: 'Real Estate / William Raveis',
+    headline: '18 AI agents running a 2,000+ page real estate platform.',
+    problem: 'A growing real estate practice needed technology that didn\'t exist — market analysis across dozens of neighborhoods, automated property research, client communication at scale, and business intelligence that kept pace with a fast-moving market.',
+    process: [
+      'Built a complete real estate platform from scratch using the multi-agent framework',
+      'Deployed 18 specialized AI agents across market analysis, property research, client communication, and operations',
+      'Integrated with MLS data, public records, market APIs, and communication tools',
+      'Created neighborhood-specific intelligence covering pricing, schools, demographics, and market trends',
+    ],
+    results: [
+      { metric: '18', label: 'AI agents deployed' },
+      { metric: '2,000+', label: 'pages of content' },
+      { metric: '30+', label: 'neighborhoods covered' },
+      { metric: '24/7', label: 'system uptime' },
+    ],
+    payoff: 'A complete AI-powered real estate operation — from lead capture to market analysis to client communication — running autonomously 24/7. The platform that proved the framework works in production.',
   },
   {
-    label: 'Sacred Geometry',
-    title: 'Mathematical patterns mapped to reasoning structures',
-    body: "Each of TOLA's 9 geometry engines encodes a specific cognitive pattern. The Torus models iterative refinement. The Sri Yantra models constraint satisfaction. The Vortex models recursive deepening. These aren't metaphors \u2014 they're operational architectures that shape how agents think.",
-    engine: 'sri_yantra' as const,
+    num: '02',
+    company: 'Blank Industries',
+    industry: 'Manufacturing / Business Intelligence',
+    headline: 'Unified intelligence from 6 disconnected systems.',
+    problem: 'Critical business data trapped in 6 disconnected systems — ERP, CRM, inventory, shipping, accounting, and HR. Leadership making decisions on gut feel instead of data. Monthly reporting took a full-time analyst 2 weeks to compile.',
+    process: [
+      'Assessed all 6 data sources, mapped dependencies, and identified the highest-value integration points',
+      'Built AI agents that pull, normalize, and cross-reference data from all systems in real time',
+      'Deployed an executive dashboard with AI-generated weekly insights and anomaly detection',
+      'Created automated alerts for inventory thresholds, cash flow projections, and operational KPIs',
+    ],
+    results: [
+      { metric: '6→1', label: 'unified data source' },
+      { metric: '90%', label: 'faster reporting' },
+      { metric: 'Weekly', label: 'AI-generated insights' },
+      { metric: 'Real-time', label: 'anomaly detection' },
+    ],
+    payoff: 'Leadership went from monthly gut-feel decisions to weekly data-driven strategy. The analyst who used to compile reports now focuses on strategic analysis.',
   },
   {
-    label: 'Build + Runtime',
-    title: 'Agents that persist after deployment',
-    body: "Most AI consultancies deliver a system and walk away. TOLA agents don't stop when the build ends. The Sentinel monitors health every 60 seconds. The Catalyst nurtures leads continuously. The Nexus routes inquiries in real time. Build and runtime are the same system.",
-    engine: 'merkabah' as const,
+    num: '03',
+    company: 'KabbalahQ.ai',
+    industry: 'Education / AI Learning Platform',
+    headline: 'An AI-powered learning platform that adapts to each student.',
+    problem: 'A complex educational domain with thousands of interconnected concepts, but no way to guide learners through it effectively. Traditional course structures didn\'t work — every learner needed a different path.',
+    process: [
+      'Mapped the entire knowledge domain into a structured graph of concepts and relationships',
+      'Built AI agents that assess each learner\'s current knowledge and generate personalized learning paths',
+      'Created an adaptive quiz system that adjusts difficulty based on demonstrated understanding',
+      'Deployed content generation agents that produce explanations tailored to each learner\'s background',
+    ],
+    results: [
+      { metric: '1,000+', label: 'interconnected concepts' },
+      { metric: 'Adaptive', label: 'learning paths' },
+      { metric: 'AI-powered', label: 'content generation' },
+      { metric: 'Personalized', label: 'per learner' },
+    ],
+    payoff: 'A learning platform where no two students have the same experience. AI agents continuously adapt content, pacing, and difficulty to match each learner\'s progress and style.',
   },
-  {
-    label: 'Recursive Quality',
-    title: 'Every output passes through the Vortex',
-    body: "The Prism agent runs a 4-pass spiral test on every deliverable: smoke, feature, edge case, regression. The Guardian enforces brand and quality constraints adversarially. Nothing ships until both agents sign off.",
-    engine: 'vortex' as const,
-  },
-];
-
-const TECH = [
-  'Next.js 16', 'React 19', 'TypeScript', 'Tailwind CSS v4',
-  'Supabase', 'PostgreSQL', 'Framer Motion',
-  'Claude API', 'Supabase Edge Functions', 'Vercel',
 ];
 
 export default function WorkPage() {
@@ -60,58 +81,31 @@ export default function WorkPage() {
           >
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">Work</p>
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight max-w-3xl">
-              Live implementation: this site.
+              Real systems.
+              <br />
+              <span className="italic text-accent">Measurable results.</span>
             </h1>
             <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
-              You&apos;re looking at a live TOLA deployment. Every page you&apos;ve
-              visited was built by the same agents that power client engagements.
-              The framework isn&apos;t theoretical &mdash; it&apos;s running right now.
+              Every project follows the same pattern: understand the problem, build
+              the system, prove it works. Here&apos;s what that looks like in practice.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Tree of Life — how TOLA built this site */}
+      {/* Aggregate stats */}
       <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
-          <Reveal>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-              <div>
-                <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">Case study</p>
-                <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.15] tracking-tight mb-8">
-                  Built with TOLA
-                </h2>
-                <p className="text-lg text-muted-light leading-relaxed mb-8">
-                  11 specialized agents. 9 sacred geometry engines. 22 structured
-                  communication paths. A complete design system, 7 public pages,
-                  a real-time admin dashboard, and persistent runtime agents &mdash;
-                  all orchestrated through the Tree of Life.
-                </p>
-                <p className="text-muted-light leading-relaxed">
-                  The diagram shows every agent that participated in the build and
-                  now runs in production. Each node is a specialized agent with its
-                  own sacred geometry reasoning engine. The 22 paths between them
-                  define exactly how they communicate.
-                </p>
-              </div>
-              <div className="flex justify-center">
-                <div className="w-full max-w-[300px] h-[420px]">
-                  <TreeOfLife mode="diagram" />
-                </div>
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section>
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-20 md:py-28">
           <Reveal>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
-              {STATS.map((stat) => (
+              {[
+                { value: 30, suffix: '+', label: 'AI agents deployed' },
+                { value: 3, suffix: '+', label: 'industries served' },
+                { value: 5000, suffix: '+', label: 'pages of content generated' },
+                { value: 99.9, suffix: '%', label: 'system uptime' },
+              ].map((stat) => (
                 <div key={stat.label}>
-                  <div className="text-[clamp(2.5rem,6vw,4rem)] font-[family-name:var(--font-serif)] font-light text-accent leading-none">
+                  <div className="text-[clamp(2rem,5vw,3.5rem)] font-[family-name:var(--font-serif)] font-light text-accent leading-none">
                     <AnimatedNumber value={stat.value} suffix={stat.suffix} />
                   </div>
                   <p className="mt-3 text-sm text-muted-light">{stat.label}</p>
@@ -122,81 +116,103 @@ export default function WorkPage() {
         </div>
       </section>
 
-      {/* Aspects */}
-      {ASPECTS.map((aspect, i) => {
-        const GeometryIcon = GEOMETRY_COMPONENTS[aspect.engine];
-        return (
-          <section key={aspect.label} className={i % 2 === 0 ? 'section-light' : ''}>
-            <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
-              <Reveal>
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
-                  <div className="lg:col-span-3 flex items-center gap-4">
-                    {GeometryIcon && <GeometryIcon size={32} color="var(--color-accent)" animate />}
-                    <p className="text-xs tracking-[0.2em] uppercase text-muted-light">{aspect.label}</p>
-                  </div>
-                  <div className="lg:col-span-9">
-                    <h3 className="font-[family-name:var(--font-serif)] text-2xl md:text-3xl leading-[1.2] tracking-tight mb-5">{aspect.title}</h3>
-                    <p className="text-muted-light text-lg leading-relaxed max-w-[640px]">{aspect.body}</p>
-                  </div>
+      {/* Case Studies */}
+      {CASE_STUDIES.map((study, i) => (
+        <section key={study.num} className={i % 2 === 0 ? '' : 'section-light'}>
+          <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+            <Reveal>
+              <div className="mb-12">
+                <span className="text-[4rem] font-[family-name:var(--font-serif)] font-light text-border leading-none select-none">
+                  {study.num}
+                </span>
+                <div className="mt-4 mb-2">
+                  <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">
+                    {study.company}
+                  </h2>
+                  <p className="text-sm text-accent font-medium mt-1">{study.industry}</p>
                 </div>
-              </Reveal>
-            </div>
-          </section>
-        );
-      })}
+                <p className="font-[family-name:var(--font-serif)] text-xl md:text-2xl italic text-muted-light leading-relaxed mt-4 max-w-2xl">
+                  {study.headline}
+                </p>
+              </div>
+            </Reveal>
 
-      {/* Build phases */}
-      <section>
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
-          <Reveal>
-            <p className="text-xs tracking-[0.2em] uppercase text-muted mb-8">Build phases</p>
-            <StaggerReveal className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { phase: 'A', name: 'Assessment', agents: 'Visionary, Architect, Oracle', desc: 'Research across 13 dimensions, architecture planning, synthesis into actionable spec' },
-                { phase: 'B', name: 'Build', agents: 'Foundation, Gateway, all 11', desc: 'Database tables, design system, 9 geometry components, 7 pages, runtime hooks' },
-                { phase: 'C', name: 'Deploy', agents: 'Foundation, Sentinel, Nexus', desc: 'Edge Functions, real-time subscriptions, admin dashboard, kill switches' },
-                { phase: 'D', name: 'Test', agents: 'Prism, Guardian, Sentinel', desc: '4-pass Vortex spiral: smoke, feature, edge case, regression' },
-              ].map((p) => (
-                <StaggerChild key={p.phase}>
-                  <div className="border border-border rounded-xl p-6 h-full">
-                    <span className="text-3xl font-[family-name:var(--font-serif)] font-light text-border leading-none select-none">{p.phase}</span>
-                    <h4 className="text-lg font-semibold mt-3 mb-2">{p.name}</h4>
-                    <p className="text-sm text-accent mb-3">{p.agents}</p>
-                    <p className="text-sm text-muted-light leading-relaxed">{p.desc}</p>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+              <div className="lg:col-span-5">
+                <Reveal>
+                  <div className="mb-10">
+                    <p className="text-xs tracking-[0.15em] uppercase text-muted-light font-medium mb-4">
+                      The problem
+                    </p>
+                    <p className="text-muted-light text-lg leading-relaxed">
+                      {study.problem}
+                    </p>
                   </div>
-                </StaggerChild>
-              ))}
-            </StaggerReveal>
-          </Reveal>
-        </div>
-      </section>
 
-      {/* Tech stack */}
-      <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
-          <Reveal>
-            <p className="text-xs tracking-[0.2em] uppercase text-muted mb-8">Technology</p>
-            <div className="flex flex-wrap gap-3">
-              {TECH.map((t) => (
-                <span key={t} className="text-sm px-4 py-2 rounded-full border border-border text-muted-light">{t}</span>
-              ))}
+                  <div className="grid grid-cols-2 gap-6">
+                    {study.results.map((r) => (
+                      <div key={r.label}>
+                        <p className="text-[clamp(1.5rem,3vw,2rem)] font-[family-name:var(--font-serif)] font-light text-accent leading-none">
+                          {r.metric}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-light">{r.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </Reveal>
+              </div>
+
+              <div className="lg:col-span-7">
+                <Reveal>
+                  <div className="mb-10">
+                    <p className="text-xs tracking-[0.15em] uppercase text-muted-light font-medium mb-4">
+                      The process
+                    </p>
+                    <StaggerReveal className="space-y-4">
+                      {study.process.map((step) => (
+                        <StaggerChild key={step}>
+                          <div className="flex items-start gap-4">
+                            <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2.5 shrink-0" />
+                            <p className="text-muted-light leading-relaxed">{step}</p>
+                          </div>
+                        </StaggerChild>
+                      ))}
+                    </StaggerReveal>
+                  </div>
+
+                  <div>
+                    <p className="text-xs tracking-[0.15em] uppercase text-muted-light font-medium mb-4">
+                      The payoff
+                    </p>
+                    <p className="text-muted-light text-lg leading-relaxed">
+                      {study.payoff}
+                    </p>
+                  </div>
+                </Reveal>
+              </div>
             </div>
-          </Reveal>
-        </div>
-      </section>
+          </div>
+        </section>
+      ))}
 
       {/* CTA */}
-      <section>
+      <section className={CASE_STUDIES.length % 2 === 0 ? 'section-light' : ''}>
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
-            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-8 max-w-xl">
-              See what TOLA can build<br />for your business.
+            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-4 max-w-xl">
+              Your business could be
+              <br />
+              the next case study.
             </h2>
+            <p className="text-muted-light text-lg leading-relaxed mb-8 max-w-xl">
+              Every project starts with a discovery — a clear-eyed look at your biggest
+              opportunities and the fastest path to results.
+            </p>
             <Link
               href="/discover"
               className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
             >
-              Start your AI assessment
+              Start Your Discovery
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
               </svg>

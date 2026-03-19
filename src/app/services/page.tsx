@@ -3,94 +3,82 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
-import { GEOMETRY_COMPONENTS } from '@/components/sacred-geometry';
 
-const PACKAGES = [
+const SERVICES = [
   {
     num: '01',
     name: 'Assess',
-    headline: 'A 13-dimension deep-dive into your business to find where AI agents create real value.',
-    duration: '2-3 weeks',
-    price: 'Starting at $2,500',
-    deliverable: 'AI Opportunity Roadmap with prioritized agent recommendations',
-    agents: [
-      { name: 'Crown', engine: 'Seed of Life', role: 'Decision authority — defines scope and priorities' },
-      { name: 'Visionary', engine: "Metatron's Cube", role: '13-dimension research — competitors, market, technology' },
-      { name: 'Architect', engine: 'Sri Yantra', role: 'Constraint-based planning — feasibility + architecture' },
-      { name: 'Oracle', engine: 'Torus', role: 'Iterative synthesis — converges research into roadmap' },
+    problem: 'You know AI could help your business but you\'re not sure where to start — or which opportunities are worth the investment.',
+    whatWeDo: [
+      'Map your current workflows, tools, and pain points',
+      'Analyze your competitive landscape for AI adoption',
+      'Score each opportunity by ROI potential and implementation complexity',
+      'Deliver a prioritized roadmap with specific, costed recommendations',
+      'Create a 90-day action plan with clear next steps',
     ],
-    includes: [
-      'Full process and workflow mapping',
-      'Technology and tool audit',
-      'AI opportunity scoring by ROI potential',
-      'Prioritized implementation roadmap',
-      '90-day action plan with clear next steps',
-    ],
+    whatYouGet: 'An AI Opportunity Roadmap — a clear-eyed analysis of where AI creates real leverage in your business, what it will cost, and what you can expect in return.',
+    timeline: '2–3 weeks',
+    price: 'Starting from $2,500',
+    cta: 'Start your assessment',
   },
   {
     num: '02',
     name: 'Build',
-    headline: 'Full design, development, and deployment of a multi-agent AI system integrated into your operations.',
-    duration: 'Custom scoped per project',
-    price: 'Projects typically $5,000-$25,000',
-    deliverable: 'Production AI system with persistent runtime agents',
-    agents: [
-      { name: 'All 11 agents', engine: 'Full pipeline', role: 'Complete TOLA framework activation' },
+    problem: 'You\'ve identified the opportunity. Now you need someone to design, build, and deploy a production AI system that integrates into your existing operations.',
+    whatWeDo: [
+      'Design a multi-agent AI architecture tailored to your needs',
+      'Build and test the complete system end-to-end',
+      'Integrate with your existing tools, databases, and workflows',
+      'Deploy to production with monitoring and health checks',
+      'Train your team on how to work with the new system',
+      'Provide 30 days of post-launch support and optimization',
     ],
-    includes: [
-      'Architecture design with sacred geometry orchestration',
-      'Full development, testing, and deployment',
-      'Persistent runtime agents (event-driven + scheduled)',
-      'Admin dashboard with Tree of Life visualization',
-      'Team training and documentation',
-      '30-day post-launch support and monitoring',
-    ],
+    whatYouGet: 'A production AI system — live, integrated, and running. Multi-agent workflows, real-time dashboards, and persistent agents that work 24/7.',
+    timeline: '4–12 weeks depending on scope',
+    price: 'Starting from $5,000',
+    cta: 'Tell us about your project',
     examples: [
-      'Multi-agent customer service systems',
-      'Automated content generation pipelines',
+      'Automated customer service and support triage',
       'Intelligent lead scoring and routing',
-      'Custom dashboards with real-time agent data',
+      'Content generation and distribution pipelines',
+      'Business intelligence dashboards with AI insights',
+      'Custom internal tools with embedded AI',
     ],
   },
   {
     num: '03',
     name: 'Optimize',
-    headline: 'Ongoing AI leadership embedded in your team. Strategy, implementation, and iteration.',
-    duration: 'Monthly engagement',
-    price: '$5,000-$10,000/month',
-    deliverable: 'Continuous AI transformation with fractal agent scaling',
-    agents: [
-      { name: '11+ agents', engine: 'Full + sub-agents', role: 'Fractal scaling — agents contain their own agents' },
-    ],
-    includes: [
+    problem: 'You have AI running but you\'re not getting the most out of it. You need ongoing expertise to iterate, expand, and keep your competitive edge.',
+    whatWeDo: [
       'Weekly strategy and implementation sessions',
-      'Continuous system development and deployment',
-      'Agent performance optimization and tuning',
-      'New agent development for emerging needs',
-      'Sub-agent architecture for complex tasks',
-      'Performance monitoring via Sentinel health checks',
+      'Continuous system monitoring and performance tuning',
+      'Agent development for emerging needs',
+      'Quarterly roadmap reviews and ROI reporting',
+      'Team training and capability building',
+      'Priority support for production issues',
     ],
+    whatYouGet: 'A fractional AI officer embedded in your team — continuous improvement, new capabilities every month, and an AI system that gets smarter over time.',
+    timeline: 'Monthly engagement',
+    price: 'Starting from $5,000/mo',
+    cta: 'Explore optimization',
   },
   {
     num: '04',
     name: 'Scale',
-    headline: 'Multi-system deployment across your organization with shared intelligence.',
-    duration: 'Engagement-dependent',
-    price: 'Custom pricing',
-    deliverable: 'Enterprise agent infrastructure with unified oversight',
     featured: true,
-    agents: [
-      { name: 'Multi-instance', engine: 'Cross-product', role: 'Shared Oracle, shared Crown, independent execution' },
-    ],
-    includes: [
-      'Multiple TOLA instances across products/divisions',
-      'Shared knowledge base via Oracle cross-learning',
+    problem: 'You\'re ready to deploy AI infrastructure across multiple departments, products, or divisions — with shared intelligence and unified oversight.',
+    whatWeDo: [
+      'Multi-system architecture spanning your organization',
+      'Shared knowledge base and cross-system intelligence',
       'Unified admin dashboard governing all deployments',
-      'Cross-system Nexus routing across product boundaries',
-      'Enterprise security, audit trails, and RBAC',
-      'Transparent reporting on system-wide impact',
+      'Cross-product automation and data pipelines',
+      'Enterprise security, audit trails, and role-based access',
+      'Transparent reporting on system-wide impact and ROI',
     ],
-    idealFor: 'Organizations ready to deploy AI agent infrastructure at scale, with multiple products or divisions that benefit from shared intelligence.',
+    whatYouGet: 'Enterprise AI infrastructure — multiple systems, shared intelligence, unified oversight, and compounding returns across your organization.',
+    timeline: 'Engagement-dependent',
+    price: 'Custom pricing',
+    cta: 'Discuss enterprise scale',
   },
 ];
 
@@ -109,23 +97,23 @@ export default function ServicesPage() {
               Services
             </p>
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight max-w-3xl">
-              Pick your depth.
+              From discovery to deployment.
             </h1>
             <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
-              Four levels of engagement — from a focused assessment to
-              enterprise-wide agent infrastructure. Every engagement delivers
-              real, deployed systems powered by TOLA&apos;s sacred geometry orchestration.
+              Four levels of engagement — from a focused assessment to enterprise-wide
+              AI infrastructure. Every engagement delivers real, deployed systems
+              and measurable business outcomes.
             </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Packages */}
-      {PACKAGES.map((pkg, i) => {
-        const isFeatured = 'featured' in pkg && pkg.featured;
+      {/* Services */}
+      {SERVICES.map((svc, i) => {
+        const isFeatured = 'featured' in svc && svc.featured;
         return (
           <section
-            key={pkg.num}
+            key={svc.num}
             className={i % 2 === 1 ? 'section-light' : ''}
           >
             <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
@@ -138,56 +126,43 @@ export default function ServicesPage() {
                   </div>
                 )}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-                  {/* Left — title + price */}
+                  {/* Left — title, problem, price */}
                   <div className="lg:col-span-5">
                     <span className="text-[4rem] font-[family-name:var(--font-serif)] font-light text-border leading-none select-none">
-                      {pkg.num}
+                      {svc.num}
                     </span>
-                    <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mt-4 mb-3">
-                      {pkg.name}
+                    <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mt-4 mb-6">
+                      {svc.name}
                     </h2>
-                    <p className="font-[family-name:var(--font-serif)] text-lg italic text-muted-light leading-relaxed mb-8">
-                      {pkg.headline}
-                    </p>
+
+                    <div className="mb-8">
+                      <p className="text-xs tracking-[0.15em] uppercase text-muted-light font-medium mb-3">
+                        The problem
+                      </p>
+                      <p className="font-[family-name:var(--font-serif)] text-lg italic text-muted-light leading-relaxed">
+                        {svc.problem}
+                      </p>
+                    </div>
+
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between border-b border-border pb-3">
                         <span className="text-muted-light">Timeline</span>
-                        <span>{pkg.duration}</span>
+                        <span>{svc.timeline}</span>
                       </div>
                       <div className="flex justify-between border-b border-border pb-3">
                         <span className="text-muted-light">Investment</span>
-                        <span className="text-accent font-medium">{pkg.price}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-light">Deliverable</span>
-                        <span className="text-right max-w-[220px]">{pkg.deliverable}</span>
-                      </div>
-                    </div>
-
-                    {/* TOLA nodes activated */}
-                    <div className="mt-8 pt-6 border-t border-border">
-                      <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-4">
-                        TOLA agents activated
-                      </p>
-                      <div className="space-y-2">
-                        {pkg.agents.map((agent) => (
-                          <div key={agent.name} className="flex items-center gap-3 text-sm">
-                            <div className="w-1.5 h-1.5 rounded-full bg-accent shrink-0" />
-                            <span className="font-medium text-foreground-strong">{agent.name}</span>
-                            <span className="text-muted-light text-xs">({agent.engine})</span>
-                          </div>
-                        ))}
+                        <span className="text-accent font-medium">{svc.price}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Right — includes */}
+                  {/* Right — what we do, what you get */}
                   <div className="lg:col-span-7">
                     <h3 className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">
-                      What&apos;s included
+                      What we do
                     </h3>
                     <StaggerReveal className="space-y-4 mb-10">
-                      {pkg.includes.map((item) => (
+                      {svc.whatWeDo.map((item) => (
                         <StaggerChild key={item}>
                           <div className="flex items-start gap-4">
                             <div className="w-1.5 h-1.5 rounded-full bg-accent mt-2.5 shrink-0" />
@@ -197,13 +172,22 @@ export default function ServicesPage() {
                       ))}
                     </StaggerReveal>
 
-                    {'examples' in pkg && pkg.examples && (
-                      <>
-                        <h3 className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">
-                          Examples
+                    <div className="mb-10">
+                      <h3 className="text-xs tracking-[0.2em] uppercase text-muted-light mb-3">
+                        What you get
+                      </h3>
+                      <p className="text-muted-light leading-relaxed">
+                        {svc.whatYouGet}
+                      </p>
+                    </div>
+
+                    {'examples' in svc && svc.examples && (
+                      <div className="mb-10">
+                        <h3 className="text-xs tracking-[0.2em] uppercase text-muted-light mb-4">
+                          Common projects
                         </h3>
                         <div className="flex flex-wrap gap-3">
-                          {pkg.examples.map((ex: string) => (
+                          {svc.examples.map((ex: string) => (
                             <span
                               key={ex}
                               className="text-sm px-4 py-2 rounded-full border border-border text-muted-light"
@@ -212,15 +196,6 @@ export default function ServicesPage() {
                             </span>
                           ))}
                         </div>
-                      </>
-                    )}
-
-                    {'idealFor' in pkg && pkg.idealFor && (
-                      <div className="mt-10">
-                        <h3 className="text-xs tracking-[0.2em] uppercase text-muted-light mb-3">
-                          Ideal for
-                        </h3>
-                        <p className="text-muted-light leading-relaxed">{pkg.idealFor as string}</p>
                       </div>
                     )}
 
@@ -232,7 +207,7 @@ export default function ServicesPage() {
                           : 'inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover transition-colors duration-300'
                         }
                       >
-                        {i === 0 ? 'Start your assessment' : i === 1 ? 'Tell me about your project' : i === 2 ? 'Explore optimization' : 'Discuss enterprise scale'}
+                        {svc.cta}
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                         </svg>
@@ -247,19 +222,21 @@ export default function ServicesPage() {
       })}
 
       {/* CTA */}
-      <section className="section-light">
+      <section className={SERVICES.length % 2 === 0 ? 'section-light' : ''}>
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
-            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-8 max-w-xl">
+            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-4 max-w-xl">
               Not sure which engagement fits?
-              <br />
-              The assessment will tell you.
             </h2>
+            <p className="text-muted-light text-lg leading-relaxed mb-8 max-w-xl">
+              Start with the assessment. It gives you a clear picture of your opportunities
+              and the best path forward — whether that&apos;s working with us or not.
+            </p>
             <Link
               href="/discover"
               className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
             >
-              Start your AI assessment
+              Start Your Discovery
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
               </svg>

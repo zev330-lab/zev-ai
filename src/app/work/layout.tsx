@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Work',
-  description: 'A 2,000-page real estate platform with 18 AI agents — built entirely with AI-native development. See how we work.',
+  title: 'Work — Case Studies & Results',
+  description: 'Real AI systems, measurable results. See how we\'ve deployed multi-agent AI across real estate, manufacturing, education, and more.',
   openGraph: {
     title: 'Work | zev.ai',
-    description: 'What we\'ve built — production AI systems in action.',
+    description: 'Case studies showing real AI systems in production.',
   },
 };
 

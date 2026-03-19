@@ -1,7 +1,7 @@
 export const SITE = {
   name: 'zev.ai',
-  title: 'zev.ai — AI agent systems built on sacred geometry',
-  description: 'Production AI agent systems for businesses — intelligent multi-agent orchestration, automated workflows, and custom tools powered by the TOLA framework.',
+  title: 'zev.ai — AI systems that drive revenue, not slide decks',
+  description: 'We build and deploy production AI agent systems for businesses. From assessment to ongoing optimization — real implementation, real results.',
   url: 'https://zev.ai',
   email: 'zev330@gmail.com',
 } as const;
@@ -9,8 +9,8 @@ export const SITE = {
 export const NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
+  { href: '/approach', label: 'Our Approach' },
   { href: '/work', label: 'Work' },
-  { href: '/tola', label: 'TOLA' },
   { href: '/about', label: 'About' },
-  { href: '/contact', label: 'Contact' },
+  { href: '/blog', label: 'Blog' },
 ] as const;

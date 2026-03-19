@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Services',
-  description: 'Three ways to work with zev.ai: AI Readiness Assessment, AI Implementation, and Fractional AI Officer. Real systems, not strategy decks.',
+  title: 'Services — From Discovery to Deployment',
+  description: 'Four levels of AI engagement: Assess, Build, Optimize, Scale. From focused assessments starting at $2,500 to enterprise-wide AI infrastructure.',
   openGraph: {
     title: 'Services | zev.ai',
-    description: 'How we work — from discovery to ongoing AI partnership.',
+    description: 'From discovery to deployment — real AI systems, measurable outcomes.',
   },
 };
 

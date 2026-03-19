@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About',
-  description: 'Implementation over strategy. We build production AI systems for businesses — not slide decks, not roadmaps, working software.',
+  title: 'About — Builder, Not Theorist',
+  description: 'Zev Steinmetz builds production AI systems for businesses. Boston-based, hands-on, focused on results. From real estate operations to multi-agent AI framework development.',
   openGraph: {
     title: 'About | zev.ai',
-    description: 'Built, not theorized. The philosophy behind zev.ai.',
+    description: 'Builder, not theorist. The story behind zev.ai.',
   },
 };
 

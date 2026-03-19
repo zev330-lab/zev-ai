@@ -3,12 +3,11 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Reveal } from '@/components/reveal';
-import { SeedOfLife, Torus, Vortex } from '@/components/sacred-geometry';
 
 const STACK = [
-  'Claude', 'Claude Code', 'Next.js 16', 'React 19', 'TypeScript',
-  'Tailwind CSS v4', 'Supabase', 'PostgreSQL', 'Vercel',
-  'Framer Motion', 'React Flow', 'Supabase Edge Functions',
+  'Claude API', 'Next.js', 'React', 'TypeScript',
+  'Tailwind CSS', 'Supabase', 'PostgreSQL', 'Vercel',
+  'Framer Motion', 'Edge Functions', 'Node.js', 'Python',
 ];
 
 export default function AboutPage() {
@@ -26,106 +25,112 @@ export default function AboutPage() {
               About
             </p>
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight max-w-3xl">
-              Built, not theorized.
+              Builder, not theorist.
             </h1>
+            <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
+              I build production AI systems for businesses. Hands-on. End to end.
+              The kind of systems that run 24/7 and pay for themselves.
+            </p>
           </motion.div>
         </div>
       </section>
 
-      {/* Philosophy */}
+      {/* The story */}
       <section className="section-light">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <div className="max-w-[680px] space-y-10">
             <Reveal>
               <p className="font-[family-name:var(--font-serif)] text-xl md:text-2xl leading-[1.6] tracking-tight">
-                The AI consulting industry has a problem. Most firms deliver strategy
-                decks and roadmaps — documents that describe what you could do,
-                then leave you to figure out how.
-              </p>
-            </Reveal>
-
-            <Reveal>
-              <p className="font-[family-name:var(--font-serif)] text-xl md:text-2xl leading-[1.6] tracking-tight">
-                I built a framework that skips the deck and builds the system.
+                I came to AI through building. Not through research papers, not through
+                consulting engagements — through the desperate need to solve a real
+                business problem.
               </p>
             </Reveal>
 
             <Reveal>
               <p className="text-muted-light text-lg leading-[1.8]">
-                TOLA — the Tree of Life Architecture — is a multi-agent AI operating
-                system. 11 specialized agents, each powered by a sacred geometry
-                reasoning engine, orchestrated through the Tree of Life.
-                It sounds esoteric. It&apos;s not. It&apos;s a production framework
-                that builds, runs, and continuously improves real software systems.
+                As a real estate professional at William Raveis in the Boston area,
+                I needed technology that didn&apos;t exist. So I built it. A platform
+                spanning over 2,000 pages, running 18 AI agents, managing an entire
+                real estate operation — from market analysis to client communication
+                to property research. Not a prototype. A full production system that
+                runs every day.
               </p>
             </Reveal>
 
             <Reveal>
               <p className="text-muted-light text-lg leading-[1.8]">
-                The geometry isn&apos;t decorative — it&apos;s operational. A Torus
-                models iterative refinement. A Sri Yantra models constraint
-                satisfaction. A Vortex models recursive deepening. These patterns
-                give agents structured ways to reason about complex problems
-                instead of generating text and hoping for the best.
+                That experience taught me something most AI consultants never learn:
+                the gap between &ldquo;this works in a demo&rdquo; and &ldquo;this runs
+                in production&rdquo; is where 90% of AI projects die. Strategy decks
+                don&apos;t close that gap. Building does.
               </p>
             </Reveal>
 
             <Reveal>
               <p className="text-muted-light text-lg leading-[1.8]">
-                The result: AI systems that ship to production in weeks, not months.
-                Systems where agents persist after deployment — monitoring, nurturing,
-                routing, testing — continuously. Not a one-time build. A living system.
+                I developed a multi-agent framework that applies coordination patterns
+                found in nature — the same fractal branching, spiral optimization, and
+                self-similar scaling that biological systems have refined over billions
+                of years. These patterns give AI agents structured ways to research, plan,
+                build, and operate complex systems reliably.
+              </p>
+            </Reveal>
+
+            <Reveal>
+              <p className="text-muted-light text-lg leading-[1.8]">
+                Now I help other businesses do what I did for mine: deploy AI systems
+                that actually work. Not chatbots. Not copilots. Multi-agent systems
+                that automate real workflows, integrate with existing tools, and deliver
+                measurable results from day one.
               </p>
             </Reveal>
           </div>
         </div>
       </section>
 
-      {/* The three pillars */}
+      {/* What makes this different */}
       <section>
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-12">
-              Three principles
+              What makes this different
             </p>
           </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             <Reveal delay={0.1}>
               <div className="space-y-4">
-                <SeedOfLife size={40} color="var(--color-accent)" animate />
                 <h3 className="text-lg font-semibold tracking-tight">
-                  Sacred geometry as architecture
+                  Hands-on builder
                 </h3>
                 <p className="text-muted-light leading-relaxed">
-                  9 mathematical patterns — from the Seed of Life to the Vortex —
-                  encode specific reasoning strategies. Each agent inherits a geometry
-                  engine that shapes how it processes information.
+                  I don&apos;t hand you a strategy deck and wish you luck. I design the
+                  system, build it, deploy it, and make sure it works. Every engagement
+                  ends with software running in production.
                 </p>
               </div>
             </Reveal>
             <Reveal delay={0.2}>
               <div className="space-y-4">
-                <Torus size={40} color="var(--color-accent)" animate />
                 <h3 className="text-lg font-semibold tracking-tight">
-                  Build and runtime are one system
+                  Business-first thinking
                 </h3>
                 <p className="text-muted-light leading-relaxed">
-                  TOLA agents don&apos;t stop when the build ends. The same agents that
-                  design and develop your system persist as runtime processes —
-                  monitoring, responding, improving.
+                  I built AI to solve my own business problems before I built it for
+                  anyone else. Every recommendation is grounded in what actually moves
+                  the needle — not what looks impressive in a pitch.
                 </p>
               </div>
             </Reveal>
             <Reveal delay={0.3}>
               <div className="space-y-4">
-                <Vortex size={40} color="var(--color-accent)" animate />
                 <h3 className="text-lg font-semibold tracking-tight">
-                  Recursive quality, not manual QA
+                  Systems that persist
                 </h3>
                 <p className="text-muted-light leading-relaxed">
-                  The Prism agent runs 4-pass spiral tests on every deliverable.
-                  The Guardian enforces constraints adversarially. The human reviews
-                  outcomes, not bugs.
+                  Most AI projects are one-and-done builds. Mine aren&apos;t. The agents
+                  that build your system stay running after deployment — monitoring,
+                  optimizing, and evolving 24/7.
                 </p>
               </div>
             </Reveal>
@@ -133,35 +138,35 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* The builder */}
+      {/* Background */}
       <section className="section-light">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
               <div className="lg:col-span-3">
                 <p className="text-xs tracking-[0.2em] uppercase text-muted">
-                  The builder
+                  Background
                 </p>
               </div>
               <div className="lg:col-span-9 max-w-[640px]">
-                <p className="text-muted-light text-lg leading-[1.8] mb-6">
-                  I came to AI agent systems through building. As a real estate
-                  professional in Newton, Massachusetts, I needed technology that
-                  didn&apos;t exist — so I built it. A platform spanning thousands
-                  of pages, running dozens of AI agents, managing an entire business
-                  operation. Not a prototype. A full production system.
-                </p>
-                <p className="text-muted-light text-lg leading-[1.8] mb-6">
-                  TOLA emerged from that experience — a realization that multi-agent
-                  systems need structure beyond prompt engineering. The Tree of Life
-                  provided the architecture. Sacred geometry provided the reasoning
-                  patterns. The result was a framework that could build complex systems
-                  reliably, and keep running them after deployment.
-                </p>
-                <p className="text-muted-light text-lg leading-[1.8]">
-                  Builder, not theorist. The framework proves itself by running
-                  in production — including on the site you&apos;re reading right now.
-                </p>
+                <div className="space-y-4 text-muted-light text-lg leading-[1.8]">
+                  <p>
+                    <span className="text-foreground-strong font-medium">Zev Steinmetz</span> —
+                    Boston-based AI engineer and real estate professional at William Raveis
+                    Real Estate, one of the largest independent brokerages in the Northeast.
+                  </p>
+                  <p>
+                    Built a 2,000+ page real estate platform running 18 AI agents across
+                    market analysis, property research, client communication, and business
+                    operations. Developed the multi-agent coordination framework now used
+                    to build AI systems for other businesses.
+                  </p>
+                  <p>
+                    Background in real estate operations, business intelligence, and
+                    full-stack engineering. Focused on practical AI implementation that
+                    delivers measurable business outcomes.
+                  </p>
+                </div>
               </div>
             </div>
           </Reveal>
@@ -174,8 +179,8 @@ export default function AboutPage() {
           <Reveal>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-start">
               <div className="lg:col-span-3">
-                <p className="text-xs tracking-[0.2em] uppercase text-muted-light">
-                  The stack
+                <p className="text-xs tracking-[0.2em] uppercase text-muted">
+                  Technology
                 </p>
               </div>
               <div className="lg:col-span-9">
@@ -203,16 +208,19 @@ export default function AboutPage() {
       <section className="section-light">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
-            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-8 max-w-xl">
-              Want to see what TOLA
+            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-4 max-w-xl">
+              Let&apos;s talk about what
               <br />
-              can build for you?
+              AI can do for your business.
             </h2>
+            <p className="text-muted-light text-lg leading-relaxed mb-8 max-w-xl">
+              No pitch, no pressure. Just a conversation about your biggest opportunities.
+            </p>
             <Link
               href="/discover"
               className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
             >
-              Start your AI assessment
+              Start Your Discovery
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
               </svg>
