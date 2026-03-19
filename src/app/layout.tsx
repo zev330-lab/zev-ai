@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { Sora, Source_Serif_4 } from 'next/font/google';
-import { Navbar } from '@/components/navbar';
-import { Footer } from '@/components/footer';
 import { JsonLd } from '@/components/json-ld';
+import { LayoutWrapper } from '@/components/layout-wrapper';
 import { SITE } from '@/lib/constants';
 import './globals.css';
 
@@ -59,9 +58,7 @@ export default function RootLayout({
         <JsonLd />
       </head>
       <body className={`${sora.variable} ${sourceSerif.variable} antialiased`}>
-        <Navbar />
-        <main>{children}</main>
-        <Footer />
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );

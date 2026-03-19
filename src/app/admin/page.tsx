@@ -25,6 +25,14 @@ const STAGE_LABELS: Record<string, string> = {
   failed: 'Failed',
 };
 
+interface Alert {
+  type: string;
+  severity: string;
+  message: string;
+  id?: string;
+  timestamp?: string;
+}
+
 interface DashboardStats {
   total_discoveries: number;
   pipeline_success_rate: number;
@@ -34,6 +42,11 @@ interface DashboardStats {
   pipelines_today: number;
   tier3_queue: number;
   by_stage: Record<string, number>;
+  blog_pending_review: number;
+  social_pending: number;
+  overdue_family_tasks: number;
+  unpaid_invoices: number;
+  alerts: Alert[];
 }
 
 function formatDuration(seconds: number): string {
@@ -92,28 +105,58 @@ export default function AdminDashboardPage() {
         {/* Primary stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Total Discoveries" value={stats?.total_discoveries ?? 0} />
-          <StatCard
-            label="Success Rate"
-            value={`${stats?.pipeline_success_rate ?? 0}%`}
-            accent={!!stats?.pipeline_success_rate}
-          />
           <StatCard label="Active Agents" value={stats?.active_agents ?? 0} />
-          <StatCard
-            label="Avg Pipeline Time"
-            value={formatDuration(stats?.avg_pipeline_seconds ?? 0)}
-          />
+          <StatCard label="Avg Pipeline Time" value={formatDuration(stats?.avg_pipeline_seconds ?? 0)} />
+          <StatCard label="Alerts" value={(stats?.alerts?.length ?? 0)} accent={(stats?.alerts?.length ?? 0) > 0} />
         </div>
 
         {/* Secondary stats */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <MiniStat label="Actions Today" value={stats?.actions_today ?? 0} />
           <MiniStat label="Pipelines Today" value={stats?.pipelines_today ?? 0} />
-          <MiniStat
-            label="Review Queue"
-            value={stats?.tier3_queue ?? 0}
-            alert={(stats?.tier3_queue ?? 0) > 0}
-          />
+          <MiniStat label="Review Queue" value={stats?.tier3_queue ?? 0} alert={(stats?.tier3_queue ?? 0) > 0} />
+          <MiniStat label="Blog Pending" value={stats?.blog_pending_review ?? 0} alert={(stats?.blog_pending_review ?? 0) > 0} />
         </div>
+
+        {/* Cross-module stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <MiniStat label="Social Drafts" value={stats?.social_pending ?? 0} />
+          <MiniStat label="Overdue Tasks" value={stats?.overdue_family_tasks ?? 0} alert={(stats?.overdue_family_tasks ?? 0) > 0} />
+          <MiniStat label="Unpaid Invoices" value={stats?.unpaid_invoices ?? 0} alert={(stats?.unpaid_invoices ?? 0) > 0} />
+          <MiniStat label="Success Rate" value={`${stats?.pipeline_success_rate ?? 0}%`} />
+        </div>
+
+        {/* Alerts */}
+        {(stats?.alerts?.length ?? 0) > 0 && (
+          <div className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-5">
+            <h2 className="text-sm font-medium text-[var(--color-foreground-strong)] mb-3">Alerts</h2>
+            <div className="space-y-2">
+              {(stats?.alerts || []).map((alert, i) => (
+                <div key={i} className={`flex items-start gap-3 p-3 rounded-lg text-xs ${
+                  alert.severity === 'error' ? 'bg-red-500/10 border border-red-500/20' :
+                  alert.severity === 'warning' ? 'bg-yellow-500/10 border border-yellow-500/20' :
+                  'bg-blue-500/10 border border-blue-500/20'
+                }`}>
+                  <div className={`w-2 h-2 rounded-full mt-1 shrink-0 ${
+                    alert.severity === 'error' ? 'bg-red-400' : alert.severity === 'warning' ? 'bg-yellow-400' : 'bg-blue-400'
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-medium ${
+                      alert.severity === 'error' ? 'text-red-400' : alert.severity === 'warning' ? 'text-yellow-400' : 'text-blue-400'
+                    }`}>
+                      {alert.type.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                    </p>
+                    <p className="text-[var(--color-muted-light)] mt-0.5">{alert.message}</p>
+                    {alert.timestamp && <p className="text-[var(--color-muted)] mt-0.5">{new Date(alert.timestamp).toLocaleString()}</p>}
+                  </div>
+                  {alert.id && (
+                    <Link href="/admin/discoveries" className="text-[10px] text-[var(--color-accent)] hover:underline shrink-0">View</Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Two-column: Pipeline stages + Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -214,7 +257,7 @@ function MiniStat({
   alert,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   alert?: boolean;
 }) {
   return (

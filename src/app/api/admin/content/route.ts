@@ -122,12 +122,25 @@ export async function PATCH(request: NextRequest) {
   const { error } = await supabase.from('blog_posts').update(updates).eq('id', id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Revalidate blog pages on publish
+  // On publish: revalidate pages + auto-create knowledge entry
   if (updates.status === 'published') {
     revalidatePath('/blog');
-    const { data: post } = await supabase.from('blog_posts').select('slug').eq('id', id).single();
-    if (post?.slug) {
-      revalidatePath(`/blog/${post.slug}`);
+    const { data: pubPost } = await supabase.from('blog_posts').select('slug, title, content, category, tags').eq('id', id).single();
+    if (pubPost?.slug) {
+      revalidatePath(`/blog/${pubPost.slug}`);
+    }
+    // Auto-create knowledge entry if not already synced
+    if (pubPost) {
+      const { data: existing } = await supabase.from('knowledge_entries').select('id').eq('source', 'article').eq('source_ref', id).single();
+      if (!existing) {
+        await supabase.from('knowledge_entries').insert({
+          title: pubPost.title,
+          content: pubPost.content,
+          source: 'article',
+          source_ref: id,
+          tags: [...(pubPost.tags || []), pubPost.category].filter(Boolean),
+        });
+      }
     }
   }
 

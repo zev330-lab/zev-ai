@@ -1,7 +1,17 @@
 'use client';
 
-import { useRealtimeActivityFeed } from '@/hooks/use-realtime-agents';
+import { useState, useEffect, useCallback } from 'react';
 import { GEOMETRY_LABELS, type GeometryEngine } from '@/lib/tola-agents';
+
+interface LogEntry {
+  id: string;
+  agent_id: string | null;
+  action: string;
+  geometry_pattern: string | null;
+  latency_ms: number | null;
+  tokens_used: number | null;
+  created_at: string;
+}
 
 function relativeTime(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -14,8 +24,31 @@ function relativeTime(iso: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-export function ActivityFeed() {
-  const { entries, loading } = useRealtimeActivityFeed();
+export function ActivityFeed({ limit = 20 }: { limit?: number }) {
+  const [entries, setEntries] = useState<LogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchEntries = useCallback(async () => {
+    try {
+      // Use the agents log API which is authenticated server-side
+      const res = await fetch(`/api/admin/activity?limit=${limit}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) setEntries(data);
+      }
+    } catch {
+      // Silent fail
+    } finally {
+      setLoading(false);
+    }
+  }, [limit]);
+
+  useEffect(() => {
+    fetchEntries();
+    // Poll every 15s for new entries
+    const interval = setInterval(fetchEntries, 15000);
+    return () => clearInterval(interval);
+  }, [fetchEntries]);
 
   if (loading) {
     return (
@@ -28,7 +61,7 @@ export function ActivityFeed() {
   if (entries.length === 0) {
     return (
       <div className="text-sm text-[var(--color-muted)] py-8 text-center px-4">
-        No activity yet. Agent actions will appear here in real time.
+        No activity yet. Agent actions will appear here.
       </div>
     );
   }

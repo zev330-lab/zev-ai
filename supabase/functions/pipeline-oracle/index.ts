@@ -122,6 +122,23 @@ Where research has [LIMITED DATA], convert gaps into priority discovery question
       progress_pct: 100,
     }).eq('id', discovery_id);
 
+    // --- Auto-create or update contact ---
+    const { data: disc } = await supabase.from('discoveries').select('name, email, company, role').eq('id', discovery_id).single();
+    if (disc?.email) {
+      const { data: existing } = await supabase.from('contacts').select('id').eq('email', disc.email).single();
+      if (existing) {
+        await supabase.from('contacts').update({ status: 'researched' }).eq('id', existing.id);
+      } else {
+        await supabase.from('contacts').insert({
+          name: disc.name,
+          email: disc.email,
+          company: disc.company || null,
+          message: `Auto-created from discovery pipeline. Role: ${disc.role || 'N/A'}`,
+          status: 'researched',
+        });
+      }
+    }
+
     const tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);
 
     await Promise.all([

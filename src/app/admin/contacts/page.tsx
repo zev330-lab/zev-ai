@@ -16,12 +16,16 @@ interface Contact {
 
 const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
   new: { bg: 'rgba(156,163,175,0.15)', text: '#9ca3af', label: 'New' },
+  researched: { bg: 'rgba(96,165,250,0.15)', text: '#60a5fa', label: 'Researched' },
+  meeting_scheduled: { bg: 'rgba(167,139,250,0.15)', text: '#a78bfa', label: 'Meeting Scheduled' },
+  proposal_sent: { bg: 'rgba(250,204,21,0.15)', text: '#facc15', label: 'Proposal Sent' },
+  client: { bg: 'rgba(74,222,128,0.15)', text: '#4ade80', label: 'Client' },
   read: { bg: 'rgba(96,165,250,0.15)', text: '#60a5fa', label: 'Read' },
   replied: { bg: 'rgba(74,222,128,0.15)', text: '#4ade80', label: 'Replied' },
   archived: { bg: 'rgba(107,114,128,0.15)', text: '#6b7280', label: 'Archived' },
 };
 
-const STATUSES = ['all', 'new', 'read', 'replied', 'archived'] as const;
+const STATUSES = ['all', 'new', 'researched', 'meeting_scheduled', 'proposal_sent', 'client', 'archived'] as const;
 
 function relativeDate(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();

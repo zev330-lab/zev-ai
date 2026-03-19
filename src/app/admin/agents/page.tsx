@@ -50,12 +50,12 @@ export default function AdminAgentsPage() {
   const [agentLogs, setAgentLogs] = useState<Record<string, TolaAgentLog[]>>({});
   const [agentStats, setAgentStats] = useState<Record<string, { total: number; avgLatency: number }>>({});
 
-  // Fetch logs for all active agents
+  // Fetch logs for ALL agents
   useEffect(() => {
-    if (agents.length === 0) return;
-    const activeAgents = ['guardian', 'visionary', 'architect', 'oracle', 'sentinel'];
+    if (agents.length === 0 && TOLA_AGENTS.length === 0) return;
+    const allIds = TOLA_AGENTS.map((a) => a.id);
     Promise.all(
-      activeAgents.map(async (id) => {
+      allIds.map(async (id) => {
         try {
           const res = await fetch(`/api/admin/agents/${id}/logs`);
           if (!res.ok) return { id, logs: [] };
@@ -139,8 +139,8 @@ export default function AdminAgentsPage() {
     ? agents.length - healthyCount - degradedCount - criticalCount
     : 11;
 
-  // Pipeline agents shown as cards
-  const pipelineAgents: AgentId[] = ['guardian', 'visionary', 'architect', 'oracle', 'sentinel'];
+  // Show ALL 11 agents as cards
+  const allAgentIds: AgentId[] = TOLA_AGENTS.map((a) => a.id);
 
   return (
     <div className="flex flex-col h-full">
@@ -181,7 +181,7 @@ export default function AdminAgentsPage() {
       {/* Agent cards grid */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
-          {pipelineAgents.map((agentId) => {
+          {allAgentIds.map((agentId) => {
             const agent = TOLA_AGENTS.find((a) => a.id === agentId)!;
             const live = agentMap.get(agentId);
             const status = live?.status ?? 'offline';
