@@ -74,12 +74,14 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `/discover` — 12-step intake form → assessment pipeline
 - `/tola` — Redirects to /approach
 
-### Admin (7) — not in nav, noindex, dark theme operations center
+### Admin (9) — not in nav, noindex, dark theme operations center
+- `/admin/tola` — TOLA Operating System (React Flow): 11-node graph with 22 paths, real-time agent health, MiniMap, Controls, click-to-expand panels with sub-agent sections
 - `/admin` — Dashboard home: stat cards (total, success rate, active agents, avg time), pipeline stage breakdown, activity feed
-- `/admin/tola` — Tree of Life Operating System: full interactive 11-node graph with 24 animated paths, real-time agent health via Supabase Realtime, sacred geometry animations, click-to-expand agent panels, mobile card stack fallback, activity feed footer
-- `/admin/discoveries` — Sortable list with real-time progress bars (0-100%, color-coded staleness), 5-tab detail (overview, research, assessment, meeting prep, proposal) with markdown rendering, proposal generation/PDF/regeneration
-- `/admin/content` — Content engine: Blog Posts list + Social Queue, post detail with preview/edit/social/review tabs, approve/publish workflow, "Generate New Post" button triggers pipeline
-- `/admin/agents` — Agent card grid (Guardian, Visionary, Architect, Oracle, Sentinel) with stats, Tree of Life diagram, activity feed, click-to-expand panel
+- `/admin/discoveries` — Sortable list with real-time progress bars (0-100%, color-coded staleness), 5-tab detail (overview, research, assessment, meeting prep, proposal)
+- `/admin/content` — Content engine: Blog Posts + Social Queue, approve/publish workflow, calendar view, platform previews
+- `/admin/projects` — Project Command Center (Architect sub-agent): card grid with milestone progress, time tracking, Log Time modal, milestone management. Seeded with 6 projects.
+- `/admin/finance` — Financial Overview (Foundation sub-agent): revenue/outstanding/hours metrics, invoice CRUD with status workflow, Recharts monthly trend chart
+- `/admin/agents` — Agent card grid with stats, Tree of Life diagram, activity feed, click-to-expand panel
 - `/admin/contacts` — Contact list with status badges, search, detail slide-out
 - `/admin/login` — Password auth
 
@@ -97,6 +99,8 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `GET|PATCH|DELETE /api/admin/social` — Social queue CRUD with platform filtering, bulk approve via `{ ids, status }`
 - `GET|PATCH /api/admin/social-accounts` — Social account management
 - `GET /api/blog` — Public: list published blog posts
+- `GET|POST|PATCH|DELETE /api/admin/projects` — Project CRUD with milestones and time entries (uses _type param)
+- `GET|POST|PATCH /api/admin/finance` — Finance metrics, invoice CRUD, monthly metrics
 
 ## Database (Supabase)
 
@@ -110,6 +114,11 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - **blog_posts** — id, slug (unique), title, excerpt, content (markdown), category, tags (text[]), status (draft/topic_research/outlining/drafting/reviewing/social_gen/review/published/archived), author, reading_time_min, seo_title, seo_description, schema_data (JSONB), social_posts (JSONB), generation_data (JSONB), generation_started_at, pipeline_step_completed_at, generation_error, created_at, updated_at, published_at
 - **social_queue** — id, blog_post_id (FK), platform (linkedin/twitter/instagram/tiktok/threads), content, content_pillar, review_notes, image_prompt, status (draft/approved/scheduled/posted), scheduled_for, posted_at, created_at
 - **social_accounts** — id, platform (unique), handle, profile_url, is_active. Pre-seeded with LinkedIn, Twitter, Instagram, TikTok, YouTube, Threads
+- **projects** — id, name, client, status (active/paused/completed/archived), description, tola_node, start_date, target_end_date, actual_end_date. Seeded with 6 projects.
+- **project_milestones** — id, project_id (FK), title, description, status (pending/in_progress/complete/blocked), due_date, completed_at, sort_order
+- **project_time_entries** — id, project_id (FK), description, hours (decimal), date, billable, hourly_rate
+- **invoices** — id, project_id (FK nullable), client_name, amount, status (draft/sent/paid/overdue), issued_date, due_date, paid_date, description
+- **monthly_metrics** — id, month (date), revenue, costs, hours_billed, pipeline_value, new_clients
 
 ### Migrations
 - `001_tola_runtime.sql` — Agent tables, seed data, RLS, Realtime
@@ -122,6 +131,8 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `008_proposal_data.sql` — Add proposal_data JSONB and include_pricing boolean to discoveries
 - `009_blog_content.sql` — blog_posts + social_queue tables, advance_content_pipeline() cron, weekly auto-generation cron
 - `010_social_agent.sql` — social_accounts table, content_pillar/review_notes on social_queue, daily social agent cron (Mon-Fri noon UTC)
+- `011_stalled_detection.sql` — Stalled pipeline detection (30min timeout), email alerts via Resend
+- `012_projects_finance.sql` — projects, project_milestones, project_time_entries, invoices, monthly_metrics tables + seed data
 
 ### Content Generation Pipeline
 Edge Function `pipeline-content-engine` — 5-step content generation with pg_cron advancement:
