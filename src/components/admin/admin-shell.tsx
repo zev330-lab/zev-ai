@@ -10,8 +10,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   if (pathname === '/admin/login') return <>{children}</>;
 
   const nav = [
-    { href: '/admin', label: 'Dashboard', icon: <DashboardIcon /> },
     { href: '/admin/tola', label: 'TOLA', icon: <TolaIcon /> },
+    { href: '/admin', label: 'Dashboard', icon: <DashboardIcon /> },
     { href: '/admin/discoveries', label: 'Discoveries', icon: <DiscoveryIcon /> },
     { href: '/admin/content', label: 'Content', icon: <ContentIcon /> },
     { href: '/admin/agents', label: 'Agents', icon: <AgentIcon /> },
