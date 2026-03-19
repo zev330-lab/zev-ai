@@ -23,10 +23,17 @@ Crown (human authority), Visionary (research), Architect (planning), Oracle (syn
 Guardian (validation), Nexus (routing, center), Catalyst (engagement), Sentinel (monitoring),
 Prism (testing), Foundation (infrastructure), Gateway (application)
 
-### Runtime
-- **Edge Function:** Single "fat function" (`supabase/functions/tola-agent/`) routing to all 11 agents
-- **Fully implemented:** Sentinel (health), Foundation (cleanup), Nexus (classification), Guardian (validation), Visionary (Claude + web_search research), Architect (scope assessment), Oracle (meeting prep synthesis)
-- **Stubs:** Crown, Catalyst, Prism, Gateway
+### Runtime — ALL 11 AGENTS ACTIVE
+- **Pipeline functions:** pipeline-guardian, pipeline-visionary, pipeline-architect, pipeline-oracle, pipeline-proposal, pipeline-content-engine, pipeline-social-agent
+- **Background agent functions (all with pg_cron):**
+  - `agent-nexus` (every 5 min) — health-check all agents, health scoring, path activity aggregation
+  - `agent-guardian-bg` (every 5 min) — anomaly detection, circuit breaker (10 errors → kill switch)
+  - `agent-crown` (every 15 min) — token spend tracking, Tier 3 queue scan, daily governance digest
+  - `agent-prism` (every 30 min) — synthetic site health checks, agent output audit, daily quality report
+  - `agent-catalyst-bg` (hourly) — pipeline velocity analysis, bottleneck detection, trend comparison
+  - `agent-gateway` (hourly) — sitemap/robots/RSS validation, SEO audit, page count tracking
+  - `agent-foundation-bg` (every 2h) — database maintenance, row counts, archival (30-day retention), daily infra report
+- **Legacy:** `tola-agent` single fat function for Sentinel + general routing
 - **Supabase project:** ctrzkvdqkcqgejaedkbr
 
 ### Assessment Pipeline
@@ -149,6 +156,7 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `012_projects_finance.sql` — projects, project_milestones, project_time_entries, invoices, monthly_metrics tables + seed data
 - `013_family_knowledge.sql` — family_members/tasks/events/notes, knowledge_entries with vector(1536), pgvector extension, search_knowledge() function, family seed data
 - `014_contact_pipeline_statuses.sql` — Adds CRM pipeline statuses (researched, meeting_scheduled, proposal_sent, client) to contacts CHECK constraint
+- `015_agent_activity_loops.sql` — tola_path_activity table, dispatch_agent() helper, 7 pg_cron jobs for all background agents
 
 ### Operations SOP
 Full Standard Operating Procedures document at `src/docs/OPERATIONS-SOP.md` covering: daily ops checklist, content workflow, social media, discovery pipeline, proposal workflow, family hub, knowledge base, project management, invoicing, troubleshooting, and monthly review.
