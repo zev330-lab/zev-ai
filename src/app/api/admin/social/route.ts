@@ -39,7 +39,21 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { id, ...updates } = await request.json();
+  const body = await request.json();
+
+  // Bulk approve: { ids: [...], status: 'approved' }
+  if (Array.isArray(body.ids)) {
+    const supabase = getSupabaseAdmin();
+    const updates: Record<string, unknown> = {};
+    if (body.status) updates.status = body.status;
+    if (body.scheduled_for) updates.scheduled_for = body.scheduled_for;
+    const { error } = await supabase.from('social_queue').update(updates).in('id', body.ids);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, updated: body.ids.length });
+  }
+
+  // Single update: { id, ...updates }
+  const { id, ...updates } = body;
   if (!id) return NextResponse.json({ error: 'ID required' }, { status: 400 });
 
   const supabase = getSupabaseAdmin();
