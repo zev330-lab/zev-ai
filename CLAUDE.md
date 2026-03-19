@@ -1,7 +1,9 @@
 # zev.ai — AI Consulting Website + TOLA v3.0 Agent Framework
 
 ## Overview
-Flagship website for Zev Steinmetz's AI consulting practice. Outcome-forward public site (leads with client results, not architecture). TOLA framework powers the backend — 11 specialized agents, 9 coordination patterns, 22 structured communication paths. Architecture is discoverable via /approach but not the headline.
+Flagship website for Zev Steinmetz's AI consulting practice + personal operating system. Outcome-forward public site (leads with client results, not architecture). TOLA framework powers the backend — 11 specialized agents, 9 coordination patterns, 22 structured communication paths. Architecture is discoverable via /approach but not the headline.
+
+**Layout architecture:** Root layout uses `LayoutWrapper` client component that conditionally renders public Navbar/Footer only for non-admin routes. Admin routes get only AdminShell sidebar — no public nav/footer overlap.
 
 ## Stack
 - **Framework:** Next.js 16 (App Router), TypeScript
@@ -98,6 +100,7 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `GET|PATCH /api/admin/agents` — Agent list/update (kill_switch, tier, is_active, status, config)
 - `GET /api/admin/agents/[id]/logs` — Per-agent activity log
 - `POST /api/admin/agents/trigger` — Invoke Edge Function for any agent
+- `GET /api/admin/activity` — Latest tola_agent_log entries (used by ActivityFeed, polls 15s)
 - `GET /api/admin/stats` — Dashboard stats: total discoveries, success rate, active agents, avg pipeline time, actions/pipelines today, tier 3 queue, stage breakdown
 - `GET|POST|PATCH|DELETE /api/admin/content` — Blog post CRUD with publish workflow (generates schema_data, moves social_posts to social_queue, triggers ISR revalidation)
 - `GET|PATCH|DELETE /api/admin/social` — Social queue CRUD with platform filtering, bulk approve via `{ ids, status }`
