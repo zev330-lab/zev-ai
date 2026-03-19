@@ -18,6 +18,11 @@ const TIER_LABELS: Record<number, string> = {
   3: 'Tier 3 — Human decides (5%)',
 };
 
+interface SubAgentData {
+  projects?: { active: number; nextMilestone: string | null };
+  finance?: { revenue: number; outstanding: number };
+}
+
 export function AgentPanel({ agent, onClose, onToggleKillSwitch, onTierChange }: AgentPanelProps) {
   const GeometryIcon = GEOMETRY_COMPONENTS[agent.geometry_engine];
   const statusColor = STATUS_COLORS[agent.status];
@@ -26,6 +31,7 @@ export function AgentPanel({ agent, onClose, onToggleKillSwitch, onTierChange }:
   const [triggering, setTriggering] = useState(false);
   const [triggerResult, setTriggerResult] = useState<string | null>(null);
   const [confirmKill, setConfirmKill] = useState(false);
+  const [subAgentData, setSubAgentData] = useState<SubAgentData>({});
 
   // Fetch recent logs for this agent
   useEffect(() => {
@@ -37,6 +43,30 @@ export function AgentPanel({ agent, onClose, onToggleKillSwitch, onTierChange }:
       })
       .catch(() => {})
       .finally(() => setLogsLoading(false));
+  }, [agent.id]);
+
+  // Fetch sub-agent data for Architect and Foundation
+  useEffect(() => {
+    if (agent.id === 'architect') {
+      fetch('/api/admin/projects?status=active')
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setSubAgentData((prev) => ({ ...prev, projects: { active: data.length, nextMilestone: null } }));
+          }
+        })
+        .catch(() => {});
+    }
+    if (agent.id === 'foundation') {
+      fetch('/api/admin/finance')
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && !data.error) {
+            setSubAgentData((prev) => ({ ...prev, finance: { revenue: data.revenueThisMonth || 0, outstanding: data.outstandingTotal || 0 } }));
+          }
+        })
+        .catch(() => {});
+    }
   }, [agent.id]);
 
   // Heartbeat staleness check
@@ -222,6 +252,39 @@ export function AgentPanel({ agent, onClose, onToggleKillSwitch, onTierChange }:
               </div>
             )}
           </div>
+
+          {/* Sub-Agents (fractal scaling) */}
+          {agent.id === 'architect' && subAgentData.projects && (
+            <div className="pt-4 border-t border-[var(--color-admin-border)]">
+              <p className="text-xs tracking-[0.15em] uppercase text-[var(--color-muted)] mb-3">Sub-Agents</p>
+              <a href="/admin/projects" className="block bg-[var(--color-admin-bg)] rounded-lg p-4 hover:ring-1 hover:ring-[var(--color-accent)]/30 transition-all">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-[var(--color-accent)]">Architect-Projects</span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-accent)]/15 text-[var(--color-accent)]">
+                    {subAgentData.projects.active} active
+                  </span>
+                </div>
+                <p className="text-xs text-[var(--color-muted)]">
+                  Tracks all consulting and personal projects, milestones, and time
+                </p>
+              </a>
+            </div>
+          )}
+
+          {agent.id === 'foundation' && subAgentData.finance && (
+            <div className="pt-4 border-t border-[var(--color-admin-border)]">
+              <p className="text-xs tracking-[0.15em] uppercase text-[var(--color-muted)] mb-3">Sub-Agents</p>
+              <a href="/admin/finance" className="block bg-[var(--color-admin-bg)] rounded-lg p-4 hover:ring-1 hover:ring-[var(--color-accent)]/30 transition-all">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-[var(--color-accent)]">Foundation-Finance</span>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-[var(--color-muted-light)] mt-1">
+                  <span>${subAgentData.finance.revenue.toLocaleString()} revenue</span>
+                  <span>${subAgentData.finance.outstanding.toLocaleString()} outstanding</span>
+                </div>
+              </a>
+            </div>
+          )}
 
           {/* Recent Activity */}
           <div className="pt-4 border-t border-[var(--color-admin-border)]">

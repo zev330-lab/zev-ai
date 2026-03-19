@@ -14,6 +14,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     { href: '/admin', label: 'Dashboard', icon: <DashboardIcon /> },
     { href: '/admin/discoveries', label: 'Discoveries', icon: <DiscoveryIcon /> },
     { href: '/admin/content', label: 'Content', icon: <ContentIcon /> },
+    { href: '/admin/projects', label: 'Projects', icon: <ProjectIcon /> },
+    { href: '/admin/finance', label: 'Finance', icon: <FinanceIcon /> },
     { href: '/admin/agents', label: 'Agents', icon: <AgentIcon /> },
     { href: '/admin/contacts', label: 'Contacts', icon: <ContactIcon /> },
   ];
@@ -140,6 +142,22 @@ function AgentIcon() {
   return (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v18m0-18l-4 4m4-4l4 4m-8 4h8m-10 4h12" />
+    </svg>
+  );
+}
+
+function ProjectIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
+    </svg>
+  );
+}
+
+function FinanceIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   );
 }
