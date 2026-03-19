@@ -1,7 +1,7 @@
 # zev.ai — AI Consulting Website + TOLA v3.0 Agent Framework
 
 ## Overview
-Flagship website for Zev Steinmetz's AI consulting practice. Self-referential TOLA showcase — built BY TOLA agents, runs ON TOLA agents, describes TOLA. 11 specialized agents, 9 sacred geometry engines, 22 structured communication paths orchestrated through the Tree of Life.
+Flagship website for Zev Steinmetz's AI consulting practice. Outcome-forward public site (leads with client results, not architecture). TOLA framework powers the backend — 11 specialized agents, 9 coordination patterns, 22 structured communication paths. Architecture is discoverable via /approach but not the headline.
 
 ## Stack
 - **Framework:** Next.js 16 (App Router), TypeScript
@@ -58,14 +58,19 @@ Each stage updates `progress_pct` as it works:
 
 ## Pages
 
-### Public (7)
-- `/` — Hero with Tree of Life diagram, Problem, Approach, Capabilities, Scale, Difference, CTA
-- `/tola` — Framework deep-dive: 22 paths, jargon mapping table, 3-tier model, 9 geometry explainers, 11 nodes, build+runtime
-- `/services` — 4 service tiers with pricing
-- `/work` — Live implementation case study with Tree of Life diagram
-- `/about` — Philosophy + builder background
+### Navigation
+Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CTA button
+
+### Public (9)
+- `/` — Outcome-focused hero, pain point agitation (4 problems), services journey (Assess→Build→Optimize→Scale), social proof (ButcherBox/Blank Industries/Rosen Media Group examples), principles, CTA
+- `/services` — 4 tiers: each with Problem → What we do → What you get → Timeline → Price. No agent names. "Starting from" pricing.
+- `/approach` — Nature-inspired architecture: philosophy, Tree of Life diagram, 9 coordination patterns modeled on nature, 3-tier human oversight, build+runtime duality
+- `/work` — Case studies (Problem → Process → Payoff): Steinmetz RE (18 agents, 2000+ pages), Blank Industries (unified BI), KabbalahQ.ai (adaptive learning)
+- `/about` — Zev's story: real estate → AI builder, William Raveis background, hands-on builder emphasis
+- `/blog` — Placeholder (coming soon)
 - `/contact` — Form → Supabase contacts
 - `/discover` — 12-step intake form → assessment pipeline
+- `/tola` — Redirects to /approach
 
 ### Admin (6) — not in nav, noindex, dark theme operations center
 - `/admin` — Dashboard home: stat cards (total, success rate, active agents, avg time), pipeline stage breakdown, activity feed
@@ -114,6 +119,7 @@ Each stage updates `progress_pct` as it works:
 - Nexus: radius 36 (larger than standard 28)
 - Oracle: phantom (dashed border, periwinkle glow, 50% geometry opacity)
 - 24 paths with middle-pillar emphasis (opacity 0.5, width 2)
+- Used on /approach page (diagram mode) — NOT on homepage
 
 ### TOLA Operating System (`src/components/admin/tola-tree.tsx`)
 - Full interactive Tree of Life dashboard with 11 nodes and 24 animated paths
@@ -127,6 +133,7 @@ Each stage updates `progress_pct` as it works:
 ### Sacred Geometry (`src/components/sacred-geometry/`)
 - 9 SVG components: SeedOfLife, MetatronsCube, SriYantra, Torus, Lotus, YinYang, FlowerOfLife, Merkabah, Vortex
 - Barrel exported via index.ts with GEOMETRY_COMPONENTS record
+- Used only on /approach page and admin — NOT on homepage or services
 
 ## Required Secrets
 
@@ -138,14 +145,15 @@ Each stage updates `progress_pct` as it works:
 - `ANTHROPIC_API_KEY` — **REQUIRED for assessment pipeline.** Set via: Supabase Dashboard > Project Settings > Edge Functions > Secrets, or `supabase secrets set ANTHROPIC_API_KEY=sk-ant-...`
 
 ## Design System
-- **Background:** dark navy (#1e2330)
-- **Foreground:** off-white (#e4e7eb), strong (#f4f5f7)
-- **Accent:** teal (#5ba8b5), hover (#72bec9)
-- **Periwinkle:** #7c9bf5 (Tree of Life, health rings)
+- **Background:** dark navy (#0a0e1a)
+- **Foreground:** off-white (#d0d0da), strong (#f0f0f5)
+- **Accent:** periwinkle (#7c9bf5), hover (#96aff8)
+- **Muted light:** #c4b5e0
 - **Sections:** Alternating dark/light via `.section-light`
 - **Admin:** Dark theme using --color-admin-* CSS variables
 - **Easing:** [0.16, 1, 0.3, 1] throughout
 - **CRITICAL:** No Kabbalah/Hebrew references in public-facing code. Agents use secular names (Crown, Visionary, etc.)
+- **CRITICAL:** Public pages are outcome-forward. No agent names, geometry engine names, or technical architecture on homepage or services. Architecture details live on /approach only.
 
 ## Deployment
 - **Repo:** github.com/zev330-lab/zev-ai
