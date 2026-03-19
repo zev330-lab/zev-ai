@@ -59,6 +59,7 @@ export function getAnthropicKey(): string | null {
 
 /**
  * Fail a discovery pipeline with an error message.
+ * Sends a Resend email alert to zev330@gmail.com on failure.
  */
 export async function failPipeline(
   supabase: SupabaseClient,
@@ -66,11 +67,45 @@ export async function failPipeline(
   step: string,
   errorMsg: string,
 ): Promise<void> {
+  // Fetch discovery for context before updating
+  const { data: discovery } = await supabase
+    .from('discoveries')
+    .select('name, company')
+    .eq('id', discoveryId)
+    .single();
+
   await supabase.from('discoveries').update({
     pipeline_status: 'failed',
     pipeline_error: `${step} failed: ${errorMsg}`,
     pipeline_started_at: null,
   }).eq('id', discoveryId);
+
+  // Send failure alert email via Resend
+  const resendKey = Deno.env.get('RESEND_API_KEY');
+  if (resendKey) {
+    const company = discovery?.company || discovery?.name || 'Unknown';
+    try {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resendKey}` },
+        body: JSON.stringify({
+          from: 'TOLA Alerts <alerts@zev.ai>',
+          to: ['zev330@gmail.com'],
+          subject: `Pipeline Failed: ${company}`,
+          html: `<h2>Pipeline Failure Alert</h2>
+<p><strong>Discovery ID:</strong> ${discoveryId}</p>
+<p><strong>Company:</strong> ${company}</p>
+<p><strong>Failed Stage:</strong> ${step}</p>
+<p><strong>Error:</strong> ${errorMsg}</p>
+<p><strong>Time:</strong> ${new Date().toISOString()}</p>
+<hr>
+<p><a href="https://zev-ai-swart.vercel.app/admin/discoveries">View in Admin</a></p>`,
+        }),
+      });
+    } catch (emailErr) {
+      console.error('[failPipeline] Email alert failed:', emailErr);
+    }
+  }
 }
 
 /**

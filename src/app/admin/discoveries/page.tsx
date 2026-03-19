@@ -52,6 +52,7 @@ const PIPELINE_BADGE: Record<string, { bg: string; text: string; label: string }
   synthesizing: { bg: 'rgba(251,146,60,0.15)', text: '#fb923c', label: 'Preparing' },
   complete: { bg: 'rgba(74,222,128,0.15)', text: '#4ade80', label: 'Complete' },
   failed: { bg: 'rgba(248,113,113,0.15)', text: '#f87171', label: 'Failed' },
+  stalled: { bg: 'rgba(234,179,8,0.15)', text: '#eab308', label: 'Stalled' },
 };
 
 const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
