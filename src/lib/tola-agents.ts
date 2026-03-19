@@ -115,7 +115,7 @@ export const TREE_NODE_MAP: Record<AgentId, TreeNode> =
   Object.fromEntries(TREE_NODES.map((n) => [n.id, n])) as Record<AgentId, TreeNode>;
 
 // ---------------------------------------------------------------------------
-// The 24 Paths — structured communication channels
+// The 22 Paths — traditional Tree of Life topology
 // Each path is a defined connection between two agents.
 // Paths touching Oracle are "phantom" (rendered dashed/translucent).
 // ---------------------------------------------------------------------------
@@ -127,30 +127,32 @@ export interface TreePath {
 }
 
 export const TREE_PATHS: TreePath[] = [
-  { source: 'crown',      target: 'visionary',   phantom: false },  // 1
-  { source: 'crown',      target: 'architect',   phantom: false },  // 2
-  { source: 'crown',      target: 'nexus',       phantom: false },  // 3
-  { source: 'visionary',  target: 'architect',   phantom: false },  // 4
-  { source: 'visionary',  target: 'oracle',      phantom: true  },  // 5
-  { source: 'visionary',  target: 'nexus',       phantom: false },  // 6
-  { source: 'visionary',  target: 'catalyst',    phantom: false },  // 7
-  { source: 'architect',  target: 'oracle',      phantom: true  },  // 8
-  { source: 'architect',  target: 'nexus',       phantom: false },  // 9
-  { source: 'architect',  target: 'guardian',    phantom: false },  // 10
-  { source: 'oracle',     target: 'nexus',       phantom: true  },  // 11
-  { source: 'catalyst',   target: 'guardian',    phantom: false },  // 12
-  { source: 'catalyst',   target: 'nexus',       phantom: false },  // 13
-  { source: 'catalyst',   target: 'sentinel',   phantom: false },  // 14
-  { source: 'guardian',   target: 'nexus',       phantom: false },  // 15
-  { source: 'guardian',   target: 'prism',       phantom: false },  // 16
-  { source: 'nexus',      target: 'sentinel',   phantom: false },  // 17
-  { source: 'nexus',      target: 'prism',       phantom: false },  // 18
-  { source: 'nexus',      target: 'foundation', phantom: false },  // 19
-  { source: 'sentinel',   target: 'foundation', phantom: false },  // 20
-  { source: 'prism',      target: 'foundation', phantom: false },  // 21
-  { source: 'foundation', target: 'gateway',    phantom: false },  // 22
-  { source: 'prism',      target: 'gateway',    phantom: false },  // 23
-  { source: 'sentinel',   target: 'gateway',    phantom: false },  // 24
+  // Middle pillar (vertical)
+  { source: 'crown',      target: 'oracle',      phantom: true  },  //  1
+  { source: 'oracle',     target: 'nexus',       phantom: true  },  //  2
+  { source: 'nexus',      target: 'foundation', phantom: false },  //  3
+  // Left pillar (vertical)
+  { source: 'architect',  target: 'guardian',    phantom: false },  //  5
+  { source: 'guardian',   target: 'prism',       phantom: false },  //  6
+  // Right pillar (vertical)
+  { source: 'visionary',  target: 'catalyst',    phantom: false },  //  7
+  { source: 'catalyst',   target: 'sentinel',   phantom: false },  //  8
+  // Horizontal
+  { source: 'architect',  target: 'visionary',   phantom: false },  //  9
+  { source: 'guardian',   target: 'catalyst',    phantom: false },  // 10
+  { source: 'prism',      target: 'sentinel',   phantom: false },  // 11
+  // Diagonal
+  { source: 'crown',      target: 'architect',   phantom: false },  // 12
+  { source: 'crown',      target: 'visionary',   phantom: false },  // 13
+  { source: 'architect',  target: 'oracle',      phantom: true  },  // 14
+  { source: 'visionary',  target: 'oracle',      phantom: true  },  // 15
+  { source: 'architect',  target: 'nexus',       phantom: false },  // 16
+  { source: 'visionary',  target: 'nexus',       phantom: false },  // 17
+  { source: 'guardian',   target: 'nexus',       phantom: false },  // 18
+  { source: 'catalyst',   target: 'nexus',       phantom: false },  // 19
+  { source: 'nexus',      target: 'prism',       phantom: false },  // 20
+  { source: 'nexus',      target: 'sentinel',   phantom: false },  // 21
+  { source: 'foundation', target: 'gateway',    phantom: false },  // 22 (reinforced middle pillar)
 ];
 
 // Backward compat: admin components may reference this
