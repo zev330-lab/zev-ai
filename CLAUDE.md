@@ -177,13 +177,19 @@ Edge Function `pipeline-social-agent` — daily social content generation:
 - Used on /approach page (diagram mode) — NOT on homepage
 
 ### TOLA Operating System (`src/components/admin/tola-tree.tsx`)
-- Full interactive Tree of Life dashboard with 11 nodes and 24 animated paths
-- Path flow animation via CSS stroke-dashoffset (green glow when agents are active)
+- Built with @xyflow/react (React Flow) — zoom, pan, MiniMap, Controls
+- Custom TolaNode: health ring (green/yellow/red/gray), sacred geometry animation, status dot, active pulse glow, phantom blur
+- Custom TolaEdge: animated flow dots on active paths, green glow, dashed phantom, thicker middle pillar
+- React Flow MiniMap (bottom-right) with health-colored node indicators
+- React Flow Controls (bottom-left) for zoom/fit
+- Enhanced stats bar: system health pulse, active agents, pipelines today, avg time, Tier 3 queue, actions today (fetched from /api/admin/stats every 30s)
+- "Updated Xs ago" live indicator
 - Real-time via useRealtimeAgents + useRealtimeActivityFeed hooks
-- Hover tooltips on paths showing msg/hr, avg latency, error rate
-- Node hover glow, active agent pulse animation
-- Mobile responsive: card stack on mobile, full SVG on desktop
+- Pipeline flow visualization: active agents and their paths light up green
+- Click any node → AgentPanel slide-out (logs, kill switch, tier selector, manual trigger)
+- Mobile responsive: card stack with Crown pinned + Tier 3 badge
 - Activity feed footer with horizontal scrolling log cards
+- TOLA is FIRST item in admin sidebar nav
 
 ### Sacred Geometry (`src/components/sacred-geometry/`)
 - 9 SVG components: SeedOfLife, MetatronsCube, SriYantra, Torus, Lotus, YinYang, FlowerOfLife, Merkabah, Vortex
