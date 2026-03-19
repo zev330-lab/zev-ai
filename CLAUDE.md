@@ -31,6 +31,8 @@ Prism (testing), Foundation (infrastructure), Gateway (application)
 Discovery form → Guardian validates → Visionary researches (Claude + web_search) → Architect scopes (9 constraints) → Oracle synthesizes meeting prep → Crown review queue.
 Each step is a separate Edge Function (`pipeline-guardian`, `pipeline-visionary`, `pipeline-architect`, `pipeline-oracle`).
 
+**Proposal Generation:** After pipeline completes, "Generate Proposal" button triggers `pipeline-proposal` Edge Function. Calls Claude to generate a professional SOW with executive summary, discovery findings, phased implementation plan, deliverables, and pricing tiers. Stored in `proposal_data` JSONB column. Supports `include_pricing` toggle, PDF download via browser print, and Edit & Regenerate with custom prompt context.
+
 **Chaining:** pg_cron polls every 60s (`advance_pipeline()`), dispatches next step via pg_net with 300s timeout.
 **Rate limiting:** 60-second global cooldown between Claude API calls (tracked via `pipeline_step_completed_at`).
 **Retry:** Auto-retries on 429/529/timeout errors up to 5 times. Stuck in-flight steps recovered after 5 min.
@@ -40,7 +42,7 @@ Each step is a separate Edge Function (`pipeline-guardian`, `pipeline-visionary`
 pending → researching → scoping → synthesizing → complete | failed
 
 ### Pipeline Columns (discoveries table)
-`pipeline_status`, `pipeline_error`, `pipeline_completed_at`, `pipeline_step_completed_at` (cooldown tracking), `pipeline_started_at` (in-flight guard), `pipeline_retry_count`, `progress_pct` (0-100 integer)
+`pipeline_status`, `pipeline_error`, `pipeline_completed_at`, `pipeline_step_completed_at` (cooldown tracking), `pipeline_started_at` (in-flight guard), `pipeline_retry_count`, `progress_pct` (0-100 integer), `proposal_data` (JSONB: markdown, generated_at, model_used, tokens_used, prompt_context), `include_pricing` (boolean, default true)
 
 ### Pipeline Progress Tracking
 Each stage updates `progress_pct` as it works:
@@ -65,9 +67,10 @@ Each stage updates `progress_pct` as it works:
 - `/contact` — Form → Supabase contacts
 - `/discover` — 12-step intake form → assessment pipeline
 
-### Admin (5) — not in nav, noindex, dark theme operations center
+### Admin (6) — not in nav, noindex, dark theme operations center
 - `/admin` — Dashboard home: stat cards (total, success rate, active agents, avg time), pipeline stage breakdown, activity feed
-- `/admin/discoveries` — Sortable list with real-time progress bars (0-100%, color-coded staleness), 4-tab detail with markdown rendering
+- `/admin/tola` — Tree of Life Operating System: full interactive 11-node graph with 24 animated paths, real-time agent health via Supabase Realtime, sacred geometry animations, click-to-expand agent panels, mobile card stack fallback, activity feed footer
+- `/admin/discoveries` — Sortable list with real-time progress bars (0-100%, color-coded staleness), 5-tab detail (overview, research, assessment, meeting prep, proposal) with markdown rendering, proposal generation/PDF/regeneration
 - `/admin/agents` — Agent card grid (Guardian, Visionary, Architect, Oracle, Sentinel) with stats, Tree of Life diagram, activity feed, click-to-expand panel
 - `/admin/contacts` — Contact list with status badges, search, detail slide-out
 - `/admin/login` — Password auth
@@ -87,7 +90,7 @@ Each stage updates `progress_pct` as it works:
 
 ### Tables
 - **contacts** — id, name, email, company, message, status, notes
-- **discoveries** — 13 form fields + research_brief (JSONB), assessment_doc (TEXT), meeting_prep_doc (TEXT), pipeline_status, pipeline_error, pipeline_completed_at, pipeline_step_completed_at, pipeline_started_at, pipeline_retry_count, progress_pct (INT 0-100)
+- **discoveries** — 13 form fields + research_brief (JSONB), assessment_doc (TEXT), meeting_prep_doc (TEXT), pipeline_status, pipeline_error, pipeline_completed_at, pipeline_step_completed_at, pipeline_started_at, pipeline_retry_count, progress_pct (INT 0-100), proposal_data (JSONB), include_pricing (BOOLEAN)
 - **_pipeline_config** — key/value store for pg_net dispatch (supabase_url, service_role_key)
 - **tola_agents** — id, node_name, geometry_engine, display_name, description, status, tier, last_heartbeat, config, is_active, kill_switch
 - **tola_agent_log** — agent_id, action, geometry_pattern, input, output, confidence, tier_used, tokens_used, latency_ms
@@ -101,15 +104,25 @@ Each stage updates `progress_pct` as it works:
 - `005_pipeline_cron_worker.sql` — pg_cron polling worker replaces trigger-based chaining
 - `006_fix_pgnet_timeout.sql` — Fix pg_net 2s default timeout → 300s for Claude API calls
 - `007_pipeline_progress_pct.sql` — Add progress_pct column to discoveries for real-time progress tracking
+- `008_proposal_data.sql` — Add proposal_data JSONB and include_pricing boolean to discoveries
 
 ## Canonical Components
 
 ### Tree of Life (`src/components/tree-of-life.tsx`)
 - Single SVG component, 4 modes: hero, diagram, dashboard, compact
-- viewBox 0 0 400 700, 7 tiers at 100-unit intervals
-- Nexus: radius 36 (larger than standard 30)
+- viewBox 0 0 500 700, pillars at x=110/250/390
+- Nexus: radius 36 (larger than standard 28)
 - Oracle: phantom (dashed border, periwinkle glow, 50% geometry opacity)
-- 22 paths with middle-pillar emphasis (opacity 0.5, width 2)
+- 24 paths with middle-pillar emphasis (opacity 0.5, width 2)
+
+### TOLA Operating System (`src/components/admin/tola-tree.tsx`)
+- Full interactive Tree of Life dashboard with 11 nodes and 24 animated paths
+- Path flow animation via CSS stroke-dashoffset (green glow when agents are active)
+- Real-time via useRealtimeAgents + useRealtimeActivityFeed hooks
+- Hover tooltips on paths showing msg/hr, avg latency, error rate
+- Node hover glow, active agent pulse animation
+- Mobile responsive: card stack on mobile, full SVG on desktop
+- Activity feed footer with horizontal scrolling log cards
 
 ### Sacred Geometry (`src/components/sacred-geometry/`)
 - 9 SVG components: SeedOfLife, MetatronsCube, SriYantra, Torus, Lotus, YinYang, FlowerOfLife, Merkabah, Vortex
@@ -140,6 +153,6 @@ Each stage updates `progress_pct` as it works:
 - **Live URL:** https://zev-ai-swart.vercel.app
 - **Vercel Team:** steinmetz-real-estate-professionlas
 - **Deploy:** `vercel --prod`
-- **Edge Functions:** `supabase functions deploy tola-agent --no-verify-jwt` (also deploy pipeline-guardian, pipeline-visionary, pipeline-architect, pipeline-oracle)
+- **Edge Functions:** `supabase functions deploy tola-agent --no-verify-jwt` (also deploy pipeline-guardian, pipeline-visionary, pipeline-architect, pipeline-oracle, pipeline-proposal)
 - **Migrations:** `supabase db push`
 - **Pipeline config:** After fresh migration, set `service_role_key` in `_pipeline_config` table via Supabase REST API or SQL editor

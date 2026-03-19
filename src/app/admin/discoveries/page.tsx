@@ -4,6 +4,15 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { MarkdownContent, ResearchBriefView } from '@/components/admin/markdown-content';
 
+interface ProposalData {
+  markdown: string;
+  generated_at: string;
+  model_used: string;
+  tokens_used: number;
+  include_pricing: boolean;
+  prompt_context: string;
+}
+
 interface Discovery {
   id: string;
   created_at: string;
@@ -32,6 +41,8 @@ interface Discovery {
   pipeline_started_at: string | null;
   pipeline_retry_count: number | null;
   progress_pct: number;
+  proposal_data: ProposalData | null;
+  include_pricing: boolean;
 }
 
 const PIPELINE_BADGE: Record<string, { bg: string; text: string; label: string }> = {
@@ -85,7 +96,11 @@ export default function AdminDiscoveriesPage() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Discovery | null>(null);
   const [notes, setNotes] = useState('');
-  const [detailTab, setDetailTab] = useState<'overview' | 'research' | 'assessment' | 'meeting'>('overview');
+  const [detailTab, setDetailTab] = useState<'overview' | 'research' | 'assessment' | 'meeting' | 'proposal'>('overview');
+  const [generatingProposal, setGeneratingProposal] = useState(false);
+  const [proposalError, setProposalError] = useState<string | null>(null);
+  const [editingPrompt, setEditingPrompt] = useState(false);
+  const [promptOverride, setPromptOverride] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('created_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
@@ -186,6 +201,89 @@ export default function AdminDiscoveriesPage() {
         prev ? { ...prev, pipeline_status: 'pending', pipeline_error: null, progress_pct: 0 } : prev
       );
     }
+  };
+
+  const generateProposal = async (id: string, promptCtx?: string) => {
+    setGeneratingProposal(true);
+    setProposalError(null);
+    try {
+      const payload: Record<string, unknown> = { agent: 'pipeline-proposal', discovery_id: id };
+      if (promptCtx) payload.prompt_context = promptCtx;
+      const res = await fetch('/api/admin/agents/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setProposalError(data.error || 'Failed to generate proposal');
+      } else {
+        // Refresh to pick up the new proposal_data
+        await fetchDiscoveries();
+        // Re-fetch the selected discovery
+        const updatedRes = await fetch(`/api/admin/discoveries?search=${encodeURIComponent(selected?.name || '')}`);
+        const updatedData = await updatedRes.json();
+        if (Array.isArray(updatedData)) {
+          const updated = updatedData.find((d: Discovery) => d.id === id);
+          if (updated) setSelected(updated);
+        }
+      }
+    } catch (err) {
+      setProposalError(err instanceof Error ? err.message : 'Failed');
+    } finally {
+      setGeneratingProposal(false);
+      setEditingPrompt(false);
+    }
+  };
+
+  const togglePricing = async (id: string, includePricing: boolean) => {
+    await updateDiscovery(id, { include_pricing: includePricing } as Partial<Discovery>);
+  };
+
+  const downloadProposalPDF = (proposal: ProposalData, name: string, company: string | null) => {
+    const title = `Proposal - ${company || name}`;
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(`<!DOCTYPE html>
+<html><head>
+<title>${title}</title>
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1a1a2e; line-height: 1.7; font-size: 14px; }
+  h1 { font-size: 22px; color: #0a0e1a; border-bottom: 2px solid #7c9bf5; padding-bottom: 8px; margin-top: 32px; }
+  h2 { font-size: 18px; color: #1a1a2e; margin-top: 28px; }
+  h3 { font-size: 15px; color: #333; margin-top: 20px; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  strong { color: #0a0e1a; }
+  em { color: #555; }
+  code { background: #f0f0f5; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+  pre { background: #f0f0f5; padding: 16px; border-radius: 6px; overflow-x: auto; }
+  blockquote { border-left: 3px solid #7c9bf5; margin: 16px 0; padding: 8px 16px; color: #555; }
+  .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #ddd; font-size: 11px; color: #999; text-align: center; }
+  @media print { body { margin: 20px; } }
+</style>
+</head><body>`);
+
+    // Convert markdown to basic HTML
+    const html = proposal.markdown
+      .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/^- (.*$)/gm, '<li>$1</li>')
+      .replace(/^(\d+)\. (.*$)/gm, '<li>$2</li>')
+      .replace(/(<li>.*<\/li>\n?)+/g, (match) => {
+        return match.includes('1.') ? `<ol>${match}</ol>` : `<ul>${match}</ul>`;
+      })
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/^(?!<[hulo])/gm, (line) => line ? `<p>${line}</p>` : '');
+
+    win.document.write(html);
+    win.document.write(`<div class="footer">Generated by zev.ai TOLA Framework &middot; ${new Date(proposal.generated_at).toLocaleDateString()}</div>`);
+    win.document.write('</body></html>');
+    win.document.close();
+    setTimeout(() => win.print(), 500);
   };
 
   const deleteDiscovery = async (id: string) => {
@@ -291,7 +389,14 @@ export default function AdminDiscoveriesPage() {
                     <td className="px-4 py-3 text-[var(--color-foreground-strong)]">{d.name}</td>
                     <td className="px-4 py-3 text-[var(--color-muted-light)]">{d.company || '--'}</td>
                     <td className="px-4 py-3">
-                      <PipelineBadge status={d.pipeline_status} />
+                      <div className="flex items-center gap-1.5">
+                        <PipelineBadge status={d.pipeline_status} />
+                        {d.proposal_data && (
+                          <span className="inline-block px-1.5 py-0.5 text-[10px] font-medium rounded-full bg-purple-500/15 text-purple-400 whitespace-nowrap">
+                            Proposal
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 w-44">
                       <ProgressBar
@@ -366,6 +471,20 @@ export default function AdminDiscoveriesPage() {
                     Re-run Pipeline
                   </button>
                 )}
+                {selected.pipeline_status === 'complete' && !generatingProposal && (
+                  <button
+                    onClick={() => generateProposal(selected.id)}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors cursor-pointer"
+                  >
+                    {selected.proposal_data ? 'Regenerate Proposal' : 'Generate Proposal'}
+                  </button>
+                )}
+                {generatingProposal && (
+                  <span className="px-3 py-1.5 text-xs font-medium text-purple-400 flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
+                    Generating...
+                  </span>
+                )}
                 <a
                   href={scheduleCalendarUrl(selected)}
                   target="_blank"
@@ -383,19 +502,29 @@ export default function AdminDiscoveriesPage() {
               </div>
             </div>
 
+            {/* Proposal error */}
+            {proposalError && (
+              <div className="px-6 py-2 bg-red-500/10 border-b border-red-500/20">
+                <p className="text-xs text-red-400">Proposal error: {proposalError}</p>
+              </div>
+            )}
+
             {/* Tabs */}
             <div className="flex border-b border-[var(--color-admin-border)]">
-              {(['overview', 'research', 'assessment', 'meeting'] as const).map((tab) => (
+              {(['overview', 'research', 'assessment', 'meeting', 'proposal'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setDetailTab(tab)}
-                  className={`px-4 py-2.5 text-xs font-medium capitalize transition-colors cursor-pointer ${
+                  className={`px-4 py-2.5 text-xs font-medium capitalize transition-colors cursor-pointer relative ${
                     detailTab === tab
                       ? 'border-b-2 border-[var(--color-accent)] text-[var(--color-accent)]'
                       : 'text-[var(--color-muted)] hover:text-[var(--color-muted-light)]'
                   }`}
                 >
                   {tab === 'meeting' ? 'Meeting Prep' : tab}
+                  {tab === 'proposal' && selected.proposal_data && (
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-purple-400" />
+                  )}
                 </button>
               ))}
             </div>
@@ -516,6 +645,137 @@ export default function AdminDiscoveriesPage() {
                       }
                       active={selected.pipeline_status === 'synthesizing'}
                     />
+                  )}
+                </div>
+              )}
+
+              {detailTab === 'proposal' && (
+                <div>
+                  {selected.proposal_data ? (
+                    <div>
+                      {/* Proposal actions bar */}
+                      <div className="flex items-center gap-2 mb-4 flex-wrap">
+                        <button
+                          onClick={() =>
+                            downloadProposalPDF(
+                              selected.proposal_data!,
+                              selected.name,
+                              selected.company,
+                            )
+                          }
+                          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--color-accent)]/20 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/30 transition-colors cursor-pointer"
+                        >
+                          Download as PDF
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditingPrompt(!editingPrompt);
+                            setPromptOverride(selected.proposal_data!.prompt_context || '');
+                          }}
+                          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 transition-colors cursor-pointer"
+                        >
+                          Edit & Regenerate
+                        </button>
+                        <label className="flex items-center gap-2 ml-auto cursor-pointer">
+                          <span className="text-[10px] text-[var(--color-muted)]">Include pricing</span>
+                          <button
+                            onClick={() => togglePricing(selected.id, !selected.include_pricing)}
+                            className={`relative w-8 h-4 rounded-full transition-colors duration-200 cursor-pointer ${
+                              selected.include_pricing !== false
+                                ? 'bg-[var(--color-accent)]'
+                                : 'bg-[var(--color-admin-border)]'
+                            }`}
+                          >
+                            <div
+                              className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform duration-200 ${
+                                selected.include_pricing !== false
+                                  ? 'translate-x-[16px]'
+                                  : 'translate-x-0.5'
+                              }`}
+                            />
+                          </button>
+                        </label>
+                      </div>
+
+                      {/* Edit & Regenerate panel */}
+                      {editingPrompt && (
+                        <div className="mb-4 p-4 bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg">
+                          <p className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-2">
+                            Prompt Context (edit and regenerate)
+                          </p>
+                          <textarea
+                            value={promptOverride}
+                            onChange={(e) => setPromptOverride(e.target.value)}
+                            rows={10}
+                            className="w-full bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-xs text-[var(--color-muted-light)] resize-y focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)] font-mono"
+                          />
+                          <div className="flex items-center gap-2 mt-2">
+                            <button
+                              onClick={() => generateProposal(selected.id, promptOverride)}
+                              disabled={generatingProposal}
+                              className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-500 text-white hover:opacity-90 transition-opacity disabled:opacity-50 cursor-pointer"
+                            >
+                              {generatingProposal ? 'Generating...' : 'Regenerate'}
+                            </button>
+                            <button
+                              onClick={() => setEditingPrompt(false)}
+                              className="px-3 py-1.5 text-xs text-[var(--color-muted)] cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Proposal metadata */}
+                      <div className="flex items-center gap-3 mb-4 text-[10px] text-[var(--color-muted)]">
+                        <span>
+                          Generated {new Date(selected.proposal_data.generated_at).toLocaleString()}
+                        </span>
+                        <span>&middot;</span>
+                        <span>{selected.proposal_data.model_used}</span>
+                        <span>&middot;</span>
+                        <span>{selected.proposal_data.tokens_used.toLocaleString()} tokens</span>
+                        {!selected.proposal_data.include_pricing && (
+                          <>
+                            <span>&middot;</span>
+                            <span className="text-amber-400">Pricing omitted</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Proposal content */}
+                      <MarkdownContent content={selected.proposal_data.markdown} />
+                    </div>
+                  ) : (
+                    <div className="py-12 text-center">
+                      {generatingProposal ? (
+                        <>
+                          <div className="flex justify-center mb-3">
+                            <div className="w-5 h-5 border-2 border-purple-400/30 border-t-purple-400 rounded-full animate-spin" />
+                          </div>
+                          <p className="text-sm text-[var(--color-muted)]">
+                            Generating proposal...
+                          </p>
+                        </>
+                      ) : selected.pipeline_status === 'complete' ? (
+                        <div>
+                          <p className="text-sm text-[var(--color-muted)] mb-3">
+                            Pipeline complete. Ready to generate a proposal.
+                          </p>
+                          <button
+                            onClick={() => generateProposal(selected.id)}
+                            className="px-4 py-2 text-sm font-medium rounded-lg bg-purple-500 text-white hover:opacity-90 transition-opacity cursor-pointer"
+                          >
+                            Generate Proposal
+                          </button>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-[var(--color-muted)]">
+                          Complete the assessment pipeline first to generate a proposal.
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
               )}

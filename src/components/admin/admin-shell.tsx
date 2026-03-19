@@ -11,6 +11,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const nav = [
     { href: '/admin', label: 'Dashboard', icon: <DashboardIcon /> },
+    { href: '/admin/tola', label: 'TOLA', icon: <TolaIcon /> },
     { href: '/admin/discoveries', label: 'Discoveries', icon: <DiscoveryIcon /> },
     { href: '/admin/agents', label: 'Agents', icon: <AgentIcon /> },
     { href: '/admin/contacts', label: 'Contacts', icon: <ContactIcon /> },
@@ -99,6 +100,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         {children}
       </main>
     </div>
+  );
+}
+
+function TolaIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <circle cx="12" cy="4" r="2" />
+      <circle cx="6" cy="10" r="2" />
+      <circle cx="18" cy="10" r="2" />
+      <circle cx="12" cy="14" r="2.5" />
+      <circle cx="12" cy="22" r="2" />
+      <line x1="12" y1="6" x2="12" y2="12" strokeOpacity="0.5" />
+      <line x1="12" y1="16.5" x2="12" y2="20" strokeOpacity="0.5" />
+      <line x1="7.5" y1="11" x2="10" y2="13" strokeOpacity="0.4" />
+      <line x1="16.5" y1="11" x2="14" y2="13" strokeOpacity="0.4" />
+    </svg>
   );
 }
 

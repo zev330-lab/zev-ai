@@ -117,10 +117,33 @@ body {
   will-change: opacity;
 }
 
+/* TOLA Operating System — path flow animation */
+@keyframes tola-flow {
+  0% { stroke-dashoffset: 16; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes tola-node-pulse {
+  0%, 100% { opacity: 0.08; r: inherit; }
+  50% { opacity: 0.2; }
+}
+
+.tola-path-flowing {
+  animation: tola-flow 1.5s linear infinite;
+  will-change: stroke-dashoffset;
+}
+
+.tola-node-pulse {
+  animation: tola-node-pulse 2s ease-in-out infinite;
+  will-change: opacity;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-geometry-rotate,
   .animate-geometry-pulse,
-  .animate-geometry-breathe {
+  .animate-geometry-breathe,
+  .tola-path-flowing,
+  .tola-node-pulse {
     animation: none;
   }
 }
