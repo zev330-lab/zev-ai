@@ -148,6 +148,10 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `011_stalled_detection.sql` — Stalled pipeline detection (30min timeout), email alerts via Resend
 - `012_projects_finance.sql` — projects, project_milestones, project_time_entries, invoices, monthly_metrics tables + seed data
 - `013_family_knowledge.sql` — family_members/tasks/events/notes, knowledge_entries with vector(1536), pgvector extension, search_knowledge() function, family seed data
+- `014_contact_pipeline_statuses.sql` — Adds CRM pipeline statuses (researched, meeting_scheduled, proposal_sent, client) to contacts CHECK constraint
+
+### Operations SOP
+Full Standard Operating Procedures document at `src/docs/OPERATIONS-SOP.md` covering: daily ops checklist, content workflow, social media, discovery pipeline, proposal workflow, family hub, knowledge base, project management, invoicing, troubleshooting, and monthly review.
 
 ### Content Generation Pipeline
 Edge Function `pipeline-content-engine` — 5-step content generation with pg_cron advancement:
