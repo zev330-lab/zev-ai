@@ -94,7 +94,8 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `POST /api/admin/agents/trigger` — Invoke Edge Function for any agent
 - `GET /api/admin/stats` — Dashboard stats: total discoveries, success rate, active agents, avg pipeline time, actions/pipelines today, tier 3 queue, stage breakdown
 - `GET|POST|PATCH|DELETE /api/admin/content` — Blog post CRUD with publish workflow (generates schema_data, moves social_posts to social_queue, triggers ISR revalidation)
-- `GET|PATCH|DELETE /api/admin/social` — Social queue CRUD with platform filtering
+- `GET|PATCH|DELETE /api/admin/social` — Social queue CRUD with platform filtering, bulk approve via `{ ids, status }`
+- `GET|PATCH /api/admin/social-accounts` — Social account management
 - `GET /api/blog` — Public: list published blog posts
 
 ## Database (Supabase)
@@ -107,7 +108,8 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - **tola_agent_log** — agent_id, action, geometry_pattern, input, output, confidence, tier_used, tokens_used, latency_ms
 - **tola_agent_metrics** — agent_id, metric, value, geometry_state
 - **blog_posts** — id, slug (unique), title, excerpt, content (markdown), category, tags (text[]), status (draft/topic_research/outlining/drafting/reviewing/social_gen/review/published/archived), author, reading_time_min, seo_title, seo_description, schema_data (JSONB), social_posts (JSONB), generation_data (JSONB), generation_started_at, pipeline_step_completed_at, generation_error, created_at, updated_at, published_at
-- **social_queue** — id, blog_post_id (FK), platform (linkedin/twitter/instagram/tiktok/threads), content, image_prompt, status (draft/approved/scheduled/posted), scheduled_for, posted_at, created_at
+- **social_queue** — id, blog_post_id (FK), platform (linkedin/twitter/instagram/tiktok/threads), content, content_pillar, review_notes, image_prompt, status (draft/approved/scheduled/posted), scheduled_for, posted_at, created_at
+- **social_accounts** — id, platform (unique), handle, profile_url, is_active. Pre-seeded with LinkedIn, Twitter, Instagram, TikTok, YouTube, Threads
 
 ### Migrations
 - `001_tola_runtime.sql` — Agent tables, seed data, RLS, Realtime
@@ -119,6 +121,7 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `007_pipeline_progress_pct.sql` — Add progress_pct column to discoveries for real-time progress tracking
 - `008_proposal_data.sql` — Add proposal_data JSONB and include_pricing boolean to discoveries
 - `009_blog_content.sql` — blog_posts + social_queue tables, advance_content_pipeline() cron, weekly auto-generation cron
+- `010_social_agent.sql` — social_accounts table, content_pillar/review_notes on social_queue, daily social agent cron (Mon-Fri noon UTC)
 
 ### Content Generation Pipeline
 Edge Function `pipeline-content-engine` — 5-step content generation with pg_cron advancement:
@@ -144,6 +147,24 @@ AI Implementation Guides, AI Strategy for Leaders, Industry-Specific AI, AI Tool
 - robots.txt: GPTBot, ClaudeBot, PerplexityBot explicitly allowed
 - Dynamic sitemap includes published blog posts
 - RSS feed at /blog/rss.xml
+
+### Social Media Agent Pipeline
+Edge Function `pipeline-social-agent` — daily social content generation:
+- Triggered Mon-Fri 7am EST by pg_cron, or on-demand from admin "Generate Posts Now" button
+- Checks queue depth (skips if 3+ approved posts for next 3 days)
+- Catalyst agent generates 2-3 platform-native posts from blog content, discovery insights, AI trends
+- Guardian agent reviews each post for brand consistency and quality
+- Balances 6 content pillars over 2-week rolling window
+- Platform formatting: LinkedIn (800-1500 chars, hook-first), Twitter (280 chars), Instagram (caption+hashtags+image_prompt), TikTok ([HOOK][BODY][CTA] script), Threads (conversational, 500 chars)
+
+### Admin Social Queue Features
+- Calendar view (7-day week) and list view toggle
+- Bulk approve with checkbox selection
+- Platform-specific preview mockups (LinkedIn, Twitter, Instagram, TikTok, Threads)
+- Connected accounts header bar from social_accounts table
+- Schedule date picker per post
+- Content pillar tags, Guardian review notes
+- Stats: posts this week, pending, by platform breakdown
 
 ## Canonical Components
 
