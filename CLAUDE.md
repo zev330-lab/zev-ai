@@ -119,7 +119,10 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `GET /api/admin/stats` — Dashboard stats: total discoveries, success rate, active agents, avg pipeline time, actions/pipelines today, tier 3 queue, stage breakdown, cross-module alerts
 - `GET|POST|PATCH|DELETE /api/admin/content` — Blog post CRUD with publish workflow (generates schema_data, moves social_posts to social_queue, triggers ISR revalidation, auto-creates knowledge entry)
 - `GET|PATCH|DELETE /api/admin/social` — Social queue CRUD with platform filtering, bulk approve via `{ ids, status }` (max 100)
-- `GET|PATCH /api/admin/social-accounts` — Social account management
+- `GET|PATCH /api/admin/social-accounts` — Social account management (access_token, user_id, api_config)
+- `POST /api/admin/social/publish` — Publish approved posts to platforms (accepts admin cookie or service role key)
+- `GET|PATCH /api/admin/settings` — System config CRUD (cost_level, auto_publish, image_generation, heygen_enabled, etc.)
+- `GET /api/og/social` — Branded image generation (query params: text, pillar, format, style)
 - `GET /api/blog` — Public: list published blog posts
 - `GET|POST|PATCH|DELETE /api/admin/projects` — Project CRUD with milestones and time entries (_type validated: milestone|time_entry)
 - `GET|POST|PATCH /api/admin/finance` — Finance metrics, invoice CRUD, monthly metrics (_type validated: monthly_metric)
@@ -136,8 +139,10 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - **tola_agent_log** — agent_id, action, geometry_pattern, input, output, confidence, tier_used, tokens_used, latency_ms
 - **tola_agent_metrics** — agent_id, metric, value, geometry_state
 - **blog_posts** — id, slug (unique), title, excerpt, content (markdown), category, tags (text[]), status (draft/topic_research/outlining/drafting/reviewing/social_gen/review/published/archived), author, reading_time_min, seo_title, seo_description, schema_data (JSONB), social_posts (JSONB), generation_data (JSONB), generation_started_at, pipeline_step_completed_at, generation_error, created_at, updated_at, published_at
-- **social_queue** — id, blog_post_id (FK), platform (linkedin/twitter/instagram/tiktok/threads), content, content_pillar, review_notes, image_prompt, status (draft/approved/scheduled/posted), scheduled_for, posted_at, created_at
-- **social_accounts** — id, platform (unique), handle, profile_url, is_active. Pre-seeded with LinkedIn, Twitter, Instagram, TikTok, YouTube, Threads
+- **social_queue** — id, blog_post_id (FK), platform (linkedin/twitter/instagram/tiktok/threads), content, content_pillar, review_notes, image_prompt, status (draft/approved/scheduled/publishing/posted/failed), scheduled_for, posted_at, published_at, published_url, platform_post_id, publish_error, image_url, engagement (JSONB), created_at
+- **social_accounts** — id, platform (unique), handle, profile_url, is_active, access_token, refresh_token, token_expires_at, user_id, api_config (JSONB). Pre-seeded with LinkedIn, Twitter, Instagram, TikTok, YouTube, Threads
+- **tola_config** — key (PK), value (JSONB), updated_at. System-wide config: cost_level, auto_publish, image_generation, posting_frequency, heygen_enabled, heygen_avatar_id, seo_mode
+- **content_analytics** — id, social_queue_id (FK), platform, impressions, likes, shares, comments, clicks, reach, fetched_at
 - **projects** — id, name, client, status (active/paused/completed/archived), description, tola_node, start_date, target_end_date, actual_end_date. Seeded with 6 projects.
 - **project_milestones** — id, project_id (FK), title, description, status (pending/in_progress/complete/blocked), due_date, completed_at, sort_order
 - **project_time_entries** — id, project_id (FK), description, hours (decimal), date, billable, hourly_rate
@@ -165,6 +170,7 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `013_family_knowledge.sql` — family_members/tasks/events/notes, knowledge_entries with vector(1536), pgvector extension, search_knowledge() function, family seed data
 - `014_contact_pipeline_statuses.sql` — Adds CRM pipeline statuses (researched, meeting_scheduled, proposal_sent, client) to contacts CHECK constraint
 - `015_agent_activity_loops.sql` — tola_path_activity table, dispatch_agent() helper, 7 pg_cron jobs for all background agents
+- `016_social_distribution.sql` — Publishing columns on social_queue, credentials on social_accounts, tola_config table, content_analytics table, distributor pg_cron (every 5 min)
 
 ### Operations SOP
 Full Standard Operating Procedures document at `src/docs/OPERATIONS-SOP.md` covering: daily ops checklist, content workflow, social media, discovery pipeline, proposal workflow, family hub, knowledge base, project management, invoicing, troubleshooting, and monthly review.
@@ -211,6 +217,57 @@ Edge Function `pipeline-social-agent` — daily social content generation:
 - Schedule date picker per post
 - Content pillar tags, Guardian review notes
 - Stats: posts this week, pending, by platform breakdown
+
+## Social Distribution System
+
+### Architecture
+Content Pipeline → Social Agent → Social Queue → [Admin Approve] → Distribution Engine → Platform APIs
+All custom-built — no paid third-party posting tools.
+
+### Platform Posting (`src/lib/social-platforms.ts`)
+Direct API integration for 5 platforms:
+- **Twitter/X:** v2 API — text posts + media upload via v1.1 endpoint
+- **LinkedIn:** REST API v2 — text + image posts with image upload flow (initializeUpload → PUT binary → create post with image URN)
+- **Instagram:** Graph API v21.0 — container creation → media_publish (requires image)
+- **Threads:** Threads API v1.0 — container → publish (text or image)
+- **TikTok:** Content Posting API v2 — photo mode posting (video via HeyGen stub)
+
+### Branded Image Generation (`/api/og/social`)
+Server-side image generation using Next.js `ImageResponse` (Satori):
+- Brand colors: navy (#0a0e1a), periwinkle (#7c9bf5), lavender (#c4b5e0), white
+- Formats: landscape (1200x630), square (1080x1080), portrait (1080x1350)
+- Styles: quote, stat, tip, blog
+- Auto-generates for each platform's optimal dimensions
+- Query params: `text`, `pillar`, `format`, `style`
+
+### Distribution Engine (`pipeline-distributor` Edge Function)
+- pg_cron every 5 min
+- Reads cost level config to control cadence
+- Queries approved posts, filters by scheduled_for
+- Calls `/api/admin/social/publish` with service role key auth
+- Logs results to tola_agent_log
+
+### HeyGen Video Stub (`src/lib/heygen.ts`)
+- `createVideo()` — POST to HeyGen v2 API with avatar/voice config
+- `getVideoStatus()` — poll video generation status
+- Background: brand navy (#0a0e1a), avatar + script
+- Dimensions: 1080x1920 (portrait for TikTok/Reels)
+- Activated via `heygen_enabled` and `heygen_api_key` in tola_config
+
+### Cost Optimization (tola_config)
+Admin toggle: $ (low) / $$ (medium) / $$$ (high)
+- **Low:** Haiku model, text-only posts, MWF cadence, max 3 posts/batch
+- **Medium:** Sonnet for content + Haiku for social, images for important posts, weekday cadence, max 5 posts/batch
+- **High:** Sonnet for all, full image generation, daily cadence (including weekends), max 10 posts/batch
+Config stored in `tola_config` table, managed via `/api/admin/settings`.
+
+### Admin Content Page Enhancements
+- Cost optimization toggle ($/$$/$$$) in header bar
+- "Publish to Platform" button on each approved social post
+- "Publish All to Platforms" batch action bar
+- Branded image preview in social detail slide-out
+- Published URL link for posted items
+- Publishing/posted/failed status badges with error display
 
 ## Canonical Components
 
