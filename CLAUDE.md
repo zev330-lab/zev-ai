@@ -98,24 +98,32 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `/admin/contacts` — Contact list with status badges, search, detail slide-out
 - `/admin/login` — Password auth
 
+## Authentication & Security
+- **Auth module:** `src/lib/auth.ts` — shared session token generation using Web Crypto API (SHA-256)
+- **Session tokens:** Admin password is never stored in cookies. Login route hashes password → stores hex digest in `admin_auth` cookie (httpOnly, secure, sameSite: lax, 7-day expiry)
+- **Middleware:** `src/middleware.ts` — protects `/admin/*` routes (except `/admin/login`) by validating hashed session token
+- **API auth:** All admin API routes import `isValidSession` from `@/lib/auth` and verify the cookie hash matches
+- **Agent trigger validation:** `POST /api/admin/agents/trigger` validates agent name against whitelist of 15 known Edge Functions
+- **Input validation:** `_type` params validated in projects/finance/family routes; bulk operations capped at 100 items
+
 ## API Routes
 - `POST /api/submit-contact` — Insert contact, send email
 - `POST /api/submit-discover` — Insert discovery, trigger assessment pipeline
-- `POST /api/admin/login` — Auth cookie
+- `POST /api/admin/login` — Validates password, sets hashed session cookie
 - `GET|PATCH /api/admin/contacts` — CRUD
-- `GET|PATCH /api/admin/discoveries` — CRUD
-- `GET|PATCH /api/admin/agents` — Agent list/update (kill_switch, tier, is_active, status, config)
+- `GET|PATCH|DELETE /api/admin/discoveries` — CRUD
+- `GET|PATCH /api/admin/agents` — Agent list/update (kill_switch, tier, is_active, status, config — field whitelist enforced)
 - `GET /api/admin/agents/[id]/logs` — Per-agent activity log
-- `POST /api/admin/agents/trigger` — Invoke Edge Function for any agent
+- `POST /api/admin/agents/trigger` — Invoke Edge Function (agent name validated against whitelist)
 - `GET /api/admin/activity` — Latest tola_agent_log entries (used by ActivityFeed, polls 15s)
-- `GET /api/admin/stats` — Dashboard stats: total discoveries, success rate, active agents, avg pipeline time, actions/pipelines today, tier 3 queue, stage breakdown
-- `GET|POST|PATCH|DELETE /api/admin/content` — Blog post CRUD with publish workflow (generates schema_data, moves social_posts to social_queue, triggers ISR revalidation)
-- `GET|PATCH|DELETE /api/admin/social` — Social queue CRUD with platform filtering, bulk approve via `{ ids, status }`
+- `GET /api/admin/stats` — Dashboard stats: total discoveries, success rate, active agents, avg pipeline time, actions/pipelines today, tier 3 queue, stage breakdown, cross-module alerts
+- `GET|POST|PATCH|DELETE /api/admin/content` — Blog post CRUD with publish workflow (generates schema_data, moves social_posts to social_queue, triggers ISR revalidation, auto-creates knowledge entry)
+- `GET|PATCH|DELETE /api/admin/social` — Social queue CRUD with platform filtering, bulk approve via `{ ids, status }` (max 100)
 - `GET|PATCH /api/admin/social-accounts` — Social account management
 - `GET /api/blog` — Public: list published blog posts
-- `GET|POST|PATCH|DELETE /api/admin/projects` — Project CRUD with milestones and time entries (uses _type param)
-- `GET|POST|PATCH /api/admin/finance` — Finance metrics, invoice CRUD, monthly metrics
-- `GET|POST|PATCH|DELETE /api/admin/family` — Family tasks/events/notes CRUD (uses _type and view params)
+- `GET|POST|PATCH|DELETE /api/admin/projects` — Project CRUD with milestones and time entries (_type validated: milestone|time_entry)
+- `GET|POST|PATCH /api/admin/finance` — Finance metrics, invoice CRUD, monthly metrics (_type validated: monthly_metric)
+- `GET|POST|PATCH|DELETE /api/admin/family` — Family tasks/events/notes CRUD (_type validated: task|event|note|member)
 - `GET|POST|PATCH|DELETE /api/admin/knowledge` — Knowledge entries CRUD, sync_discoveries, sync_blog actions
 
 ## Database (Supabase)
