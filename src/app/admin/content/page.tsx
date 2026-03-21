@@ -36,6 +36,11 @@ interface SocialItem {
   status: string;
   scheduled_for: string | null;
   posted_at: string | null;
+  published_at: string | null;
+  published_url: string | null;
+  platform_post_id: string | null;
+  publish_error: string | null;
+  image_url: string | null;
   created_at: string;
   blog_posts?: { title: string; slug: string } | null;
 }
@@ -64,7 +69,9 @@ const SOCIAL_BADGE: Record<string, { bg: string; text: string; label: string }> 
   draft: { bg: 'rgba(156,163,175,0.15)', text: '#9ca3af', label: 'Draft' },
   approved: { bg: 'rgba(96,165,250,0.15)', text: '#60a5fa', label: 'Approved' },
   scheduled: { bg: 'rgba(250,204,21,0.15)', text: '#facc15', label: 'Scheduled' },
+  publishing: { bg: 'rgba(147,130,220,0.15)', text: '#9382dc', label: 'Publishing...' },
   posted: { bg: 'rgba(74,222,128,0.15)', text: '#4ade80', label: 'Posted' },
+  failed: { bg: 'rgba(239,68,68,0.15)', text: '#ef4444', label: 'Failed' },
 };
 
 const PLATFORM_LABEL: Record<string, { icon: string; name: string; color: string }> = {
@@ -111,6 +118,8 @@ export default function AdminContentPage() {
   const [socialFilter, setSocialFilter] = useState('all');
   const [editSocialContent, setEditSocialContent] = useState('');
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [costLevel, setCostLevel] = useState<'high' | 'medium' | 'low'>('medium');
+  const [publishing, setPublishing] = useState<Set<string>>(new Set());
 
   const fetchPosts = useCallback(async () => {
     const res = await fetch('/api/admin/content');
@@ -137,7 +146,18 @@ export default function AdminContentPage() {
     }
   }, []);
 
-  useEffect(() => { fetchPosts(); fetchSocial(); fetchAccounts(); }, [fetchPosts, fetchSocial, fetchAccounts]);
+  const fetchSettings = useCallback(async () => {
+    const res = await fetch('/api/admin/settings');
+    if (res.ok) {
+      const data = await res.json();
+      if (data.cost_level) {
+        const level = typeof data.cost_level === 'string' ? data.cost_level.replace(/"/g, '') : data.cost_level;
+        if (['high', 'medium', 'low'].includes(level)) setCostLevel(level as 'high' | 'medium' | 'low');
+      }
+    }
+  }, []);
+
+  useEffect(() => { fetchPosts(); fetchSocial(); fetchAccounts(); fetchSettings(); }, [fetchPosts, fetchSocial, fetchAccounts, fetchSettings]);
 
   useEffect(() => {
     const hasActive = posts.some((p) =>
@@ -199,6 +219,45 @@ export default function AdminContentPage() {
       next.has(id) ? next.delete(id) : next.add(id);
       return next;
     });
+  };
+
+  const changeCostLevel = async (level: 'high' | 'medium' | 'low') => {
+    setCostLevel(level);
+    await fetch('/api/admin/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cost_level: level }),
+    });
+  };
+
+  const publishPost = async (id: string) => {
+    setPublishing((prev) => new Set(prev).add(id));
+    try {
+      await fetch('/api/admin/social/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      fetchSocial();
+    } finally {
+      setPublishing((prev) => { const next = new Set(prev); next.delete(id); return next; });
+    }
+  };
+
+  const publishAllApproved = async () => {
+    const approvedIds = social.filter((s) => s.status === 'approved').map((s) => s.id);
+    if (approvedIds.length === 0) return;
+    for (const id of approvedIds) setPublishing((prev) => new Set(prev).add(id));
+    try {
+      await fetch('/api/admin/social/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: approvedIds }),
+      });
+      fetchSocial();
+    } finally {
+      setPublishing(new Set());
+    }
   };
 
   // Stats
@@ -263,6 +322,24 @@ export default function AdminContentPage() {
             >
               {generating ? 'Creating...' : 'Generate Blog Post'}
             </button>
+            <div className="flex items-center gap-1 ml-2 border-l border-[var(--color-admin-border)] pl-3">
+              <span className="text-[9px] text-[var(--color-muted)] uppercase tracking-wider mr-1">Cost</span>
+              {(['low', 'medium', 'high'] as const).map((level) => (
+                <button
+                  key={level}
+                  onClick={() => changeCostLevel(level)}
+                  className={`px-2 py-1 text-[10px] font-medium rounded transition-colors cursor-pointer ${
+                    costLevel === level
+                      ? level === 'low' ? 'bg-green-500/20 text-green-400'
+                        : level === 'medium' ? 'bg-yellow-500/20 text-yellow-400'
+                        : 'bg-red-500/20 text-red-400'
+                      : 'text-[var(--color-muted)] hover:text-[var(--color-muted-light)]'
+                  }`}
+                >
+                  {level === 'low' ? '$' : level === 'medium' ? '$$' : '$$$'}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -343,6 +420,15 @@ export default function AdminContentPage() {
         </div>
       )}
 
+      {view === 'social' && social.some((s) => s.status === 'approved') && (
+        <div className="px-6 py-2 border-b border-[var(--color-admin-border)] bg-blue-500/5 flex items-center gap-3 shrink-0">
+          <span className="text-xs text-blue-400">{social.filter((s) => s.status === 'approved').length} approved</span>
+          <button onClick={publishAllApproved} disabled={publishing.size > 0} className="px-3 py-1 text-xs font-medium rounded-lg bg-[var(--color-accent)]/20 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/30 disabled:opacity-50 cursor-pointer">
+            {publishing.size > 0 ? 'Publishing...' : 'Publish All to Platforms'}
+          </button>
+        </div>
+      )}
+
       {/* Content area */}
       <div className="flex-1 overflow-auto px-6 py-4">
         {loading ? (
@@ -410,7 +496,18 @@ export default function AdminContentPage() {
                       </div>
                       <p className="text-sm text-[var(--color-muted-light)] line-clamp-2">{s.content.slice(0, 120)}{s.content.length > 120 ? '...' : ''}</p>
                       {s.review_notes && <p className="text-[10px] text-[var(--color-muted)] mt-1 italic">{s.review_notes}</p>}
+                      {s.publish_error && <p className="text-[10px] text-red-400 mt-1">{s.publish_error}</p>}
+                      {s.published_url && <a href={s.published_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-[var(--color-accent)] mt-1 hover:underline inline-block" onClick={(e) => e.stopPropagation()}>View on {PLATFORM_LABEL[s.platform]?.name}</a>}
                     </div>
+                    {s.status === 'approved' && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); publishPost(s.id); }}
+                        disabled={publishing.has(s.id)}
+                        className="shrink-0 px-3 py-1.5 text-[10px] font-medium rounded-lg bg-[var(--color-accent)]/20 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/30 disabled:opacity-50 cursor-pointer"
+                      >
+                        {publishing.has(s.id) ? 'Publishing...' : 'Publish'}
+                      </button>
+                    )}
                   </div>
                 );
               })}
@@ -517,6 +614,14 @@ export default function AdminContentPage() {
                 {selectedSocial.status === 'draft' && (
                   <button onClick={() => { updateSocial(selectedSocial.id, { status: 'approved' }); setSelectedSocial(null); }} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 cursor-pointer">Approve</button>
                 )}
+                {selectedSocial.status === 'approved' && (
+                  <button onClick={() => { publishPost(selectedSocial.id); setSelectedSocial(null); }} disabled={publishing.has(selectedSocial.id)} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--color-accent)]/20 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/30 disabled:opacity-50 cursor-pointer">
+                    {publishing.has(selectedSocial.id) ? 'Publishing...' : 'Publish to Platform'}
+                  </button>
+                )}
+                {selectedSocial.published_url && (
+                  <a href={selectedSocial.published_url} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 text-xs font-medium rounded-lg bg-green-500/10 text-green-400 hover:bg-green-500/20 cursor-pointer">View Live Post</a>
+                )}
                 {(selectedSocial.status === 'draft' || selectedSocial.status === 'approved') && (
                   <input
                     type="date"
@@ -536,6 +641,16 @@ export default function AdminContentPage() {
             </div>
 
             <div className="px-6 py-5 space-y-4">
+              {/* Branded image preview */}
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-2 block">Branded Image</label>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/og/social?text=${encodeURIComponent(selectedSocial.content.slice(0, 100))}&pillar=${encodeURIComponent(selectedSocial.content_pillar || '')}&format=${selectedSocial.platform === 'instagram' ? 'square' : 'landscape'}`}
+                  alt="Branded preview"
+                  className="w-full rounded-lg border border-[var(--color-admin-border)]"
+                />
+              </div>
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1 block">Content</label>
                 <textarea value={editSocialContent} onChange={(e) => setEditSocialContent(e.target.value)} rows={8} className="w-full bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-muted-light)] resize-y focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]" />
