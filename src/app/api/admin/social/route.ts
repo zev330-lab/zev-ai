@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { isValidSession } from '@/lib/auth';
 
 async function isAuthed() {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) return false;
   const cookieStore = await cookies();
-  const auth = cookieStore.get('admin_auth')?.value;
-  return auth === adminPassword;
+  return isValidSession(cookieStore.get('admin_auth')?.value);
 }
 
 export async function GET(request: NextRequest) {
@@ -43,6 +41,9 @@ export async function PATCH(request: NextRequest) {
 
   // Bulk approve: { ids: [...], status: 'approved' }
   if (Array.isArray(body.ids)) {
+    if (body.ids.length > 100) {
+      return NextResponse.json({ error: 'Maximum 100 items per bulk operation' }, { status: 400 });
+    }
     const supabase = getSupabaseAdmin();
     const updates: Record<string, unknown> = {};
     if (body.status) updates.status = body.status;

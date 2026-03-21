@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { isValidSession } from '@/lib/auth';
 
 async function isAuthed() {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) return false;
   const cookieStore = await cookies();
-  return cookieStore.get('admin_auth')?.value === adminPassword;
+  return isValidSession(cookieStore.get('admin_auth')?.value);
 }
 
 // GET: list projects with milestones count, hours, next milestone
@@ -63,6 +62,10 @@ export async function POST(request: NextRequest) {
   const supabase = getSupabaseAdmin();
   const type = body._type;
   delete body._type;
+
+  if (type && !['milestone', 'time_entry'].includes(type)) {
+    return NextResponse.json({ error: 'Invalid _type' }, { status: 400 });
+  }
 
   if (type === 'milestone') {
     const { data, error } = await supabase.from('project_milestones').insert(body).select().single();

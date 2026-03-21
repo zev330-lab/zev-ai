@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { isValidSession } from '@/lib/auth';
 
 async function isAuthed() {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) return false;
   const cookieStore = await cookies();
-  return cookieStore.get('admin_auth')?.value === adminPassword;
+  return isValidSession(cookieStore.get('admin_auth')?.value);
 }
 
 export async function GET(request: NextRequest) {
@@ -52,6 +51,10 @@ export async function POST(request: NextRequest) {
   const supabase = getSupabaseAdmin();
   const type = body._type || 'task';
   delete body._type;
+
+  if (!['task', 'event', 'note', 'member'].includes(type)) {
+    return NextResponse.json({ error: 'Invalid _type' }, { status: 400 });
+  }
 
   const table = type === 'event' ? 'family_events' : type === 'note' ? 'family_notes' : type === 'member' ? 'family_members' : 'family_tasks';
   const { data, error } = await supabase.from(table).insert(body).select().single();

@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidSession } from '@/lib/auth';
 
-function isAuthed(req: NextRequest): boolean {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) return false;
-  return req.cookies.get('admin_auth')?.value === adminPassword;
+const VALID_AGENTS = [
+  'tola-agent',
+  'pipeline-guardian', 'pipeline-visionary', 'pipeline-architect', 'pipeline-oracle', 'pipeline-proposal',
+  'pipeline-content-engine', 'pipeline-social-agent',
+  'agent-nexus', 'agent-guardian-bg', 'agent-crown', 'agent-prism',
+  'agent-catalyst-bg', 'agent-gateway', 'agent-foundation-bg',
+];
+
+async function isAuthed(req: NextRequest) {
+  return isValidSession(req.cookies.get('admin_auth')?.value);
 }
 
 // POST /api/admin/agents/trigger — invoke an agent via Supabase Edge Function
 export async function POST(req: NextRequest) {
-  if (!isAuthed(req)) {
+  if (!(await isAuthed(req))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -17,6 +24,10 @@ export async function POST(req: NextRequest) {
 
   if (!agent) {
     return NextResponse.json({ error: 'agent is required' }, { status: 400 });
+  }
+
+  if (!VALID_AGENTS.includes(agent)) {
+    return NextResponse.json({ error: 'Invalid agent name' }, { status: 400 });
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { sessionToken } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -14,9 +15,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid password.' }, { status: 401 });
     }
 
-    // Set auth cookie — 7 day expiry
+    // Set auth cookie — 7 day expiry (hashed, never stores raw password)
     const cookieStore = await cookies();
-    cookieStore.set('admin_auth', adminPassword, {
+    cookieStore.set('admin_auth', await sessionToken(adminPassword), {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',

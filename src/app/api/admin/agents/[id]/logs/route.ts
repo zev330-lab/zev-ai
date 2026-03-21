@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidSession } from '@/lib/auth';
 
-function isAuthed(req: NextRequest): boolean {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) return false;
-  return req.cookies.get('admin_auth')?.value === adminPassword;
+async function isAuthed(req: NextRequest) {
+  return isValidSession(req.cookies.get('admin_auth')?.value);
 }
 
 // GET /api/admin/agents/[id]/logs — recent log entries for one agent
@@ -11,7 +10,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  if (!isAuthed(req)) {
+  if (!(await isAuthed(req))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

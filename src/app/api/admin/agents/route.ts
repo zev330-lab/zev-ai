@@ -1,21 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { isValidSession } from '@/lib/auth';
 
 async function getSupabaseAdmin() {
   const { getSupabaseAdmin: getSb } = await import('@/lib/supabase');
   return getSb();
 }
 
-function isAuthed(req: NextRequest): boolean {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) return false;
-  const cookie = req.cookies.get('admin_auth');
-  return cookie?.value === adminPassword;
+async function isAuthed(req: NextRequest) {
+  return isValidSession(req.cookies.get('admin_auth')?.value);
 }
 
 // GET /api/admin/agents — list all agents
 export async function GET(req: NextRequest) {
-  if (!isAuthed(req)) {
+  if (!(await isAuthed(req))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -34,7 +31,7 @@ export async function GET(req: NextRequest) {
 
 // PATCH /api/admin/agents — update agent (kill switch, status, etc.)
 export async function PATCH(req: NextRequest) {
-  if (!isAuthed(req)) {
+  if (!(await isAuthed(req))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

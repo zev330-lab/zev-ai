@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { getSupabaseAdmin } from '@/lib/supabase';
+import { isValidSession } from '@/lib/auth';
 
 async function isAuthed() {
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (!adminPassword) return false;
   const cookieStore = await cookies();
-  return cookieStore.get('admin_auth')?.value === adminPassword;
+  return isValidSession(cookieStore.get('admin_auth')?.value);
 }
 
 // GET: dashboard metrics + invoice list
@@ -63,6 +62,11 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
   const supabase = getSupabaseAdmin();
+
+  if (body._type && body._type !== 'monthly_metric') {
+    return NextResponse.json({ error: 'Invalid _type' }, { status: 400 });
+  }
+
   const table = body._type === 'monthly_metric' ? 'monthly_metrics' : 'invoices';
   delete body._type;
 

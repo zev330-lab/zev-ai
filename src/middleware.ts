@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isValidSession } from '@/lib/auth';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Only protect /admin routes (except /admin/login)
   if (pathname.startsWith('/admin') && pathname !== '/admin/login') {
     const auth = request.cookies.get('admin_auth')?.value;
-    const adminPassword = process.env.ADMIN_PASSWORD;
 
-    if (!auth || auth !== adminPassword) {
+    if (!(await isValidSession(auth))) {
       const loginUrl = new URL('/admin/login', request.url);
       return NextResponse.redirect(loginUrl);
     }
