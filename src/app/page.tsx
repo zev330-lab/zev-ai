@@ -386,8 +386,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                   </svg>
                 </Link>
-                <a href="mailto:zev330@gmail.com" className="text-sm text-muted-light hover:text-foreground-strong transition-colors duration-300 py-3.5">
-                  or email zev330@gmail.com
+                <a href="mailto:hello@zev.ai" className="text-sm text-muted-light hover:text-foreground-strong transition-colors duration-300 py-3.5">
+                  or email hello@zev.ai
                 </a>
               </div>
             </div>

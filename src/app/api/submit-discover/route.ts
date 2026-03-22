@@ -65,8 +65,8 @@ export async function POST(request: Request) {
         ].filter(Boolean).join('\n');
 
         await resend.emails.send({
-          from: 'zev.ai <onboarding@resend.dev>',
-          to: 'zev330@gmail.com',
+          from: process.env.RESEND_FROM_EMAIL || 'zev.ai <onboarding@resend.dev>',
+          to: process.env.NOTIFICATION_EMAIL || 'zev330@gmail.com',
           subject: `New discovery form from ${body.name}${body.company ? ` — ${body.company}` : ''}`,
           text: `New discovery form submission on zev.ai\n\n${fields}`,
         });

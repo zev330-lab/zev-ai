@@ -16,7 +16,7 @@ export async function GET() {
       <guid isPermaLink="true">https://zev.ai/blog/${post.slug}</guid>
       <description><![CDATA[${post.excerpt}]]></description>
       <pubDate>${new Date(post.published_at).toUTCString()}</pubDate>
-      <author>zev330@gmail.com (${post.author || 'Zev Steinmetz'})</author>
+      <author>hello@zev.ai (${post.author || 'Zev Steinmetz'})</author>
       <category>${post.category}</category>
     </item>`).join('');
 

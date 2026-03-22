@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Work | zev.ai',
     description: 'Case studies showing real AI systems in production.',
+    images: [{ url: '/api/og/social?text=Real+Systems.+Measurable+Results.&pillar=Case+Studies&style=blog', width: 1200, height: 630 }],
   },
 };
 
