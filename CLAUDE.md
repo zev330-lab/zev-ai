@@ -311,8 +311,11 @@ Chat routes call Claude API directly. Set via `vercel env add ANTHROPIC_API_KEY`
 
 ### TOLA Operating System (`src/components/admin/tola-tree.tsx`)
 - Built with @xyflow/react (React Flow) — zoom, pan, MiniMap, Controls
-- Custom TolaNode: health ring (green/yellow/red/gray), sacred geometry animation, status dot, active pulse glow, phantom blur
-- Custom TolaEdge: animated flow dots on active paths, green glow, dashed phantom, thicker middle pillar
+- Custom TolaNode: dynamic health ring computed from heartbeat age + error count (green/yellow/red/gray), sacred geometry animation, status dot, active pulse glow, phantom blur
+- Custom TolaEdge: animated flow dots on active paths (60-min activity window), green glow, dashed phantom, thicker middle pillar
+- Health colors: green (recent heartbeat, no errors), yellow (heartbeat aging or 1-2 errors), red (kill switch, missing heartbeat, 3+ errors), gray (inactive/offline)
+- Agent panel: detailed descriptions, actions list with count, communication partners, schedule, cost/day estimate, runs/successes/failures stats
+- `AGENT_DETAILS` constant in tola-agents.ts: all 11 agents with actions, interactions, schedule per cost tier, cost estimates
 - React Flow MiniMap (bottom-right) with health-colored node indicators
 - React Flow Controls (bottom-left) for zoom/fit
 - Enhanced stats bar: system health pulse, active agents, pipelines today, avg time, Tier 3 queue, actions today (fetched from /api/admin/stats every 30s)
