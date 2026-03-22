@@ -170,7 +170,8 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `013_family_knowledge.sql` — family_members/tasks/events/notes, knowledge_entries with vector(1536), pgvector extension, search_knowledge() function, family seed data
 - `014_contact_pipeline_statuses.sql` — Adds CRM pipeline statuses (researched, meeting_scheduled, proposal_sent, client) to contacts CHECK constraint
 - `015_agent_activity_loops.sql` — tola_path_activity table, dispatch_agent() helper, 7 pg_cron jobs for all background agents
-- `016_social_distribution.sql` — Publishing columns on social_queue, credentials on social_accounts, tola_config table, content_analytics table, distributor pg_cron (every 5 min)
+- `016_social_distribution.sql` — Publishing columns on social_queue, credentials on social_accounts, tola_config table, content_analytics table, distributor pg_cron
+- `017_reduce_cron_frequency.sql` — Scale back all agent cron schedules for cost optimization (Nexus/Guardian 30min, Crown 2h, Prism 6h, Catalyst 4h, Gateway 6h, Foundation 12h, pipeline pollers 5min)
 
 ### Operations SOP
 Full Standard Operating Procedures document at `src/docs/OPERATIONS-SOP.md` covering: daily ops checklist, content workflow, social media, discovery pipeline, proposal workflow, family hub, knowledge base, project management, invoicing, troubleshooting, and monthly review.
@@ -268,6 +269,35 @@ Config stored in `tola_config` table, managed via `/api/admin/settings`.
 - Branded image preview in social detail slide-out
 - Published URL link for posted items
 - Publishing/posted/failed status badges with error display
+
+## LLM Chat Interfaces
+
+### Public Chat Widget (`src/components/chat-widget.tsx`)
+- Floating button on all public pages (bottom-right, periwinkle with green pulse dot)
+- Opens dark-themed chat panel matching site design
+- Claude Haiku model (fast, cost-effective for visitor queries)
+- System prompt with full service/pricing/case study knowledge
+- Suggested starter questions for empty state
+- Rate limited: 10 messages/minute per IP, context trimmed to last 10 messages, max 512 tokens
+- Graceful fallback if ANTHROPIC_API_KEY not set
+- API route: `POST /api/chat`
+
+### Admin Chat (`src/components/admin/admin-chat.tsx`)
+- Sparkle icon button in admin dashboard (bottom-right)
+- Claude Sonnet model (full capability for architecture/content questions)
+- System prompt with complete TOLA architecture, pipeline details, admin features
+- Up to 20 messages context, 2048 max tokens
+- Auth-protected via session cookie
+- API route: `POST /api/admin/chat` (requires admin auth)
+
+### Required: ANTHROPIC_API_KEY in Vercel env vars
+Chat routes call Claude API directly. Set via `vercel env add ANTHROPIC_API_KEY`.
+
+## Email Configuration
+- **Public-facing email:** hello@zev.ai (all site references updated)
+- **Notification delivery:** Configurable via `NOTIFICATION_EMAIL` env var (defaults to zev330@gmail.com)
+- **Resend from address:** Configurable via `RESEND_FROM_EMAIL` env var (defaults to onboarding@resend.dev until domain verified)
+- **DNS setup required:** Add Resend DNS records (MX, SPF, DKIM) for zev.ai domain. For receiving email, set up Cloudflare Email Routing to forward hello@zev.ai → gmail.
 
 ## Canonical Components
 
