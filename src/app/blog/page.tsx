@@ -1,9 +1,11 @@
-'use client';
+import type { Metadata } from 'next';
+import { getSupabaseAdmin } from '@/lib/supabase';
+import { BlogList } from '@/components/blog-list';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
+export const metadata: Metadata = {
+  title: 'Blog — AI Implementation Insights',
+  description: 'Practical strategies for deploying AI systems that drive real business outcomes. No hype, no theory — just what works.',
+};
 
 interface BlogPost {
   id: string;
@@ -17,174 +19,19 @@ interface BlogPost {
   author: string;
 }
 
-const CATEGORIES = [
-  'All',
-  'AI Implementation Guides',
-  'AI Strategy for Leaders',
-  'Industry-Specific AI',
-  'AI Tools & Comparisons',
-  'Case Studies',
-  'AI Trends',
-];
-
-function relativeDate(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+async function getPosts(): Promise<BlogPost[]> {
+  const supabase = getSupabaseAdmin();
+  const { data } = await supabase
+    .from('blog_posts')
+    .select('id, slug, title, excerpt, category, tags, reading_time_min, published_at, author')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false });
+  return (data as BlogPost[]) || [];
 }
 
-export default function BlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('All');
+export const revalidate = 300; // revalidate every 5 min
 
-  useEffect(() => {
-    async function fetchPosts() {
-      try {
-        const res = await fetch('/api/blog');
-        if (res.ok) {
-          const data = await res.json();
-          setPosts(data);
-        }
-      } catch {
-        // Blog table may not exist yet — show empty state
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPosts();
-  }, []);
-
-  const filtered = activeCategory === 'All'
-    ? posts
-    : posts.filter((p) => p.category === activeCategory);
-
-  return (
-    <>
-      {/* Hero */}
-      <section className="pt-36 md:pt-44 pb-12">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">Blog</p>
-            <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight max-w-3xl">
-              AI implementation
-              <br />
-              <span className="italic text-accent">insights.</span>
-            </h1>
-            <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
-              Practical strategies for deploying AI systems that drive real business outcomes.
-              No hype, no theory — just what works.
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Category filter */}
-      <section className="border-b border-border">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12">
-          <div className="flex gap-2 overflow-x-auto pb-4 pt-2 -mb-px scrollbar-hide">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-2 text-sm whitespace-nowrap rounded-full transition-colors cursor-pointer ${
-                  activeCategory === cat
-                    ? 'bg-accent text-background font-medium'
-                    : 'text-muted-light hover:text-foreground-strong border border-border hover:border-accent/30'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Posts grid */}
-      <section>
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-16 md:py-24">
-          {loading ? (
-            <p className="text-center text-muted-light py-20">Loading posts...</p>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-20">
-              <Reveal>
-                <h2 className="font-[family-name:var(--font-serif)] text-2xl md:text-3xl tracking-tight mb-4">
-                  {posts.length === 0 ? 'Coming soon.' : 'No posts in this category yet.'}
-                </h2>
-                <p className="text-muted-light text-lg mb-8 max-w-lg mx-auto">
-                  {posts.length === 0
-                    ? 'We\'re working on our first posts. In the meantime, start a conversation about your AI needs.'
-                    : 'Check back soon or explore another category.'}
-                </p>
-                {posts.length === 0 && (
-                  <Link
-                    href="/discover"
-                    className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    Start Your Discovery
-                  </Link>
-                )}
-              </Reveal>
-            </div>
-          ) : (
-            <StaggerReveal className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filtered.map((post) => (
-                <StaggerChild key={post.id}>
-                  <Link href={`/blog/${post.slug}`} className="group block h-full">
-                    <article className="border border-border rounded-2xl p-8 h-full transition-all duration-500 hover:border-accent/30 flex flex-col">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-[11px] tracking-wide uppercase text-accent font-medium">
-                          {post.category}
-                        </span>
-                        <span className="text-[11px] text-muted">&middot;</span>
-                        <span className="text-[11px] text-muted">{post.reading_time_min} min read</span>
-                      </div>
-                      <h2 className="text-lg font-semibold tracking-tight text-foreground-strong mb-3 group-hover:text-accent transition-colors">
-                        {post.title}
-                      </h2>
-                      <p className="text-sm text-muted-light leading-relaxed flex-1 mb-6">
-                        {post.excerpt}
-                      </p>
-                      <div className="flex items-center justify-between text-xs text-muted">
-                        <span>{relativeDate(post.published_at)}</span>
-                        <span className="text-accent group-hover:translate-x-1 transition-transform">&rarr;</span>
-                      </div>
-                    </article>
-                  </Link>
-                </StaggerChild>
-              ))}
-            </StaggerReveal>
-          )}
-        </div>
-      </section>
-
-      {/* CTA */}
-      {posts.length > 0 && (
-        <section className="section-light">
-          <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-20 md:py-28">
-            <Reveal>
-              <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,2.5rem)] leading-[1.15] tracking-tight mb-4">
-                Ready to put AI to work?
-              </h2>
-              <p className="text-muted-light mb-8 max-w-xl">
-                Reading is good. Building is better. Start your discovery to find where AI creates the highest leverage in your business.
-              </p>
-              <Link
-                href="/discover"
-                className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Start Your Discovery
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-                </svg>
-              </Link>
-            </Reveal>
-          </div>
-        </section>
-      )}
-    </>
-  );
+export default async function BlogPage() {
+  const posts = await getPosts();
+  return <BlogList posts={posts} />;
 }

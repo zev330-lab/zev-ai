@@ -102,13 +102,24 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <>
-      {/* JSON-LD */}
-      {post.schema_data && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(post.schema_data) }}
-        />
-      )}
+      {/* JSON-LD BlogPosting */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          headline: post.seo_title || post.title,
+          description: post.seo_description || post.excerpt,
+          datePublished: post.published_at,
+          dateModified: post.updated_at || post.published_at,
+          author: { '@type': 'Person', name: post.author || 'Zev Steinmetz', url: 'https://zev.ai/about' },
+          publisher: { '@type': 'Organization', name: 'zev.ai', url: 'https://zev.ai' },
+          mainEntityOfPage: { '@type': 'WebPage', '@id': `https://zev.ai/blog/${post.slug}` },
+          image: `https://zev-ai-swart.vercel.app/api/og/social?text=${encodeURIComponent(post.seo_title || post.title)}&pillar=${encodeURIComponent(post.category || '')}&format=landscape&style=blog`,
+          articleSection: post.category,
+          keywords: (post.tags || []).join(', '),
+        }) }}
+      />
       {faqItems.length > 0 && (
         <script
           type="application/ld+json"
