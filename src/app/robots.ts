@@ -14,6 +14,6 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: 'PerplexityBot', allow: '/' },
       { userAgent: 'Googlebot', allow: '/' },
     ],
-    sitemap: 'https://zev.ai/sitemap.xml',
+    sitemap: 'https://askzev.ai/sitemap.xml',
   };
 }

@@ -4,19 +4,19 @@ export function JsonLd() {
     '@graph': [
       {
         '@type': 'Organization',
-        '@id': 'https://zev.ai/#organization',
+        '@id': 'https://askzev.ai/#organization',
         name: 'zev.ai',
-        url: 'https://zev.ai',
+        url: 'https://askzev.ai',
         description: 'AI implementation consulting — production AI systems built for businesses.',
-        founder: { '@id': 'https://zev.ai/#person' },
+        founder: { '@id': 'https://askzev.ai/#person' },
       },
       {
         '@type': 'Person',
-        '@id': 'https://zev.ai/#person',
+        '@id': 'https://askzev.ai/#person',
         name: 'Zev Steinmetz',
         jobTitle: 'AI Implementation Consultant',
-        url: 'https://zev.ai/about',
-        worksFor: { '@id': 'https://zev.ai/#organization' },
+        url: 'https://askzev.ai/about',
+        worksFor: { '@id': 'https://askzev.ai/#organization' },
         address: {
           '@type': 'PostalAddress',
           addressLocality: 'Newton',
@@ -33,15 +33,15 @@ export function JsonLd() {
       },
       {
         '@type': 'WebSite',
-        '@id': 'https://zev.ai/#website',
-        url: 'https://zev.ai',
+        '@id': 'https://askzev.ai/#website',
+        url: 'https://askzev.ai',
         name: 'zev.ai',
-        publisher: { '@id': 'https://zev.ai/#organization' },
+        publisher: { '@id': 'https://askzev.ai/#organization' },
       },
       {
         '@type': 'ProfessionalService',
         name: 'AI Implementation Consulting',
-        provider: { '@id': 'https://zev.ai/#organization' },
+        provider: { '@id': 'https://askzev.ai/#organization' },
         description: 'Custom AI systems built and deployed for businesses. From intelligent agents to workflow automation.',
         areaServed: 'US',
         hasOfferCatalog: {

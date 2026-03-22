@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
   }
 
   const results: { id: string; platform: string; success: boolean; postUrl?: string; error?: string }[] = [];
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://zev-ai-swart.vercel.app';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://askzev.ai';
 
   for (const post of posts) {
     const creds = credsByPlatform[post.platform];

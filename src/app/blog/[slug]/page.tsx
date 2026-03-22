@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       section: post.category,
       tags: post.tags || [],
       images: [{
-        url: `https://zev-ai-swart.vercel.app/api/og/social?text=${encodeURIComponent(post.seo_title || post.title)}&pillar=${encodeURIComponent(post.category || '')}&format=landscape&style=blog`,
+        url: `https://askzev.ai/api/og/social?text=${encodeURIComponent(post.seo_title || post.title)}&pillar=${encodeURIComponent(post.category || '')}&format=landscape&style=blog`,
         width: 1200,
         height: 630,
         alt: post.seo_title || post.title,
@@ -60,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title: post.seo_title || post.title,
       description: post.seo_description || post.excerpt,
-      images: [`https://zev-ai-swart.vercel.app/api/og/social?text=${encodeURIComponent(post.seo_title || post.title)}&pillar=${encodeURIComponent(post.category || '')}&format=landscape&style=blog`],
+      images: [`https://askzev.ai/api/og/social?text=${encodeURIComponent(post.seo_title || post.title)}&pillar=${encodeURIComponent(post.category || '')}&format=landscape&style=blog`],
     },
   };
 }
@@ -112,10 +112,10 @@ export default async function BlogPostPage({ params }: Props) {
           description: post.seo_description || post.excerpt,
           datePublished: post.published_at,
           dateModified: post.updated_at || post.published_at,
-          author: { '@type': 'Person', name: post.author || 'Zev Steinmetz', url: 'https://zev.ai/about' },
-          publisher: { '@type': 'Organization', name: 'zev.ai', url: 'https://zev.ai' },
-          mainEntityOfPage: { '@type': 'WebPage', '@id': `https://zev.ai/blog/${post.slug}` },
-          image: `https://zev-ai-swart.vercel.app/api/og/social?text=${encodeURIComponent(post.seo_title || post.title)}&pillar=${encodeURIComponent(post.category || '')}&format=landscape&style=blog`,
+          author: { '@type': 'Person', name: post.author || 'Zev Steinmetz', url: 'https://askzev.ai/about' },
+          publisher: { '@type': 'Organization', name: 'zev.ai', url: 'https://askzev.ai' },
+          mainEntityOfPage: { '@type': 'WebPage', '@id': `https://askzev.ai/blog/${post.slug}` },
+          image: `https://askzev.ai/api/og/social?text=${encodeURIComponent(post.seo_title || post.title)}&pillar=${encodeURIComponent(post.category || '')}&format=landscape&style=blog`,
           articleSection: post.category,
           keywords: (post.tags || []).join(', '),
         }) }}

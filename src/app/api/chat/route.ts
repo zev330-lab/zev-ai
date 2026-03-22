@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return NextResponse.json(
-      { response: "I'm not available right now. Please reach out at hello@zev.ai or start a discovery at /discover." },
+      { response: "I'm not available right now. Please reach out at hello@askzev.ai or start a discovery at /discover." },
       { status: 200 },
     );
   }
@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
     if (!res.ok) {
       console.error('Claude API error:', res.status);
       return NextResponse.json(
-        { response: "I'm having trouble right now. Reach out at hello@zev.ai or start a discovery at /discover." },
+        { response: "I'm having trouble right now. Reach out at hello@askzev.ai or start a discovery at /discover." },
         { status: 200 },
       );
     }
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('Chat route error:', err);
     return NextResponse.json(
-      { response: "Something went wrong. Please reach out at hello@zev.ai." },
+      { response: "Something went wrong. Please reach out at hello@askzev.ai." },
       { status: 200 },
     );
   }

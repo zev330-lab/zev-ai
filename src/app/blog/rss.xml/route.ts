@@ -12,11 +12,11 @@ export async function GET() {
   const items = (posts || []).map((post) => `
     <item>
       <title><![CDATA[${post.title}]]></title>
-      <link>https://zev.ai/blog/${post.slug}</link>
-      <guid isPermaLink="true">https://zev.ai/blog/${post.slug}</guid>
+      <link>https://askzev.ai/blog/${post.slug}</link>
+      <guid isPermaLink="true">https://askzev.ai/blog/${post.slug}</guid>
       <description><![CDATA[${post.excerpt}]]></description>
       <pubDate>${new Date(post.published_at).toUTCString()}</pubDate>
-      <author>hello@zev.ai (${post.author || 'Zev Steinmetz'})</author>
+      <author>hello@askzev.ai (${post.author || 'Zev Steinmetz'})</author>
       <category>${post.category}</category>
     </item>`).join('');
 
@@ -24,11 +24,11 @@ export async function GET() {
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>zev.ai Blog</title>
-    <link>https://zev.ai/blog</link>
+    <link>https://askzev.ai/blog</link>
     <description>Practical insights on AI implementation, multi-agent systems, and turning AI investment into measurable business outcomes.</description>
     <language>en-us</language>
     <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
-    <atom:link href="https://zev.ai/blog/rss.xml" rel="self" type="application/rss+xml" />${items}
+    <atom:link href="https://askzev.ai/blog/rss.xml" rel="self" type="application/rss+xml" />${items}
   </channel>
 </rss>`;
 

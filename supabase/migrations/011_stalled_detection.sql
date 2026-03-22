@@ -71,7 +71,7 @@ BEGIN
           'Authorization', 'Bearer ' || _resend_key
         ),
         body := jsonb_build_object(
-          'from', 'TOLA Alerts <alerts@zev.ai>',
+          'from', 'TOLA Alerts <alerts@askzev.ai>',
           'to', ARRAY['zev330@gmail.com'],
           'subject', 'Pipeline Stalled: ' || COALESCE(_stalled.company, _stalled.name, 'Unknown'),
           'html', '<h2>Pipeline Stalled Alert</h2>'
@@ -79,7 +79,7 @@ BEGIN
             || '<p><strong>Company:</strong> ' || COALESCE(_stalled.company, _stalled.name, 'N/A') || '</p>'
             || '<p><strong>Last Stage:</strong> ' || _stalled.pipeline_status || '</p>'
             || '<p><strong>Stalled Since:</strong> 30+ minutes with no progress</p>'
-            || '<hr><p><a href="https://zev-ai-swart.vercel.app/admin/discoveries">View in Admin</a></p>'
+            || '<hr><p><a href="https://askzev.ai/admin/discoveries">View in Admin</a></p>'
         ),
         timeout_milliseconds := 10000
       );

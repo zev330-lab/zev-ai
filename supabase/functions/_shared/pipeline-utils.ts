@@ -89,7 +89,7 @@ export async function failPipeline(
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${resendKey}` },
         body: JSON.stringify({
-          from: 'TOLA Alerts <alerts@zev.ai>',
+          from: 'TOLA Alerts <alerts@askzev.ai>',
           to: ['zev330@gmail.com'],
           subject: `Pipeline Failed: ${company}`,
           html: `<h2>Pipeline Failure Alert</h2>
@@ -99,7 +99,7 @@ export async function failPipeline(
 <p><strong>Error:</strong> ${errorMsg}</p>
 <p><strong>Time:</strong> ${new Date().toISOString()}</p>
 <hr>
-<p><a href="https://zev-ai-swart.vercel.app/admin/discoveries">View in Admin</a></p>`,
+<p><a href="https://askzev.ai/admin/discoveries">View in Admin</a></p>`,
         }),
       });
     } catch (emailErr) {

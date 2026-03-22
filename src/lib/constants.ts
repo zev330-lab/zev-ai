@@ -2,8 +2,8 @@ export const SITE = {
   name: 'zev.ai',
   title: 'zev.ai — AI systems that drive revenue, not slide decks',
   description: 'We build and deploy production AI agent systems for businesses. From assessment to ongoing optimization — real implementation, real results.',
-  url: 'https://zev.ai',
-  email: 'hello@zev.ai',
+  url: 'https://askzev.ai',
+  email: 'hello@askzev.ai',
 } as const;
 
 export const NAV_LINKS = [

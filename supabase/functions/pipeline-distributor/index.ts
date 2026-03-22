@@ -87,7 +87,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // Call the Next.js publish API
-    const siteUrl = Deno.env.get('SITE_URL') || 'https://zev-ai-swart.vercel.app';
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://askzev.ai';
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
     const publishRes = await fetch(`${siteUrl}/api/admin/social/publish`, {

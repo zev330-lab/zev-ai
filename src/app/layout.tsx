@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     title: SITE.title,
     description: SITE.description,
     images: [{
-      url: 'https://zev-ai-swart.vercel.app/api/og/social?text=AI%20systems%20that%20drive%20revenue&pillar=zev.ai&format=landscape&style=blog',
+      url: 'https://askzev.ai/api/og/social?text=AI%20systems%20that%20drive%20revenue&pillar=zev.ai&format=landscape&style=blog',
       width: 1200,
       height: 630,
       alt: 'zev.ai — AI systems that drive revenue',
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: SITE.title,
     description: SITE.description,
-    images: ['https://zev-ai-swart.vercel.app/api/og/social?text=AI%20systems%20that%20drive%20revenue&pillar=zev.ai&format=landscape&style=blog'],
+    images: ['https://askzev.ai/api/og/social?text=AI%20systems%20that%20drive%20revenue&pillar=zev.ai&format=landscape&style=blog'],
   },
   robots: {
     index: true,

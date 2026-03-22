@@ -65,10 +65,10 @@ export async function POST(request: Request) {
         ].filter(Boolean).join('\n');
 
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'zev.ai <onboarding@resend.dev>',
+          from: process.env.RESEND_FROM_EMAIL || 'askzev.ai <hello@askzev.ai>',
           to: process.env.NOTIFICATION_EMAIL || 'zev330@gmail.com',
           subject: `New discovery form from ${body.name}${body.company ? ` — ${body.company}` : ''}`,
-          text: `New discovery form submission on zev.ai\n\n${fields}`,
+          text: `New discovery form submission on askzev.ai\n\n${fields}`,
         });
       } catch (emailError) {
         console.error('Resend notification email error:', emailError);
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
         try {
           const firstName = body.name.trim().split(/\s+/)[0];
           await resend.emails.send({
-            from: 'Zev Steinmetz <onboarding@resend.dev>',
+            from: process.env.RESEND_FROM_EMAIL || 'Zev Steinmetz <hello@askzev.ai>',
             to: body.email.trim(),
             subject: `Got it, ${firstName} — I'm preparing for our conversation`,
             text: [
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
               '',
               `—`,
               `Zev Steinmetz`,
-              `zev.ai`,
+              `askzev.ai`,
             ].join('\n'),
           });
         } catch (confirmError) {

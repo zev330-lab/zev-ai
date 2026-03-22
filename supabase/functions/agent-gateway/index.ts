@@ -8,7 +8,7 @@ import { getServiceClient } from '../_shared/supabase.ts';
 import { checkKillSwitch, logAction, updateHeartbeat, recordMetric } from '../_shared/agent-utils.ts';
 import { CORS_HEADERS } from '../_shared/pipeline-utils.ts';
 
-const SITE_URL = 'https://zev-ai-swart.vercel.app';
+const SITE_URL = 'https://askzev.ai';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });

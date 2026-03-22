@@ -14,7 +14,7 @@ Flagship website for Zev Steinmetz's AI consulting practice + personal operating
 - **AI:** Claude API (Sonnet) with web_search tool
 - **Email:** Resend (form notifications)
 - **Deployment:** Vercel + Supabase Edge Functions
-- **Domain:** zev.ai (pending DNS)
+- **Domain:** askzev.ai (production)
 
 ## TOLA v3.0 Agent Architecture
 
@@ -295,10 +295,10 @@ Config stored in `tola_config` table, managed via `/api/admin/settings`.
 Chat routes call Claude API directly. Set via `vercel env add ANTHROPIC_API_KEY`.
 
 ## Email Configuration
-- **Public-facing email:** hello@zev.ai (all site references updated)
+- **Public-facing email:** hello@askzev.ai (all site references updated)
 - **Notification delivery:** Configurable via `NOTIFICATION_EMAIL` env var (defaults to zev330@gmail.com)
-- **Resend from address:** Configurable via `RESEND_FROM_EMAIL` env var (defaults to onboarding@resend.dev until domain verified)
-- **DNS setup required:** Add Resend DNS records (MX, SPF, DKIM) for zev.ai domain. For receiving email, set up Cloudflare Email Routing to forward hello@zev.ai → gmail.
+- **Resend from address:** Configurable via `RESEND_FROM_EMAIL` env var (defaults to hello@askzev.ai)
+- **DNS setup required:** Add Resend DNS records (SPF, DKIM, DMARC) for askzev.ai domain. For receiving email, set up Cloudflare Email Routing to forward hello@askzev.ai → gmail.
 
 ## Canonical Components
 
@@ -356,7 +356,7 @@ Chat routes call Claude API directly. Set via `vercel env add ANTHROPIC_API_KEY`
 ## Deployment
 - **Repo:** github.com/zev330-lab/zev-ai
 - **Host:** Vercel
-- **Live URL:** https://zev-ai-swart.vercel.app
+- **Live URL:** https://askzev.ai
 - **Vercel Team:** steinmetz-real-estate-professionlas
 - **Deploy:** `vercel --prod`
 - **Edge Functions:** `supabase functions deploy tola-agent --no-verify-jwt` (also deploy pipeline-guardian, pipeline-visionary, pipeline-architect, pipeline-oracle, pipeline-proposal)

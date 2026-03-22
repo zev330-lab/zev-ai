@@ -34,11 +34,11 @@ export async function POST(request: Request) {
       try {
         const resend = new Resend(process.env.RESEND_API_KEY);
         await resend.emails.send({
-          from: process.env.RESEND_FROM_EMAIL || 'zev.ai <onboarding@resend.dev>',
+          from: process.env.RESEND_FROM_EMAIL || 'askzev.ai <hello@askzev.ai>',
           to: process.env.NOTIFICATION_EMAIL || 'zev330@gmail.com',
           subject: `New inquiry from ${name}${company ? ` — ${company}` : ''}`,
           text: [
-            `New contact form submission on zev.ai`,
+            `New contact form submission on askzev.ai`,
             ``,
             `Name: ${name}`,
             `Email: ${email}`,
