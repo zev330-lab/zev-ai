@@ -124,6 +124,116 @@ function agentInitials(id: string): string {
 // Workflows Tab
 // ---------------------------------------------------------------------------
 
+function PipelineReplay() {
+  const [discoveries, setDiscoveries] = useState<{ id: string; name: string; company: string; pipeline_status: string; progress_pct: number; created_at: string; pipeline_completed_at: string | null }[]>([]);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [activeStep, setActiveStep] = useState(-1);
+  const [playing, setPlaying] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/admin/discoveries')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => {
+        if (Array.isArray(data)) {
+          setDiscoveries(data.filter((d: { pipeline_status: string }) => ['complete', 'failed'].includes(d.pipeline_status)).slice(0, 10));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const stages = [
+    { label: 'Submitted', agent: 'user', color: '#d0d0da' },
+    { label: 'Guardian', agent: 'guardian', color: '#4ade80' },
+    { label: 'Visionary', agent: 'visionary', color: '#7c9bf5' },
+    { label: 'Architect', agent: 'architect', color: '#c4b5e0' },
+    { label: 'Oracle', agent: 'oracle', color: '#7c9bf5' },
+    { label: 'Complete', agent: 'crown', color: '#f59e0b' },
+  ];
+
+  const play = (id: string) => {
+    setSelected(id);
+    setActiveStep(-1);
+    setPlaying(true);
+    let step = 0;
+    const interval = setInterval(() => {
+      setActiveStep(step);
+      step++;
+      if (step >= stages.length) {
+        clearInterval(interval);
+        setTimeout(() => setPlaying(false), 1000);
+      }
+    }, 800);
+  };
+
+  if (discoveries.length === 0) return null;
+
+  return (
+    <div>
+      <p className="text-xs tracking-[0.15em] uppercase text-[var(--color-muted)] mb-3">Pipeline Replay</p>
+      <div className="rounded-xl border border-[var(--color-admin-border)] bg-[var(--color-admin-surface)] p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <select
+            value={selected || ''}
+            onChange={e => { setSelected(e.target.value); setActiveStep(-1); setPlaying(false); }}
+            className="flex-1 bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-foreground-strong)]"
+          >
+            <option value="">Select a completed discovery...</option>
+            {discoveries.map(d => (
+              <option key={d.id} value={d.id}>{d.name} ({d.company || 'no company'}) — {d.pipeline_status}</option>
+            ))}
+          </select>
+          <button
+            onClick={() => selected && play(selected)}
+            disabled={!selected || playing}
+            className="px-4 py-2 text-xs font-medium rounded-lg bg-[var(--color-accent)] text-white disabled:opacity-40 cursor-pointer"
+          >
+            {playing ? 'Playing...' : 'Replay'}
+          </button>
+        </div>
+        {selected && (
+          <div className="flex items-center gap-0 flex-wrap">
+            {stages.map((stage, i) => {
+              const isActive = i <= activeStep;
+              const isCurrent = i === activeStep;
+              return (
+                <div key={i} className="flex items-center">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-[10px] font-bold border-2 transition-all duration-500 ${isCurrent ? 'scale-125' : ''}`}
+                      style={{
+                        backgroundColor: isActive ? `${stage.color}30` : `${stage.color}08`,
+                        borderColor: isActive ? stage.color : `${stage.color}30`,
+                        color: isActive ? stage.color : '#6b7280',
+                        boxShadow: isCurrent ? `0 0 12px ${stage.color}60` : 'none',
+                      }}
+                    >
+                      {agentInitials(stage.agent)}
+                    </div>
+                    <p className={`text-[10px] font-medium mt-1.5 transition-colors duration-300 ${isActive ? 'text-[var(--color-foreground-strong)]' : 'text-[var(--color-muted)]'}`}>
+                      {stage.label}
+                    </p>
+                  </div>
+                  {i < stages.length - 1 && (
+                    <div className="flex items-center mx-2 pb-5">
+                      <div
+                        className="w-8 h-0.5 rounded transition-all duration-500"
+                        style={{ backgroundColor: i < activeStep ? stage.color : `${stage.color}20` }}
+                      />
+                      <svg width="6" height="8" viewBox="0 0 6 8" fill="none" className="shrink-0">
+                        <path d="M0 0L6 4L0 8V0Z" fill={i < activeStep ? stage.color : `${stage.color}20`} className="transition-all duration-500" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function WorkflowsTab() {
   return (
     <div className="p-6 space-y-8 overflow-y-auto max-h-full">
@@ -133,6 +243,9 @@ function WorkflowsTab() {
           The 4 primary triggered workflows that run through the TOLA agent network.
         </p>
       </div>
+
+      {/* Pipeline Replay */}
+      <PipelineReplay />
 
       {/* Triad reference */}
       <div>

@@ -55,6 +55,8 @@ export default function AdminContactsPage() {
   const [selected, setSelected] = useState<Contact | null>(null);
   const [notes, setNotes] = useState('');
   const [linkedDiscovery, setLinkedDiscovery] = useState<{ id: string; pipeline_status: string; company: string } | null>(null);
+  const [meetingPrep, setMeetingPrep] = useState<string | null>(null);
+  const [prepLoading, setPrepLoading] = useState(false);
 
   const fetchContacts = useCallback(async () => {
     const params = new URLSearchParams();
@@ -99,6 +101,28 @@ export default function AdminContactsPage() {
         })
         .catch(() => {});
     }
+  };
+
+  const generateMeetingPrep = async (contact: Contact) => {
+    setPrepLoading(true);
+    setMeetingPrep(null);
+    try {
+      const res = await fetch('/api/admin/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [{
+            role: 'user',
+            content: `Generate a concise meeting prep briefing for my upcoming call with ${contact.name}${contact.company ? ` from ${contact.company}` : ''}. Their message: "${contact.message}". Notes: "${contact.notes || 'none'}". Include: 1) Key talking points 2) Questions to ask 3) Potential services to propose 4) Any red flags or concerns. Be specific and actionable, not generic.`
+          }],
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMeetingPrep(data.response);
+      }
+    } catch { /* silent */ }
+    setPrepLoading(false);
   };
 
   const total = contacts.length;
@@ -283,6 +307,45 @@ export default function AdminContactsPage() {
                   rows={4}
                   className="w-full bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-muted-light)] resize-none focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)] placeholder:text-[var(--color-muted)]"
                 />
+              </div>
+
+              {/* Meeting Prep */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--color-muted)]">Meeting Prep</p>
+                  <button
+                    onClick={() => generateMeetingPrep(selected)}
+                    disabled={prepLoading}
+                    className="px-3 py-1.5 text-[10px] font-medium rounded-lg bg-[var(--color-accent)] text-white disabled:opacity-40 cursor-pointer"
+                  >
+                    {prepLoading ? 'Generating...' : meetingPrep ? 'Regenerate' : 'Prep for Meeting'}
+                  </button>
+                </div>
+                {meetingPrep && (
+                  <div className="bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-4 py-3 text-sm text-[var(--color-muted-light)] whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
+                    {meetingPrep}
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Actions */}
+              <div className="flex gap-2 pt-2">
+                <a
+                  href={`https://mail.google.com/mail/u/0/?view=cm&fs=1&tf=1&to=${encodeURIComponent(selected.email)}&su=${encodeURIComponent(`Following up — ${selected.company || 'zev.ai'}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 px-3 py-2 text-xs text-center font-medium rounded-lg border border-[var(--color-admin-border)] text-[var(--color-muted-light)] hover:border-[var(--color-accent)]/30 hover:text-[var(--color-accent)] transition-colors"
+                >
+                  Compose Email
+                </a>
+                <a
+                  href={`https://calendar.google.com/calendar/r/eventnew?text=${encodeURIComponent(`Meeting: ${selected.name}${selected.company ? ` — ${selected.company}` : ''}`)}&details=${encodeURIComponent(`Contact: ${selected.email}\nCompany: ${selected.company || 'N/A'}\n\nNotes: ${selected.notes || 'None'}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 px-3 py-2 text-xs text-center font-medium rounded-lg border border-[var(--color-admin-border)] text-[var(--color-muted-light)] hover:border-[var(--color-accent)]/30 hover:text-[var(--color-accent)] transition-colors"
+                >
+                  Schedule Meeting
+                </a>
               </div>
             </div>
           </div>
