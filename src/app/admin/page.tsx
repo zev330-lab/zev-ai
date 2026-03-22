@@ -60,26 +60,47 @@ function formatDuration(seconds: number): string {
   return `${hrs}h ${remainMins}m`;
 }
 
+const COST_LEVELS = {
+  low: { label: '$', color: 'green', desc: 'Minimal — Haiku model, reduced agents, MWF posting', est: '~$3-5/mo' },
+  medium: { label: '$$', color: 'yellow', desc: 'Balanced — Sonnet for content, standard agent schedule', est: '~$12-15/mo' },
+  high: { label: '$$$', color: 'red', desc: 'Maximum — Sonnet everywhere, full frequency, all platforms', est: '~$30-50/mo' },
+} as const;
+
 export default function AdminDashboardPage() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [costLevel, setCostLevel] = useState<'low' | 'medium' | 'high'>('medium');
 
   useEffect(() => {
     fetch('/api/admin/stats')
       .then((r) => {
-        if (r.status === 401) {
-          router.push('/admin/login');
-          return null;
-        }
+        if (r.status === 401) { router.push('/admin/login'); return null; }
         return r.json();
       })
-      .then((data) => {
-        if (data) setStats(data);
-      })
+      .then((data) => { if (data) setStats(data); })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    fetch('/api/admin/settings')
+      .then((r) => r.ok ? r.json() : {})
+      .then((data: Record<string, unknown>) => {
+        if (data.cost_level) {
+          const level = typeof data.cost_level === 'string' ? data.cost_level.replace(/"/g, '') : String(data.cost_level);
+          if (['high', 'medium', 'low'].includes(level)) setCostLevel(level as 'high' | 'medium' | 'low');
+        }
+      })
+      .catch(() => {});
   }, [router]);
+
+  const changeCostLevel = async (level: 'low' | 'medium' | 'high') => {
+    setCostLevel(level);
+    await fetch('/api/admin/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cost_level: level }),
+    });
+  };
 
   if (loading) {
     return (
@@ -102,6 +123,51 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="p-6 space-y-6">
+        {/* Cost Control */}
+        <div className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h2 className="text-sm font-medium text-[var(--color-foreground-strong)]">System Cost Level</h2>
+              <p className="text-[10px] text-[var(--color-muted)] mt-0.5">Controls agent frequency, AI model selection, image generation, and posting cadence</p>
+            </div>
+            <span className="text-[10px] text-[var(--color-muted)]">{COST_LEVELS[costLevel].est} estimated</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {(['low', 'medium', 'high'] as const).map((level) => {
+              const cfg = COST_LEVELS[level];
+              const active = costLevel === level;
+              return (
+                <button
+                  key={level}
+                  onClick={() => changeCostLevel(level)}
+                  className={`relative px-4 py-3 rounded-lg border-2 text-left transition-all cursor-pointer ${
+                    active
+                      ? cfg.color === 'green' ? 'border-green-500 bg-green-500/10'
+                        : cfg.color === 'yellow' ? 'border-yellow-500 bg-yellow-500/10'
+                        : 'border-red-500 bg-red-500/10'
+                      : 'border-[var(--color-admin-border)] hover:border-[var(--color-admin-border)]/80'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`text-lg font-bold ${
+                      active
+                        ? cfg.color === 'green' ? 'text-green-400' : cfg.color === 'yellow' ? 'text-yellow-400' : 'text-red-400'
+                        : 'text-[var(--color-muted)]'
+                    }`}>{cfg.label}</span>
+                    <span className="text-[10px] uppercase tracking-wider text-[var(--color-muted)]">{level}</span>
+                  </div>
+                  <p className="text-[10px] text-[var(--color-muted-light)] leading-relaxed">{cfg.desc}</p>
+                  {active && (
+                    <div className={`absolute top-2 right-2 w-2 h-2 rounded-full ${
+                      cfg.color === 'green' ? 'bg-green-400' : cfg.color === 'yellow' ? 'bg-yellow-400' : 'bg-red-400'
+                    } animate-pulse`} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Primary stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Total Discoveries" value={stats?.total_discoveries ?? 0} />
