@@ -217,8 +217,17 @@ export default function AdminContactsPage() {
                 <a href={`mailto:${selected.email}`} className="text-[var(--color-accent)] hover:underline text-sm ml-2">
                   Reply
                 </a>
+                <a href={`https://mail.google.com/mail/u/0/#search/from%3A${encodeURIComponent(selected.email)}+OR+to%3A${encodeURIComponent(selected.email)}`} target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent)] hover:underline text-sm ml-2">
+                  Gmail
+                </a>
               </DetailField>
-              <DetailField label="Company" value={selected.company || '--'} />
+              <DetailField label="Company" value={selected.company || '--'}>
+                {selected.company && (
+                  <a href={`https://www.google.com/search?q=${encodeURIComponent(selected.company)}`} target="_blank" rel="noopener noreferrer" className="text-[var(--color-accent)] hover:underline text-sm ml-2">
+                    Search
+                  </a>
+                )}
+              </DetailField>
               <DetailField label="Submitted" value={formatDate(selected.created_at)} />
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1">Message</p>

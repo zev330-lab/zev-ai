@@ -139,6 +139,24 @@ export default function AdminDashboardPage() {
       </div>
 
       <div className="p-6 space-y-6">
+        {/* Morning Briefing */}
+        {stats && (
+          <div className="bg-gradient-to-r from-[var(--color-accent)]/10 to-transparent border border-[var(--color-accent)]/20 rounded-xl p-5">
+            <h2 className="text-base font-semibold text-[var(--color-foreground-strong)]">
+              {new Date().getHours() < 12 ? 'Good morning' : new Date().getHours() < 17 ? 'Good afternoon' : 'Good evening'}, Zev
+            </h2>
+            <p className="text-sm text-[var(--color-muted-light)] mt-1">
+              {[
+                stats.total_discoveries > 0 && `${stats.total_discoveries} discoveries in pipeline`,
+                (stats.alerts?.length ?? 0) > 0 && `${stats.alerts.length} alert${stats.alerts.length > 1 ? 's' : ''} need attention`,
+                (stats.blog_pending_review ?? 0) > 0 && `${stats.blog_pending_review} post${stats.blog_pending_review > 1 ? 's' : ''} awaiting review`,
+                (stats.unpaid_invoices ?? 0) > 0 && `${stats.unpaid_invoices} unpaid invoice${stats.unpaid_invoices > 1 ? 's' : ''}`,
+                (stats.overdue_family_tasks ?? 0) > 0 && `${stats.overdue_family_tasks} overdue task${stats.overdue_family_tasks > 1 ? 's' : ''}`,
+              ].filter(Boolean).join(' · ') || 'All clear — nothing urgent.'}
+            </p>
+          </div>
+        )}
+
         {/* Cost Control */}
         <div className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-5">
           <div className="flex items-center justify-between mb-3">
@@ -188,27 +206,27 @@ export default function AdminDashboardPage() {
 
         {/* Primary stat cards */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <StatCard label="Total Discoveries" value={stats?.total_discoveries ?? 0} />
-          <StatCard label="Active Agents" value={`${stats?.active_agents ?? 0}/11`} />
-          <StatCard label="Avg Pipeline Time" value={formatDuration(stats?.avg_pipeline_seconds ?? 0)} />
-          <StatCard label="System Cost Today" value={stats?.total_cost_today != null ? `$${stats.total_cost_today.toFixed(2)}` : '--'} />
+          <StatCard label="Total Discoveries" value={stats?.total_discoveries ?? 0} href="/admin/discoveries" />
+          <StatCard label="Active Agents" value={`${stats?.active_agents ?? 0}/11`} href="/admin/agents" />
+          <StatCard label="Avg Pipeline Time" value={formatDuration(stats?.avg_pipeline_seconds ?? 0)} href="/admin/discoveries" />
+          <StatCard label="System Cost Today" value={stats?.total_cost_today != null ? `$${stats.total_cost_today.toFixed(2)}` : '--'} href="/admin/tola" />
           <StatCard label="Alerts" value={(stats?.alerts?.length ?? 0)} accent={(stats?.alerts?.length ?? 0) > 0} />
         </div>
 
         {/* Secondary stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MiniStat label="Actions Today" value={stats?.actions_today ?? 0} />
-          <MiniStat label="Pipelines Today" value={stats?.pipelines_today ?? 0} />
-          <MiniStat label="Review Queue" value={stats?.tier3_queue ?? 0} alert={(stats?.tier3_queue ?? 0) > 0} />
-          <MiniStat label="Blog Pending" value={stats?.blog_pending_review ?? 0} alert={(stats?.blog_pending_review ?? 0) > 0} />
+          <MiniStat label="Actions Today" value={stats?.actions_today ?? 0} href="/admin/tola" />
+          <MiniStat label="Pipelines Today" value={stats?.pipelines_today ?? 0} href="/admin/discoveries" />
+          <MiniStat label="Review Queue" value={stats?.tier3_queue ?? 0} alert={(stats?.tier3_queue ?? 0) > 0} href="/admin/discoveries" />
+          <MiniStat label="Blog Pending" value={stats?.blog_pending_review ?? 0} alert={(stats?.blog_pending_review ?? 0) > 0} href="/admin/content" />
         </div>
 
         {/* Cross-module stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MiniStat label="Social Drafts" value={stats?.social_pending ?? 0} />
-          <MiniStat label="Overdue Tasks" value={stats?.overdue_family_tasks ?? 0} alert={(stats?.overdue_family_tasks ?? 0) > 0} />
-          <MiniStat label="Unpaid Invoices" value={stats?.unpaid_invoices ?? 0} alert={(stats?.unpaid_invoices ?? 0) > 0} />
-          <MiniStat label="Success Rate" value={`${stats?.pipeline_success_rate ?? 0}%`} />
+          <MiniStat label="Social Drafts" value={stats?.social_pending ?? 0} href="/admin/content" />
+          <MiniStat label="Overdue Tasks" value={stats?.overdue_family_tasks ?? 0} alert={(stats?.overdue_family_tasks ?? 0) > 0} href="/admin/family" />
+          <MiniStat label="Unpaid Invoices" value={stats?.unpaid_invoices ?? 0} alert={(stats?.unpaid_invoices ?? 0) > 0} href="/admin/finance" />
+          <MiniStat label="Success Rate" value={`${stats?.pipeline_success_rate ?? 0}%`} href="/admin/discoveries" />
         </div>
 
         {/* Alerts */}
@@ -330,13 +348,15 @@ function StatCard({
   label,
   value,
   accent,
+  href,
 }: {
   label: string;
   value: number | string;
   accent?: boolean;
+  href?: string;
 }) {
-  return (
-    <div className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl px-5 py-4">
+  const inner = (
+    <div className={`bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl px-5 py-4 ${href ? 'hover:border-[var(--color-accent)]/30 transition-colors cursor-pointer' : ''}`}>
       <p className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1">
         {label}
       </p>
@@ -349,19 +369,22 @@ function StatCard({
       </p>
     </div>
   );
+  return href ? <Link href={href}>{inner}</Link> : inner;
 }
 
 function MiniStat({
   label,
   value,
   alert,
+  href,
 }: {
   label: string;
   value: number | string;
   alert?: boolean;
+  href?: string;
 }) {
-  return (
-    <div className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-lg px-4 py-3 flex items-center justify-between">
+  const inner = (
+    <div className={`bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-lg px-4 py-3 flex items-center justify-between ${href ? 'hover:border-[var(--color-accent)]/30 transition-colors cursor-pointer' : ''}`}>
       <span className="text-xs text-[var(--color-muted-light)]">{label}</span>
       <span
         className={`text-sm font-semibold ${
@@ -372,4 +395,5 @@ function MiniStat({
       </span>
     </div>
   );
+  return href ? <Link href={href}>{inner}</Link> : inner;
 }

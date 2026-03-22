@@ -1,25 +1,58 @@
 'use client';
 
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+
+interface NavBadges {
+  discoveries: number;
+  content: number;
+  finance: number;
+  family: number;
+  contacts: number;
+}
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [badges, setBadges] = useState<NavBadges>({ discoveries: 0, content: 0, finance: 0, family: 0, contacts: 0 });
+
+  const fetchBadges = useCallback(() => {
+    fetch('/api/admin/stats')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return;
+        setBadges({
+          discoveries: (data.by_stage?.failed || 0) + (data.alerts?.filter((a: { type: string }) => a.type === 'pipeline_stalled').length || 0),
+          content: (data.blog_pending_review || 0) + (data.social_pending || 0),
+          finance: data.unpaid_invoices || 0,
+          family: data.overdue_family_tasks || 0,
+          contacts: 0, // new contacts not tracked in stats yet
+        });
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (pathname === '/admin/login') return;
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 60000);
+    return () => clearInterval(interval);
+  }, [pathname, fetchBadges]);
 
   if (pathname === '/admin/login') return <>{children}</>;
 
   const nav = [
-    { href: '/admin/tola', label: 'TOLA', icon: <TolaIcon /> },
-    { href: '/admin', label: 'Dashboard', icon: <DashboardIcon /> },
-    { href: '/admin/discoveries', label: 'Discoveries', icon: <DiscoveryIcon /> },
-    { href: '/admin/content', label: 'Content', icon: <ContentIcon /> },
-    { href: '/admin/projects', label: 'Projects', icon: <ProjectIcon /> },
-    { href: '/admin/finance', label: 'Finance', icon: <FinanceIcon /> },
-    { href: '/admin/family', label: 'Family', icon: <FamilyIcon /> },
-    { href: '/admin/knowledge', label: 'Knowledge', icon: <KnowledgeIcon /> },
-    { href: '/admin/agents', label: 'Agents', icon: <AgentIcon /> },
-    { href: '/admin/contacts', label: 'Contacts', icon: <ContactIcon /> },
+    { href: '/admin/tola', label: 'TOLA', icon: <TolaIcon />, badge: 0 },
+    { href: '/admin', label: 'Dashboard', icon: <DashboardIcon />, badge: 0 },
+    { href: '/admin/discoveries', label: 'Discoveries', icon: <DiscoveryIcon />, badge: badges.discoveries },
+    { href: '/admin/content', label: 'Content', icon: <ContentIcon />, badge: badges.content },
+    { href: '/admin/projects', label: 'Projects', icon: <ProjectIcon />, badge: 0 },
+    { href: '/admin/finance', label: 'Finance', icon: <FinanceIcon />, badge: badges.finance },
+    { href: '/admin/family', label: 'Family', icon: <FamilyIcon />, badge: badges.family },
+    { href: '/admin/knowledge', label: 'Knowledge', icon: <KnowledgeIcon />, badge: 0 },
+    { href: '/admin/agents', label: 'Agents', icon: <AgentIcon />, badge: 0 },
+    { href: '/admin/contacts', label: 'Contacts', icon: <ContactIcon />, badge: badges.contacts },
   ];
 
   return (
@@ -55,6 +88,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               >
                 {item.icon}
                 {item.label}
+                {item.badge > 0 && (
+                  <span className="ml-auto text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white">
+                    {item.badge > 9 ? '9+' : item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
