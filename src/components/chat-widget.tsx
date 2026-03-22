@@ -90,7 +90,7 @@ export function ChatWidget() {
               <div className="text-center py-8">
                 <p className="text-sm text-[var(--color-muted-light)] mb-2">Ask me anything about AI consulting</p>
                 <div className="space-y-1.5">
-                  {['What services do you offer?', 'How does the assessment work?', 'What makes your approach different?'].map((q) => (
+                  {['How much does an AI assessment cost?', 'Can you show me a case study?', 'What results have clients seen?', 'How long does implementation take?'].map((q) => (
                     <button
                       key={q}
                       onClick={() => { setInput(q); }}

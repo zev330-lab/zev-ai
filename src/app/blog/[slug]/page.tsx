@@ -136,6 +136,25 @@ export default async function BlogPostPage({ params }: Props) {
           }}
         />
       )}
+      {post.category === 'AI Implementation Guides' && headings.length > 2 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'HowTo',
+              name: post.title,
+              description: post.seo_description || post.excerpt,
+              step: headings.filter((h: { level: number }) => h.level === 2).map((h: { text: string; id: string }, i: number) => ({
+                '@type': 'HowToStep',
+                position: i + 1,
+                name: h.text,
+                url: `https://askzev.ai/blog/${post.slug}#${h.id}`,
+              })),
+            }),
+          }}
+        />
+      )}
 
       <article className="pt-36 md:pt-44 pb-20">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">

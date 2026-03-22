@@ -308,6 +308,17 @@ export default function AdminDiscoveriesPage() {
 
   const FILTERS = ['all', 'new', 'reviewed', 'meeting_scheduled', 'proposal_sent', 'engaged', 'archived'] as const;
 
+  const exportCSV = () => {
+    const headers = ['Name', 'Email', 'Company', 'Role', 'Pipeline Status', 'Progress', 'Pain Points', 'Created'];
+    const rows = discoveries.map(d => [d.name, d.email || '', d.company || '', d.role || '', d.pipeline_status || '', `${d.progress_pct || 0}%`, (d.pain_points || '').replace(/"/g, '""'), new Date(d.created_at).toLocaleDateString()]);
+    const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `discoveries-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
   const detailFields: { label: string; key: keyof Discovery }[] = [
     { label: 'Email', key: 'email' },
     { label: 'Company', key: 'company' },
@@ -327,11 +338,16 @@ export default function AdminDiscoveriesPage() {
     <div className="flex-1 flex flex-col min-h-0">
       {/* Header */}
       <div className="px-6 py-5 border-b border-[var(--color-admin-border)] shrink-0">
-        <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">Discoveries</h1>
-        <p className="text-xs text-[var(--color-muted)] mt-1">
-          {discoveries.length} total &middot;{' '}
-          {discoveries.filter((d) => d.pipeline_status && !['complete', 'failed'].includes(d.pipeline_status)).length} in pipeline
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">Discoveries</h1>
+            <p className="text-xs text-[var(--color-muted)] mt-1">
+              {discoveries.length} total &middot;{' '}
+              {discoveries.filter((d) => d.pipeline_status && !['complete', 'failed'].includes(d.pipeline_status)).length} in pipeline
+            </p>
+          </div>
+          <button onClick={exportCSV} className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[var(--color-admin-border)] text-[var(--color-muted-light)] hover:border-[var(--color-accent)]/30 hover:text-[var(--color-accent)] transition-colors cursor-pointer">Export CSV</button>
+        </div>
       </div>
 
       {/* Filters */}

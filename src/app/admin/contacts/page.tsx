@@ -125,6 +125,17 @@ export default function AdminContactsPage() {
     setPrepLoading(false);
   };
 
+  const exportCSV = () => {
+    const headers = ['Name', 'Email', 'Company', 'Status', 'Message', 'Created'];
+    const rows = contacts.map(c => [c.name, c.email, c.company || '', c.status, c.message.replace(/"/g, '""'), new Date(c.created_at).toLocaleDateString()]);
+    const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `contacts-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  };
+
   const total = contacts.length;
   const newCount = contacts.filter((c) => c.status === 'new').length;
   const thisWeek = contacts.filter(
@@ -140,10 +151,13 @@ export default function AdminContactsPage() {
     <div className="flex-1 flex flex-col min-h-0">
       {/* Header */}
       <div className="px-6 py-5 border-b border-[var(--color-admin-border)] shrink-0">
-        <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">Contacts</h1>
-        <p className="text-xs text-[var(--color-muted)] mt-1">
-          {total} total &middot; {newCount} new
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">Contacts</h1>
+            <p className="text-xs text-[var(--color-muted)] mt-1">{total} total &middot; {newCount} new</p>
+          </div>
+          <button onClick={exportCSV} className="px-3 py-1.5 text-xs font-medium rounded-lg border border-[var(--color-admin-border)] text-[var(--color-muted-light)] hover:border-[var(--color-accent)]/30 hover:text-[var(--color-accent)] transition-colors cursor-pointer">Export CSV</button>
+        </div>
       </div>
 
       {/* Stats */}
