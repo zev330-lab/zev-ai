@@ -222,9 +222,56 @@ export const GEOMETRY_LABELS: Record<GeometryEngine, string> = {
 // Agent operational details — actions, interactions, schedule, cost
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Triads — sets of 3 agents that commonly work together
+// ---------------------------------------------------------------------------
+
+export interface Triad {
+  id: string;
+  name: string;
+  agents: [AgentId, AgentId, AgentId];
+  description: string;
+  color: string;
+}
+
+export const TRIADS: Triad[] = [
+  {
+    id: 'assessment',
+    name: 'Assessment Triad',
+    agents: ['guardian', 'visionary', 'architect'],
+    description: 'Validates, researches, and scopes every inbound discovery',
+    color: '#7c9bf5',
+  },
+  {
+    id: 'content',
+    name: 'Content Triad',
+    agents: ['visionary', 'oracle', 'catalyst'],
+    description: 'Researches, synthesizes, and distributes content across channels',
+    color: '#c4b5e0',
+  },
+  {
+    id: 'quality',
+    name: 'Quality Triad',
+    agents: ['guardian', 'prism', 'nexus'],
+    description: 'Validates outputs, audits quality, and routes health status',
+    color: '#4ade80',
+  },
+  {
+    id: 'operations',
+    name: 'Operations Triad',
+    agents: ['nexus', 'foundation', 'sentinel'],
+    description: 'Monitors system health, maintains infrastructure, and verifies uptime',
+    color: '#f59e0b',
+  },
+];
+
+export type CommunicationDirection = 'sends' | 'receives' | 'bidirectional';
+
 export const AGENT_DETAILS: Record<AgentId, {
   actions: string[];
   interactsWith: AgentId[];
+  communicationDirection: Partial<Record<AgentId, CommunicationDirection>>;
+  triads: string[];
   schedule: string;
   costPerDay: { low: string; medium: string; high: string };
   fullDescription: string;
@@ -232,6 +279,14 @@ export const AGENT_DETAILS: Record<AgentId, {
   crown: {
     actions: ['governance-scan', 'token-spend-tracking', 'tier-3-queue-scan', 'failure-scan', 'daily-governance-digest'],
     interactsWith: ['nexus', 'guardian', 'visionary', 'architect', 'oracle'],
+    communicationDirection: {
+      nexus: 'receives',
+      guardian: 'receives',
+      visionary: 'sends',
+      architect: 'sends',
+      oracle: 'receives',
+    },
+    triads: [],
     schedule: 'Every 2h (medium) / 2x daily (low)',
     costPerDay: { low: '$0.002', medium: '$0.01', high: '$0.04' },
     fullDescription: 'Governance and oversight. Tracks token spend across all agents, monitors the Tier 3 approval queue for discoveries needing human review, counts failed/stalled pipelines, and generates a daily governance digest stored in the knowledge base.',
@@ -239,6 +294,13 @@ export const AGENT_DETAILS: Record<AgentId, {
   visionary: {
     actions: ['13-dimension-research', 'web-search', 'competitive-analysis', 'trend-identification', 'topic-research'],
     interactsWith: ['guardian', 'architect', 'oracle', 'nexus'],
+    communicationDirection: {
+      guardian: 'receives',
+      architect: 'sends',
+      oracle: 'sends',
+      nexus: 'bidirectional',
+    },
+    triads: ['assessment', 'content'],
     schedule: 'On-demand (pipeline trigger)',
     costPerDay: { low: '$0.02/run', medium: '$0.05/run', high: '$0.05/run' },
     fullDescription: 'Multi-source research engine. Performs 13-dimension analysis of prospects using Claude + web_search tool. Covers company overview, industry, pain points, competitors, AI readiness, budget signals, and decision-maker profiles. Activates during assessment pipeline (Guardian → Visionary).',
@@ -246,6 +308,13 @@ export const AGENT_DETAILS: Record<AgentId, {
   architect: {
     actions: ['9-constraint-scoping', 'system-design', 'timeline-estimation', 'risk-assessment', 'deliverable-planning'],
     interactsWith: ['visionary', 'oracle', 'guardian', 'nexus'],
+    communicationDirection: {
+      visionary: 'receives',
+      oracle: 'sends',
+      guardian: 'bidirectional',
+      nexus: 'bidirectional',
+    },
+    triads: ['assessment'],
     schedule: 'On-demand (pipeline trigger)',
     costPerDay: { low: '$0.02/run', medium: '$0.05/run', high: '$0.05/run' },
     fullDescription: 'Constraint-based planning. Takes Visionary research and scopes engagements across 9 constraints: technical complexity, timeline, budget, team readiness, data availability, integration depth, compliance, risk, and ROI potential. Produces structured assessment documents.',
@@ -253,6 +322,14 @@ export const AGENT_DETAILS: Record<AgentId, {
   oracle: {
     actions: ['meeting-prep-synthesis', 'knowledge-aggregation', 'insight-generation', 'cross-reference-analysis'],
     interactsWith: ['visionary', 'architect', 'crown', 'nexus'],
+    communicationDirection: {
+      visionary: 'receives',
+      architect: 'receives',
+      crown: 'sends',
+      nexus: 'bidirectional',
+      catalyst: 'sends',
+    },
+    triads: ['content'],
     schedule: 'On-demand (pipeline trigger)',
     costPerDay: { low: '$0.02/run', medium: '$0.05/run', high: '$0.05/run' },
     fullDescription: 'Synthesis and knowledge. Combines Visionary research and Architect assessment into actionable meeting prep documents. Manages the knowledge base with semantic search (pgvector). Phantom node — operates as the bridge between research and action.',
@@ -260,6 +337,15 @@ export const AGENT_DETAILS: Record<AgentId, {
   guardian: {
     actions: ['safety-scan', 'anomaly-detection', 'token-spike-detection', 'latency-monitoring', 'circuit-breaker', 'form-validation', 'brand-enforcement'],
     interactsWith: ['nexus', 'crown', 'prism', 'catalyst'],
+    communicationDirection: {
+      nexus: 'sends',
+      crown: 'sends',
+      prism: 'bidirectional',
+      catalyst: 'receives',
+      visionary: 'sends',
+      architect: 'bidirectional',
+    },
+    triads: ['assessment', 'quality'],
     schedule: 'Every 30min (medium) / Every 2h (low)',
     costPerDay: { low: '$0.001', medium: '$0.005', high: '$0.02' },
     fullDescription: 'Safety and validation. Scans all agent logs for anomalies — token spikes (>100K), latency anomalies (>5 min), error patterns. Implements circuit breaker: 10 errors in 1 hour auto-kills the failing agent. Also validates discovery form inputs and enforces brand consistency in content.',
@@ -267,6 +353,14 @@ export const AGENT_DETAILS: Record<AgentId, {
   catalyst: {
     actions: ['velocity-analysis', 'bottleneck-detection', 'pipeline-duration-tracking', 'trend-comparison', 'retry-frequency-monitoring', 'social-content-generation'],
     interactsWith: ['guardian', 'nexus', 'visionary', 'architect', 'oracle'],
+    communicationDirection: {
+      guardian: 'sends',
+      nexus: 'sends',
+      visionary: 'receives',
+      architect: 'receives',
+      oracle: 'receives',
+    },
+    triads: ['content'],
     schedule: 'Every 4h (medium) / Daily (low)',
     costPerDay: { low: '$0.001', medium: '$0.005', high: '$0.02' },
     fullDescription: 'Engagement and optimization. Analyzes pipeline velocity — avg duration, per-stage latency, bottleneck identification, retry frequency. Compares recent vs. historical trends. Also drives social content generation and distribution cadence.',
@@ -274,6 +368,19 @@ export const AGENT_DETAILS: Record<AgentId, {
   nexus: {
     actions: ['health-check', 'health-scoring', 'path-activity-aggregation', 'status-flagging', 'degraded-detection'],
     interactsWith: ['crown', 'guardian', 'visionary', 'architect', 'oracle', 'catalyst', 'prism', 'sentinel', 'foundation', 'gateway'],
+    communicationDirection: {
+      crown: 'sends',
+      guardian: 'receives',
+      visionary: 'bidirectional',
+      architect: 'bidirectional',
+      oracle: 'bidirectional',
+      catalyst: 'receives',
+      prism: 'sends',
+      sentinel: 'sends',
+      foundation: 'sends',
+      gateway: 'sends',
+    },
+    triads: ['quality', 'operations'],
     schedule: 'Every 30min (medium) / Every 2h (low)',
     costPerDay: { low: '$0.001', medium: '$0.005', high: '$0.02' },
     fullDescription: 'Central routing and health monitoring. Health-checks all 11 agents by measuring heartbeat freshness and error rates. Computes health scores (0-100) and flags degraded agents. Aggregates path activity between agent pairs for the Tree of Life visualization.',
@@ -281,6 +388,12 @@ export const AGENT_DETAILS: Record<AgentId, {
   sentinel: {
     actions: ['system-monitoring', 'api-verification', 'database-checks', 'uptime-tracking'],
     interactsWith: ['nexus', 'prism', 'guardian'],
+    communicationDirection: {
+      nexus: 'receives',
+      prism: 'bidirectional',
+      guardian: 'sends',
+    },
+    triads: ['operations'],
     schedule: 'Via tola-agent (legacy)',
     costPerDay: { low: '$0', medium: '$0', high: '$0.01' },
     fullDescription: 'Health monitoring agent. Verifies API availability, database connectivity, and system uptime. Works through the legacy tola-agent Edge Function. Provides redundant verification alongside Prism.',
@@ -288,6 +401,13 @@ export const AGENT_DETAILS: Record<AgentId, {
   prism: {
     actions: ['quality-check', 'synthetic-health-checks', 'page-response-monitoring', 'agent-output-audit', 'daily-quality-report'],
     interactsWith: ['nexus', 'guardian', 'gateway'],
+    communicationDirection: {
+      nexus: 'receives',
+      guardian: 'bidirectional',
+      gateway: 'receives',
+      sentinel: 'bidirectional',
+    },
+    triads: ['quality'],
     schedule: 'Every 6h (medium) / Daily (low)',
     costPerDay: { low: '$0.001', medium: '$0.003', high: '$0.01' },
     fullDescription: 'Quality assurance. Runs synthetic health checks on 5 public pages (/, /discover, /blog, /approach, /services) with 10s timeout. Audits recent agent outputs for token/latency anomalies. Generates daily quality reports stored in the knowledge base.',
@@ -295,6 +415,10 @@ export const AGENT_DETAILS: Record<AgentId, {
   foundation: {
     actions: ['maintenance-run', 'table-row-counting', 'metrics-archival', 'log-archival', 'path-activity-cleanup', 'daily-infrastructure-report'],
     interactsWith: ['nexus'],
+    communicationDirection: {
+      nexus: 'sends',
+    },
+    triads: ['operations'],
     schedule: 'Every 12h (medium) / Daily (low)',
     costPerDay: { low: '$0.001', medium: '$0.002', high: '$0.005' },
     fullDescription: 'Infrastructure maintenance. Counts rows across 8 core tables (logs, metrics, paths, discoveries, contacts, blog, social, knowledge). Archives old data: metrics >30 days, path activity >7 days, logs >30 days. Generates daily infrastructure reports.',
@@ -302,6 +426,11 @@ export const AGENT_DETAILS: Record<AgentId, {
   gateway: {
     actions: ['seo-check', 'sitemap-validation', 'robots-txt-validation', 'rss-feed-validation', 'ai-crawler-verification', 'page-count-tracking'],
     interactsWith: ['nexus', 'prism'],
+    communicationDirection: {
+      nexus: 'receives',
+      prism: 'sends',
+    },
+    triads: [],
     schedule: 'Every 6h (medium) / Daily (low)',
     costPerDay: { low: '$0.001', medium: '$0.003', high: '$0.01' },
     fullDescription: 'SEO and application health. Validates sitemap.xml structure and URL count, robots.txt directives (GPTBot, ClaudeBot, PerplexityBot allowed), RSS feed format. Tracks total page count (static + published blog posts). Independent monitoring of public-facing infrastructure.',

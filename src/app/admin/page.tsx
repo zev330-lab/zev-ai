@@ -47,6 +47,10 @@ interface DashboardStats {
   overdue_family_tasks: number;
   unpaid_invoices: number;
   alerts: Alert[];
+  total_cost_today?: number;
+  total_cost_7d?: number;
+  system_uptime_hours?: number;
+  agent_costs?: { agent_id: string; tokens: number; actions: number; cost: number }[];
 }
 
 function formatDuration(seconds: number): string {
@@ -114,12 +118,24 @@ export default function AdminDashboardPage() {
     <div className="flex-1 overflow-y-auto">
       {/* Header */}
       <div className="px-6 py-5 border-b border-[var(--color-admin-border)]">
-        <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">
-          Operations Center
-        </h1>
-        <p className="text-xs text-[var(--color-muted)] mt-1">
-          TOLA v3.0 Pipeline Dashboard
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">
+              Operations Center
+            </h1>
+            <p className="text-xs text-[var(--color-muted)] mt-1">
+              TOLA v3.0 Pipeline Dashboard
+            </p>
+          </div>
+          {(stats?.system_uptime_hours ?? 0) > 0 && (
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-wider text-[var(--color-muted)]">System Uptime</p>
+              <p className="text-sm font-mono text-green-400">
+                {Math.floor((stats?.system_uptime_hours ?? 0) / 24)}d {Math.floor((stats?.system_uptime_hours ?? 0) % 24)}h
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="p-6 space-y-6">
@@ -130,7 +146,9 @@ export default function AdminDashboardPage() {
               <h2 className="text-sm font-medium text-[var(--color-foreground-strong)]">System Cost Level</h2>
               <p className="text-[10px] text-[var(--color-muted)] mt-0.5">Controls agent frequency, AI model selection, image generation, and posting cadence</p>
             </div>
-            <span className="text-[10px] text-[var(--color-muted)]">{COST_LEVELS[costLevel].est} estimated</span>
+            <span className="text-[10px] text-[var(--color-muted)]">
+              {stats?.total_cost_7d != null ? `$${stats.total_cost_7d.toFixed(2)} last 7d` : COST_LEVELS[costLevel].est}
+            </span>
           </div>
           <div className="grid grid-cols-3 gap-2">
             {(['low', 'medium', 'high'] as const).map((level) => {
@@ -169,10 +187,11 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Primary stat cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           <StatCard label="Total Discoveries" value={stats?.total_discoveries ?? 0} />
-          <StatCard label="Active Agents" value={stats?.active_agents ?? 0} />
+          <StatCard label="Active Agents" value={`${stats?.active_agents ?? 0}/11`} />
           <StatCard label="Avg Pipeline Time" value={formatDuration(stats?.avg_pipeline_seconds ?? 0)} />
+          <StatCard label="System Cost Today" value={stats?.total_cost_today != null ? `$${stats.total_cost_today.toFixed(2)}` : '--'} />
           <StatCard label="Alerts" value={(stats?.alerts?.length ?? 0)} accent={(stats?.alerts?.length ?? 0) > 0} />
         </div>
 
@@ -223,6 +242,21 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         )}
+
+        {/* Quick links */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[
+            { href: '/admin/tola', label: 'TOLA System', desc: 'Agent visualization' },
+            { href: '/admin/content', label: 'Content Engine', desc: `${stats?.blog_pending_review ?? 0} pending review` },
+            { href: '/admin/discoveries', label: 'Discoveries', desc: `${stats?.total_discoveries ?? 0} total` },
+            { href: '/admin/family', label: 'Family Hub', desc: `${stats?.overdue_family_tasks ?? 0} overdue` },
+          ].map((link) => (
+            <Link key={link.href} href={link.href} className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-lg px-4 py-3 hover:border-[var(--color-accent)]/30 transition-colors group">
+              <span className="text-xs font-medium text-[var(--color-foreground-strong)] group-hover:text-[var(--color-accent)] transition-colors">{link.label}</span>
+              <p className="text-[10px] text-[var(--color-muted)] mt-0.5">{link.desc}</p>
+            </Link>
+          ))}
+        </div>
 
         {/* Two-column: Pipeline stages + Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GEOMETRY_COMPONENTS } from '@/components/sacred-geometry';
 import type { TolaAgent, TolaAgentLog } from '@/lib/tola-agents';
-import { STATUS_COLORS, GEOMETRY_LABELS, AGENT_DETAILS, TREE_NODE_MAP } from '@/lib/tola-agents';
+import { STATUS_COLORS, GEOMETRY_LABELS, AGENT_DETAILS, TREE_NODE_MAP, TRIADS, type AgentId } from '@/lib/tola-agents';
 
 interface AgentPanelProps {
   agent: TolaAgent;
@@ -203,19 +203,89 @@ export function AgentPanel({ agent, onClose, onToggleKillSwitch, onTierChange }:
             </div>
           )}
 
-          {/* Interacts With */}
+          {/* Communicates With — direction-aware */}
           {AGENT_DETAILS[agent.id]?.interactsWith && (
             <div>
               <p className="text-xs tracking-[0.15em] uppercase text-[var(--color-muted)] mb-2">Communicates With</p>
-              <div className="flex flex-wrap gap-1.5">
-                {AGENT_DETAILS[agent.id].interactsWith.map((id) => (
-                  <span key={id} className="px-2 py-1 text-[10px] rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] capitalize">
-                    {TREE_NODE_MAP[id]?.name || id}
-                  </span>
-                ))}
+              <div className="space-y-1.5">
+                {AGENT_DETAILS[agent.id].interactsWith.map((partnerId) => {
+                  const dir = AGENT_DETAILS[agent.id].communicationDirection?.[partnerId as AgentId];
+                  const arrow = dir === 'sends' ? '→' : dir === 'receives' ? '←' : '↔';
+                  const arrowColor = dir === 'sends' ? '#7c9bf5' : dir === 'receives' ? '#c4b5e0' : '#4ade80';
+                  const label = dir === 'sends' ? 'sends to' : dir === 'receives' ? 'receives from' : 'bidirectional';
+                  return (
+                    <div key={partnerId} className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)]">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold" style={{ color: arrowColor }}>{arrow}</span>
+                        <span className="text-xs capitalize text-[var(--color-foreground-strong)]">
+                          {TREE_NODE_MAP[partnerId as AgentId]?.name || partnerId}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-[var(--color-muted)]">{label}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
+
+          {/* Triads */}
+          {(() => {
+            const agentTriads = TRIADS.filter((t) => t.agents.includes(agent.id as AgentId));
+            if (agentTriads.length === 0) return null;
+            return (
+              <div>
+                <p className="text-xs tracking-[0.15em] uppercase text-[var(--color-muted)] mb-2">Coordination Triads</p>
+                <div className="space-y-2">
+                  {agentTriads.map((triad) => (
+                    <div key={triad.id} className="rounded-lg border border-[var(--color-admin-border)] bg-[var(--color-admin-bg)] p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium" style={{ color: triad.color }}>{triad.name}</span>
+                        {/* Triangle diagram — 3 dots connected */}
+                        <svg width="44" height="38" viewBox="0 0 44 38" fill="none" aria-hidden="true">
+                          {/* Lines */}
+                          <line x1="22" y1="4" x2="4" y2="34" stroke={triad.color} strokeWidth="1.2" strokeOpacity="0.4" />
+                          <line x1="22" y1="4" x2="40" y2="34" stroke={triad.color} strokeWidth="1.2" strokeOpacity="0.4" />
+                          <line x1="4" y1="34" x2="40" y2="34" stroke={triad.color} strokeWidth="1.2" strokeOpacity="0.4" />
+                          {/* Dots */}
+                          {triad.agents.map((tid, i) => {
+                            const cx = i === 0 ? 22 : i === 1 ? 4 : 40;
+                            const cy = i === 0 ? 4 : 34;
+                            const isThis = tid === agent.id;
+                            return (
+                              <circle
+                                key={tid}
+                                cx={cx}
+                                cy={cy}
+                                r={isThis ? 5 : 3.5}
+                                fill={isThis ? triad.color : `${triad.color}60`}
+                              />
+                            );
+                          })}
+                        </svg>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {triad.agents.map((tid) => (
+                          <span
+                            key={tid}
+                            className="text-[10px] px-1.5 py-0.5 rounded-full capitalize"
+                            style={{
+                              backgroundColor: tid === agent.id ? `${triad.color}25` : 'transparent',
+                              color: tid === agent.id ? triad.color : 'var(--color-muted)',
+                              border: `1px solid ${tid === agent.id ? triad.color + '50' : 'var(--color-admin-border)'}`,
+                            }}
+                          >
+                            {TREE_NODE_MAP[tid]?.name || tid}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-[10px] text-[var(--color-muted)] mt-1.5 leading-relaxed">{triad.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Schedule & Cost */}
           {AGENT_DETAILS[agent.id] && (

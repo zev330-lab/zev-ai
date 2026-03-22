@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidSession } from '@/lib/auth';
+import { tokensToCost } from '@/lib/cost-utils';
 
 async function isAuthed(req: NextRequest) {
   return isValidSession(req.cookies.get('admin_auth')?.value);
@@ -18,12 +19,17 @@ export async function GET(req: NextRequest) {
   todayStart.setHours(0, 0, 0, 0);
   const todayISO = todayStart.toISOString();
 
+  // 7-day window for trend queries
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
   const [
     actionsRes, todayPipelinesRes, tierThreeRes, activeAgentsRes, allDiscoveriesRes, completedTimesRes,
     // Cross-module queries
     blogReviewRes, socialPendingRes, overdueTasksRes, unpaidInvoicesRes,
     // Alerts
     failedRes, stalledRes, staleAgentsRes,
+    // Cost / trend queries
+    recentLogsRes, uptimeRes,
   ] = await Promise.all([
     supabase.from('tola_agent_log').select('*', { count: 'exact', head: true }).gte('created_at', todayISO),
     supabase.from('discoveries').select('*', { count: 'exact', head: true }).eq('pipeline_status', 'complete').gte('pipeline_completed_at', todayISO),
@@ -40,6 +46,10 @@ export async function GET(req: NextRequest) {
     supabase.from('discoveries').select('id, name, company, pipeline_error, pipeline_status, updated_at').eq('pipeline_status', 'failed').order('updated_at', { ascending: false }).limit(5),
     supabase.from('discoveries').select('id, name, company, pipeline_error, pipeline_status, updated_at').eq('pipeline_status', 'stalled').order('updated_at', { ascending: false }).limit(5),
     supabase.from('tola_agents').select('id, display_name, last_heartbeat, status').lt('last_heartbeat', new Date(Date.now() - 10 * 60 * 1000).toISOString()).neq('status', 'offline'),
+    // Last 7 days of log entries for trend + per-agent cost aggregation
+    supabase.from('tola_agent_log').select('created_at, tokens_used, agent_id').gte('created_at', sevenDaysAgo),
+    // Earliest heartbeat to approximate system uptime
+    supabase.from('tola_agents').select('last_heartbeat').not('last_heartbeat', 'is', null).order('last_heartbeat', { ascending: true }).limit(1),
   ]);
 
   const byStage: Record<string, number> = {};
@@ -85,6 +95,73 @@ export async function GET(req: NextRequest) {
     alerts.push({ type: 'stale_agent', severity: 'warning', message: `${row.display_name} — no heartbeat for 10+ min`, timestamp: row.last_heartbeat });
   }
 
+  // --- Cost & trend aggregation ---
+  type LogRow = { created_at: string; tokens_used: number | null; agent_id: string | null };
+  const logs: LogRow[] = (recentLogsRes.data as LogRow[]) || [];
+
+  // Build daily_trend: group by UTC date string (YYYY-MM-DD) over last 7 days
+  const trendByDate: Record<string, { actions: number; tokens: number }> = {};
+
+  // Pre-populate the last 7 days so days with zero activity still appear
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+    const key = d.toISOString().slice(0, 10);
+    trendByDate[key] = { actions: 0, tokens: 0 };
+  }
+
+  const agentMap: Record<string, { tokens: number; actions: number }> = {};
+
+  for (const row of logs) {
+    const dateKey = row.created_at.slice(0, 10); // YYYY-MM-DD
+    const tokens = row.tokens_used ?? 0;
+
+    // Daily trend (only bucket dates that fall inside our 7-day window)
+    if (trendByDate[dateKey] !== undefined) {
+      trendByDate[dateKey].actions += 1;
+      trendByDate[dateKey].tokens += tokens;
+    }
+
+    // Per-agent aggregation
+    if (row.agent_id) {
+      if (!agentMap[row.agent_id]) {
+        agentMap[row.agent_id] = { tokens: 0, actions: 0 };
+      }
+      agentMap[row.agent_id].tokens += tokens;
+      agentMap[row.agent_id].actions += 1;
+    }
+  }
+
+  const daily_trend = Object.entries(trendByDate).map(([date, { actions, tokens }]) => ({
+    date,
+    actions,
+    tokens,
+    cost: tokensToCost(tokens),
+  }));
+
+  const agent_costs = Object.entries(agentMap).map(([agent_id, { tokens, actions }]) => ({
+    agent_id,
+    tokens,
+    actions,
+    cost: tokensToCost(tokens),
+  }));
+
+  // Today's total cost from logs with created_at >= todayISO
+  const total_tokens_today = logs
+    .filter((r) => r.created_at >= todayISO)
+    .reduce((sum, r) => sum + (r.tokens_used ?? 0), 0);
+  const total_cost_today = tokensToCost(total_tokens_today);
+
+  // 7-day total cost
+  const total_tokens_7d = logs.reduce((sum, r) => sum + (r.tokens_used ?? 0), 0);
+  const total_cost_7d = tokensToCost(total_tokens_7d);
+
+  // System uptime: hours since earliest recorded heartbeat
+  let system_uptime_hours = 0;
+  if (uptimeRes.data && uptimeRes.data.length > 0) {
+    const earliest = (uptimeRes.data[0] as { last_heartbeat: string }).last_heartbeat;
+    system_uptime_hours = Math.round((Date.now() - new Date(earliest).getTime()) / (1000 * 60 * 60));
+  }
+
   return NextResponse.json({
     actions_today: actionsRes.count ?? 0,
     pipelines_today: todayPipelinesRes.count ?? 0,
@@ -101,5 +178,11 @@ export async function GET(req: NextRequest) {
     unpaid_invoices: unpaidInvoicesRes.count ?? 0,
     // Alerts
     alerts,
+    // Cost & trend analytics
+    daily_trend,
+    agent_costs,
+    total_cost_today,
+    total_cost_7d,
+    system_uptime_hours,
   });
 }
