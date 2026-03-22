@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { CommandPalette } from './command-palette';
 
 interface NavBadges {
   discoveries: number;
@@ -65,10 +66,20 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     >
       {/* Desktop sidebar */}
       <aside className="hidden md:flex w-56 border-r border-[var(--color-admin-border)] flex-col shrink-0">
-        <div className="px-5 py-5 border-b border-[var(--color-admin-border)]">
+        <div className="px-5 py-5 border-b border-[var(--color-admin-border)] space-y-3">
           <Link href="/admin" className="text-base font-semibold text-[var(--color-foreground-strong)]">
             TOLA v3.0
           </Link>
+          <button
+            onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+            className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-[var(--color-muted)] bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg hover:border-[var(--color-accent)]/30 transition-colors cursor-pointer"
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Search...
+            <kbd className="ml-auto text-[10px] bg-[var(--color-admin-surface)] px-1 py-0.5 rounded">⌘K</kbd>
+          </button>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
           {nav.map((item) => {
@@ -142,6 +153,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden pb-14 md:pb-0">
         {children}
       </main>
+
+      <CommandPalette />
     </div>
   );
 }

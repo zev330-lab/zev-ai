@@ -538,10 +538,38 @@ const TABS: { id: Tab; label: string; description: string }[] = [
 
 export default function AdminTolaPage() {
   const [activeTab, setActiveTab] = useState<Tab>('system');
+  const [kiosk, setKiosk] = useState(false);
+
+  // F11 or Escape to toggle kiosk
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'F11') { e.preventDefault(); setKiosk(k => !k); }
+      if (e.key === 'Escape' && kiosk) setKiosk(false);
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [kiosk]);
+
+  // Hide sidebar in kiosk mode
+  useEffect(() => {
+    const sidebar = document.querySelector('aside');
+    const mobileNav = document.querySelector('.md\\:hidden.fixed.bottom-0');
+    if (kiosk) {
+      sidebar?.classList.add('!hidden');
+      mobileNav?.classList.add('!hidden');
+    } else {
+      sidebar?.classList.remove('!hidden');
+      mobileNav?.classList.remove('!hidden');
+    }
+    return () => {
+      sidebar?.classList.remove('!hidden');
+      mobileNav?.classList.remove('!hidden');
+    };
+  }, [kiosk]);
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Tab bar — sits above the content, styled consistently with other admin pages */}
+    <div className={`flex flex-col h-full ${kiosk ? 'fixed inset-0 z-[90] bg-[var(--color-admin-bg)]' : ''}`}>
+      {/* Tab bar */}
       <div className="px-6 pt-4 pb-0 border-b border-[var(--color-admin-border)] shrink-0 flex items-center gap-1">
         {TABS.map((tab) => (
           <button
@@ -564,6 +592,15 @@ export default function AdminTolaPage() {
             )}
           </button>
         ))}
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => setKiosk(k => !k)}
+            title={kiosk ? 'Exit fullscreen (Esc)' : 'Fullscreen mode (F11)'}
+            className="px-2.5 py-1.5 text-[10px] text-[var(--color-muted)] hover:text-[var(--color-foreground-strong)] border border-[var(--color-admin-border)] rounded-lg transition-colors cursor-pointer"
+          >
+            {kiosk ? 'Exit Fullscreen' : 'Fullscreen'}
+          </button>
+        </div>
       </div>
 
       {/* Tab content */}
