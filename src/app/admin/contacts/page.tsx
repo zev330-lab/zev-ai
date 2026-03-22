@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface Contact {
   id: string;
@@ -53,6 +54,7 @@ export default function AdminContactsPage() {
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Contact | null>(null);
   const [notes, setNotes] = useState('');
+  const [linkedDiscovery, setLinkedDiscovery] = useState<{ id: string; pipeline_status: string; company: string } | null>(null);
 
   const fetchContacts = useCallback(async () => {
     const params = new URLSearchParams();
@@ -82,8 +84,20 @@ export default function AdminContactsPage() {
   const openDetail = (contact: Contact) => {
     setSelected(contact);
     setNotes(contact.notes || '');
+    setLinkedDiscovery(null);
     if (contact.status === 'new') {
       updateContact(contact.id, { status: 'read' });
+    }
+    // Look up linked discovery
+    if (contact.email) {
+      fetch(`/api/admin/discoveries?search=${encodeURIComponent(contact.email)}`)
+        .then(r => r.ok ? r.json() : [])
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            setLinkedDiscovery({ id: data[0].id, pipeline_status: data[0].pipeline_status, company: data[0].company || contact.company || '' });
+          }
+        })
+        .catch(() => {});
     }
   };
 
@@ -229,6 +243,18 @@ export default function AdminContactsPage() {
                 )}
               </DetailField>
               <DetailField label="Submitted" value={formatDate(selected.created_at)} />
+              {linkedDiscovery && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1">Linked Discovery</p>
+                  <Link
+                    href="/admin/discoveries"
+                    className="flex items-center gap-2 px-3 py-2 bg-[var(--color-accent)]/10 border border-[var(--color-accent)]/20 rounded-lg hover:bg-[var(--color-accent)]/20 transition-colors"
+                  >
+                    <span className="text-xs text-[var(--color-accent)] font-medium">View Discovery</span>
+                    <span className="text-[10px] text-[var(--color-muted)]">Pipeline: {linkedDiscovery.pipeline_status}</span>
+                  </Link>
+                </div>
+              )}
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1">Message</p>
                 <p className="text-sm text-[var(--color-muted-light)] whitespace-pre-wrap leading-relaxed">
