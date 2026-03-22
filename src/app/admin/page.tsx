@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ActivityFeed } from '@/components/admin/activity-feed';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const STAGE_COLORS: Record<string, string> = {
   none: '#6b7280',
@@ -339,6 +340,86 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Cost breakdown */}
+        {(stats?.agent_costs?.length ?? 0) > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-medium text-[var(--color-foreground-strong)]">Cost by Agent (7d)</h2>
+                <Link href="/admin/tola" className="text-[10px] text-[var(--color-accent)] hover:underline">View details</Link>
+              </div>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={(stats?.agent_costs || []).filter(a => a.cost > 0).map(a => ({ name: a.agent_id, value: Number(a.cost.toFixed(4)) }))}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={40}
+                      outerRadius={70}
+                      paddingAngle={2}
+                    >
+                      {(stats?.agent_costs || []).filter(a => a.cost > 0).map((_, i) => (
+                        <Cell key={i} fill={['#7c9bf5', '#c4b5e0', '#4ade80', '#f59e0b', '#60a5fa', '#e879f9', '#f472b6', '#6b7280', '#fb923c', '#a78bfa', '#34d399'][i % 11]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#1a1f2e', border: '1px solid #2a2f3e', borderRadius: '8px', fontSize: '12px' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {(stats?.agent_costs || []).filter(a => a.cost > 0).slice(0, 6).map((a, i) => (
+                  <span key={a.agent_id} className="text-[10px] text-[var(--color-muted)] flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: ['#7c9bf5', '#c4b5e0', '#4ade80', '#f59e0b', '#60a5fa', '#e879f9'][i % 6] }} />
+                    {a.agent_id}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* System health score */}
+            <div className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-5">
+              <h2 className="text-sm font-medium text-[var(--color-foreground-strong)] mb-4">System Health</h2>
+              {(() => {
+                const agentScore = ((stats?.active_agents ?? 0) / 11) * 40;
+                const pipelineScore = (stats?.pipeline_success_rate ?? 0) * 0.3;
+                const alertPenalty = Math.min((stats?.alerts?.length ?? 0) * 10, 30);
+                const score = Math.max(0, Math.min(100, Math.round(agentScore + pipelineScore + 30 - alertPenalty)));
+                const color = score >= 80 ? '#4ade80' : score >= 50 ? '#f59e0b' : '#f87171';
+                const label = score >= 80 ? 'Healthy' : score >= 50 ? 'Degraded' : 'Critical';
+                return (
+                  <div className="flex flex-col items-center py-4">
+                    <div className="relative w-32 h-32">
+                      <svg viewBox="0 0 120 120" className="w-full h-full">
+                        <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-admin-border)" strokeWidth="8" />
+                        <circle cx="60" cy="60" r="50" fill="none" stroke={color} strokeWidth="8"
+                          strokeDasharray={`${score * 3.14} ${314 - score * 3.14}`}
+                          strokeLinecap="round"
+                          transform="rotate(-90 60 60)"
+                          style={{ transition: 'stroke-dasharray 1s ease' }}
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-3xl font-bold" style={{ color }}>{score}</span>
+                        <span className="text-[10px] text-[var(--color-muted)]">{label}</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 space-y-1.5 text-xs text-[var(--color-muted-light)] w-full">
+                      <div className="flex justify-between"><span>Agent uptime</span><span>{stats?.active_agents ?? 0}/11</span></div>
+                      <div className="flex justify-between"><span>Pipeline success</span><span>{stats?.pipeline_success_rate ?? 0}%</span></div>
+                      <div className="flex justify-between"><span>Active alerts</span><span>{stats?.alerts?.length ?? 0}</span></div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
