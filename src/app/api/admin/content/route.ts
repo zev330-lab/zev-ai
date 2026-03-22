@@ -189,6 +189,47 @@ export async function PATCH(request: NextRequest) {
         // Silent fail — internal linking is non-critical
       }
     }
+
+    // Backlink outreach: generate outreach suggestions for the published post
+    if (pubPost?.title && process.env.ANTHROPIC_API_KEY) {
+      try {
+        const outreachRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': process.env.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 500,
+            system: 'You are an SEO outreach assistant. Given a blog post title and category, suggest 5 specific types of websites/blogs that might link to this content. For each, provide: 1) Type of site 2) Why they would link 3) A one-sentence outreach pitch. Be specific and actionable.',
+            messages: [{ role: 'user', content: `Blog post: "${pubPost.title}"\nCategory: ${pubPost.category}\nURL: https://askzev.ai/blog/${pubPost.slug}` }],
+          }),
+        });
+
+        if (outreachRes.ok) {
+          const outreachData = await outreachRes.json();
+          const outreachText = outreachData.content?.[0]?.text;
+          if (outreachText) {
+            await supabase.from('knowledge_entries').insert({
+              title: `Backlink outreach: ${pubPost.title}`,
+              content: outreachText,
+              source: 'insight',
+              source_ref: id,
+              tags: ['backlinks', 'seo', 'outreach', pubPost.category],
+            });
+            await supabase.from('tola_agent_log').insert({
+              agent_id: 'gateway',
+              action: 'backlink-outreach-generated',
+              output: { post_slug: pubPost.slug, post_title: pubPost.title },
+            });
+          }
+        }
+      } catch {
+        // Silent fail
+      }
+    }
   }
 
   return NextResponse.json({ success: true });

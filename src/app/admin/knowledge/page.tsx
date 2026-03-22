@@ -135,7 +135,15 @@ export default function AdminKnowledgePage() {
       {/* Entries */}
       <div className="flex-1 overflow-auto px-6 py-4">
         {loading ? <p className="text-sm text-[var(--color-muted)] py-12 text-center">Loading...</p> :
-          entries.length === 0 ? <p className="text-sm text-[var(--color-muted)] py-12 text-center">{search ? 'No results found.' : 'No entries yet. Add one or sync from existing data.'}</p> : (
+          entries.length === 0 ? (
+            <div className="text-center py-16">
+              <svg className="w-12 h-12 mx-auto text-[var(--color-muted)]/30 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
+              </svg>
+              <p className="text-sm text-[var(--color-muted-light)]">{search ? `No results for "${search}"` : 'Your knowledge base is empty.'}</p>
+              <p className="text-xs text-[var(--color-muted)] mt-1">{search ? 'Try a different search term or broaden your query.' : 'Add entries manually, or use "Sync Discoveries" / "Sync Blog" to auto-import.'}</p>
+            </div>
+          ) : (
             <div className="space-y-3">
               {entries.map((e) => {
                 const badge = SOURCE_BADGE[e.source] || SOURCE_BADGE.insight;
@@ -147,7 +155,17 @@ export default function AdminKnowledgePage() {
                       <span className="text-[10px] text-[var(--color-muted)] ml-auto">{new Date(e.created_at).toLocaleDateString()}</span>
                     </div>
                     <h3 className="text-sm font-medium text-[var(--color-foreground-strong)] mb-1">{e.title}</h3>
-                    <p className="text-xs text-[var(--color-muted-light)] line-clamp-2">{e.content}</p>
+                    <p className="text-xs text-[var(--color-muted-light)] line-clamp-2">
+                      {search && e.content.toLowerCase().includes(search.toLowerCase())
+                        ? (() => {
+                            const idx = e.content.toLowerCase().indexOf(search.toLowerCase());
+                            const start = Math.max(0, idx - 40);
+                            const end = Math.min(e.content.length, idx + search.length + 80);
+                            const snippet = (start > 0 ? '...' : '') + e.content.slice(start, end) + (end < e.content.length ? '...' : '');
+                            return snippet;
+                          })()
+                        : e.content.slice(0, 200)}
+                    </p>
                     {e.tags.length > 0 && (
                       <div className="flex gap-1 mt-2">
                         {e.tags.slice(0, 5).map((tag) => <span key={tag} className="text-[9px] bg-[var(--color-admin-bg)] rounded px-1.5 py-0.5 text-[var(--color-muted)]">{tag}</span>)}
