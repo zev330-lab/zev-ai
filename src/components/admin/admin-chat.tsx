@@ -7,6 +7,33 @@ interface Message {
   content: string;
 }
 
+function renderMarkdown(text: string) {
+  return text.split('\n').map((line, i) => {
+    // Headers
+    if (line.startsWith('### ')) return <h4 key={i} className="font-semibold text-[var(--color-foreground-strong)] mt-2 mb-1">{line.slice(4)}</h4>;
+    if (line.startsWith('## ')) return <h3 key={i} className="font-semibold text-[var(--color-foreground-strong)] mt-2 mb-1">{line.slice(3)}</h3>;
+    // List items
+    if (/^[-*]\s/.test(line)) return <div key={i} className="flex gap-1.5 ml-1"><span className="text-[var(--color-accent)] shrink-0">-</span><span>{boldify(line.slice(2))}</span></div>;
+    if (/^\d+\.\s/.test(line)) return <div key={i} className="flex gap-1.5 ml-1"><span className="text-[var(--color-accent)] shrink-0">{line.match(/^\d+/)?.[0]}.</span><span>{boldify(line.replace(/^\d+\.\s*/, ''))}</span></div>;
+    // Horizontal rule
+    if (/^---+$/.test(line.trim())) return <hr key={i} className="border-[var(--color-admin-border)] my-2" />;
+    // Empty line
+    if (!line.trim()) return <div key={i} className="h-1.5" />;
+    // Normal text with bold
+    return <p key={i}>{boldify(line)}</p>;
+  });
+}
+
+function boldify(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={i} className="font-semibold text-[var(--color-foreground-strong)]">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
 export function AdminChat() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -115,7 +142,7 @@ export function AdminChat() {
                       : 'bg-[var(--color-admin-bg)] text-[var(--color-foreground)] rounded-bl-sm border border-[var(--color-admin-border)]'
                   }`}
                 >
-                  {msg.content}
+                  {msg.role === 'assistant' ? renderMarkdown(msg.content) : msg.content}
                 </div>
               </div>
             ))}

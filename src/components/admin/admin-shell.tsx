@@ -14,10 +14,68 @@ interface NavBadges {
   contacts: number;
 }
 
+function ShortcutHelp({ open, onClose }: { open: boolean; onClose: () => void }) {
+  if (!open) return null;
+  const shortcuts = [
+    { keys: '⌘K', desc: 'Command palette — search everything' },
+    { keys: '?', desc: 'Show this help' },
+    { keys: 'G D', desc: 'Go to Dashboard' },
+    { keys: 'G T', desc: 'Go to TOLA' },
+    { keys: 'G I', desc: 'Go to Discoveries' },
+    { keys: 'G C', desc: 'Go to Content' },
+    { keys: 'G F', desc: 'Go to Family' },
+    { keys: 'G A', desc: 'Go to Agents' },
+    { keys: 'F11', desc: 'Fullscreen/kiosk (on TOLA page)' },
+    { keys: 'Esc', desc: 'Close panel/modal' },
+  ];
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-6 w-full max-w-sm shadow-2xl">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-[var(--color-foreground-strong)]">Keyboard Shortcuts</h3>
+          <button onClick={onClose} className="text-[var(--color-muted)] hover:text-[var(--color-foreground-strong)] cursor-pointer">&times;</button>
+        </div>
+        <div className="space-y-2">
+          {shortcuts.map(s => (
+            <div key={s.keys} className="flex items-center justify-between text-xs">
+              <span className="text-[var(--color-muted-light)]">{s.desc}</span>
+              <kbd className="bg-[var(--color-admin-bg)] text-[var(--color-foreground-strong)] px-2 py-0.5 rounded text-[10px] font-mono">{s.keys}</kbd>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [badges, setBadges] = useState<NavBadges>({ discoveries: 0, content: 0, finance: 0, family: 0, contacts: 0 });
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [pendingG, setPendingG] = useState(false);
+
+  // Keyboard shortcuts: ? for help, G+key for navigation
+  useEffect(() => {
+    if (pathname === '/admin/login') return;
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable) return;
+
+      if (e.key === '?' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); setShowShortcuts(s => !s); return; }
+
+      if (pendingG) {
+        setPendingG(false);
+        const routes: Record<string, string> = { d: '/admin', t: '/admin/tola', i: '/admin/discoveries', c: '/admin/content', f: '/admin/family', a: '/admin/agents', p: '/admin/projects', k: '/admin/knowledge' };
+        if (routes[e.key]) { e.preventDefault(); router.push(routes[e.key]); }
+        return;
+      }
+      if (e.key === 'g' && !e.metaKey && !e.ctrlKey) { setPendingG(true); setTimeout(() => setPendingG(false), 1000); }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [pathname, pendingG, router]);
 
   const fetchBadges = useCallback(() => {
     fetch('/api/admin/stats')
@@ -178,6 +236,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </main>
 
       <CommandPalette />
+      <ShortcutHelp open={showShortcuts} onClose={() => setShowShortcuts(false)} />
     </div>
     </ToastProvider>
   );
