@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseAdmin } from '@/lib/supabase';
 
 const SYSTEM_PROMPT = `You are the AI assistant for zev.ai, an AI consulting practice run by Zev Steinmetz in Boston.
 
@@ -17,16 +18,23 @@ CASE STUDIES:
 - Rosen Media Group (Media): 2.5x content output after AI pipeline deployment
 
 APPROACH:
-Multi-agent AI systems using coordination patterns from nature. 11 specialized agents, 22 communication pathways, 3-tier human oversight (80% autonomous, 15% notify, 5% full stop). The same agents that build your system stay running after deployment.
+Multi-agent AI systems using coordination patterns from nature. 11 specialized agents, 22 communication pathways, 3-tier human oversight.
 
-PERSONALITY:
-- Be knowledgeable, direct, and genuinely helpful
-- Keep responses concise — 2-3 sentences unless they ask for detail
-- Don't be pushy, but naturally guide interested visitors toward starting a discovery at /discover
-- Don't make up information you don't have
-- If someone asks something you can't answer, suggest they start a discovery or reach out at hello@zev.ai
-- You can discuss AI implementation topics broadly — you're an expert
-- Mirror the site's tone: confident, practical, no jargon unless the visitor is technical`;
+CONVERSATION STYLE:
+- Be knowledgeable, direct, and genuinely helpful. Keep responses concise.
+- Naturally ask the visitor's name if they haven't shared it yet.
+- If they describe a business challenge, ask follow-up questions: What industry? How big is the team? What tools do they use currently?
+- If they seem interested, suggest starting a discovery or sharing their email so Zev can follow up personally.
+- Don't be pushy or interrogate. Let the conversation flow naturally.
+- You can discuss AI topics broadly — you're an expert.
+- If someone shares their email, acknowledge it warmly and confirm someone will reach out.`;
+
+const EXTRACTION_PROMPT = `Extract contact and business information that the HUMAN (not the assistant) shared in this conversation. Return ONLY valid JSON:
+{"name":null,"email":null,"company":null,"role":null,"business_overview":null,"pain_points":null,"interest_level":"none"}
+Rules:
+- Only include info the human explicitly stated
+- interest_level: "none" (just browsing), "low" (curious), "medium" (asking about services/pricing), "high" (shared email, asked to be contacted, described specific problems)
+- Return the JSON object only, no markdown, no explanation`;
 
 // Simple in-memory rate limiting
 const rateLimits = new Map<string, { count: number; resetAt: number }>();
@@ -35,10 +43,10 @@ function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const entry = rateLimits.get(ip);
   if (!entry || now > entry.resetAt) {
-    rateLimits.set(ip, { count: 1, resetAt: now + 60000 }); // 1 min window
+    rateLimits.set(ip, { count: 1, resetAt: now + 60000 });
     return true;
   }
-  if (entry.count >= 10) return false; // Max 10 messages per minute
+  if (entry.count >= 10) return false;
   entry.count++;
   return true;
 }
@@ -67,12 +75,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Messages required' }, { status: 400 });
     }
 
-    // Limit conversation context to last 10 messages
     const trimmed = messages.slice(-10).map((m: { role: string; content: string }) => ({
       role: m.role,
       content: m.content.slice(0, 2000),
     }));
 
+    // Get main chat response
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -89,10 +97,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      console.error('Claude API error:', res.status, err);
+      console.error('Claude API error:', res.status);
       return NextResponse.json(
-        { response: "I'm having trouble connecting right now. You can reach us at hello@zev.ai or start a discovery at /discover." },
+        { response: "I'm having trouble right now. Reach out at hello@zev.ai or start a discovery at /discover." },
         { status: 200 },
       );
     }
@@ -100,12 +107,115 @@ export async function POST(req: NextRequest) {
     const data = await res.json();
     const text = data.content?.[0]?.text || "I couldn't generate a response. Please try again.";
 
+    // Lead extraction — after 3+ user messages, extract info and feed to pipeline
+    const userMsgCount = trimmed.filter((m: { role: string }) => m.role === 'user').length;
+    if (userMsgCount >= 3) {
+      try {
+        await extractAndStoreLead(apiKey, trimmed);
+      } catch (e) {
+        console.error('Lead extraction failed:', e);
+      }
+    }
+
     return NextResponse.json({ response: text });
   } catch (err) {
-    console.error('Chat error:', err);
+    console.error('Chat route error:', err);
     return NextResponse.json(
       { response: "Something went wrong. Please reach out at hello@zev.ai." },
       { status: 200 },
     );
   }
+}
+
+async function extractAndStoreLead(apiKey: string, messages: { role: string; content: string }[]) {
+  const convo = messages.map((m) => `${m.role}: ${m.content}`).join('\n');
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      system: EXTRACTION_PROMPT,
+      messages: [{ role: 'user', content: convo }],
+    }),
+  });
+
+  if (!res.ok) return;
+  const data = await res.json();
+  const rawText = data.content?.[0]?.text;
+  if (!rawText) return;
+
+  const jsonStr = rawText.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+  let extracted: Record<string, string | null>;
+  try {
+    extracted = JSON.parse(jsonStr);
+  } catch {
+    return;
+  }
+
+  if (!extracted.name && !extracted.email) return;
+
+  const supabase = getSupabaseAdmin();
+
+  // Create contact if we have an email (check for duplicates)
+  if (extracted.email) {
+    const { data: existing } = await supabase
+      .from('contacts')
+      .select('id')
+      .eq('email', extracted.email)
+      .maybeSingle();
+
+    if (!existing) {
+      await supabase.from('contacts').insert({
+        name: extracted.name || 'Chat Visitor',
+        email: extracted.email,
+        company: extracted.company || null,
+        message: `[Via chat] ${extracted.pain_points || extracted.business_overview || 'Engaged via website chat'}`,
+        status: 'new',
+      });
+    }
+  }
+
+  // Create discovery if high interest + enough business context
+  if (
+    extracted.interest_level === 'high' &&
+    extracted.email &&
+    (extracted.pain_points || extracted.business_overview)
+  ) {
+    const { data: existingDisc } = await supabase
+      .from('discoveries')
+      .select('id')
+      .eq('email', extracted.email)
+      .maybeSingle();
+
+    if (!existingDisc) {
+      await supabase.from('discoveries').insert({
+        name: extracted.name || 'Chat Lead',
+        email: extracted.email,
+        company: extracted.company || null,
+        role: extracted.role || null,
+        business_overview: extracted.business_overview || null,
+        pain_points: extracted.pain_points || null,
+        pipeline_status: 'pending',
+      });
+    }
+  }
+
+  // Log to agent activity so other agents can see the lead capture
+  await supabase.from('tola_agent_log').insert({
+    agent_id: 'catalyst',
+    action: 'chat-lead-extracted',
+    output: {
+      name: extracted.name,
+      email: extracted.email ? '***' : null,
+      interest_level: extracted.interest_level,
+      created_contact: !!extracted.email,
+      created_discovery: extracted.interest_level === 'high',
+    },
+  });
 }

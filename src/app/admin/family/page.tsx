@@ -95,6 +95,28 @@ export default function AdminFamilyPage() {
     fetchAll();
   };
 
+  const deleteEvent = async (id: string) => {
+    if (!confirm('Delete this event?')) return;
+    await fetch('/api/admin/family', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, _type: 'event' }) });
+    fetchAll();
+  };
+
+  const deleteNote = async (id: string) => {
+    if (!confirm('Delete this note?')) return;
+    await fetch('/api/admin/family', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, _type: 'note' }) });
+    fetchAll();
+  };
+
+  const gcalUrl = (e: FamilyEvent) => {
+    const d = e.date.replace(/-/g, '');
+    const start = e.time_start ? `${d}T${e.time_start.replace(/:/g, '')}00` : d;
+    const end = e.time_end ? `${d}T${e.time_end.replace(/:/g, '')}00` : d;
+    const params = new URLSearchParams({ text: e.title, dates: `${start}/${end}` });
+    if (e.location) params.set('location', e.location);
+    if (e.description) params.set('details', e.description);
+    return `https://calendar.google.com/calendar/r/eventnew?${params.toString()}`;
+  };
+
   // Today view data
   const today = new Date().toISOString().slice(0, 10);
   const todayEvents = events.filter((e) => e.date === today);
@@ -213,6 +235,10 @@ export default function AdminFamilyPage() {
                         {e.location && ` · ${e.location}`}
                       </p>
                     </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <a href={gcalUrl(e)} target="_blank" rel="noopener noreferrer" className="px-2 py-1 text-[10px] rounded bg-[var(--color-accent)]/10 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/20 cursor-pointer" title="Add to Google Calendar">GCal</a>
+                      <button onClick={() => deleteEvent(e.id)} className="px-2 py-1 text-[10px] rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 cursor-pointer">&times;</button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -223,7 +249,10 @@ export default function AdminFamilyPage() {
               <div className="space-y-2">
                 {notes.map((n) => (
                   <div key={n.id} className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-lg p-4">
-                    <p className="text-sm text-[var(--color-muted-light)] whitespace-pre-wrap">{n.content}</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm text-[var(--color-muted-light)] whitespace-pre-wrap flex-1">{n.content}</p>
+                      <button onClick={() => deleteNote(n.id)} className="shrink-0 px-2 py-1 text-[10px] rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 cursor-pointer">&times;</button>
+                    </div>
                     <div className="flex items-center gap-2 mt-2 text-[10px] text-[var(--color-muted)]">
                       {n.context && <span className="text-[var(--color-accent)]">{n.context}</span>}
                       {n.tags.map((tag) => <span key={tag} className="bg-[var(--color-admin-bg)] rounded px-1.5 py-0.5">{tag}</span>)}

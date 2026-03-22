@@ -92,7 +92,7 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `/admin/content` — Content engine: Blog Posts + Social Queue, approve/publish workflow, calendar view, platform previews
 - `/admin/projects` — Project Command Center (Architect sub-agent): card grid with milestone progress, time tracking, Log Time modal. Seeded with 6 projects.
 - `/admin/finance` — Financial Overview (Foundation sub-agent): revenue/outstanding/hours metrics, invoice CRUD, Recharts chart
-- `/admin/family` — Family Hub (Catalyst sub-agent): Today view, kanban tasks (To Do/In Progress/Done), quick capture bar, events list, notes feed, family member avatar filters. Seeded with family member placeholders.
+- `/admin/family` — Family Hub (Catalyst sub-agent): Today view, kanban tasks (To Do/In Progress/Done), quick capture bar, events list with Google Calendar link generation and delete, notes feed with delete, family member avatar filters. Seeded with family member placeholders.
 - `/admin/knowledge` — Knowledge Base (Oracle sub-agent): prominent search bar, source-categorized entries (Meeting/Voice Memo/Article/Insight/Lesson/Discovery), quick capture, "Sync from Discoveries" + "Sync from Blog" auto-ingestion, pgvector similarity search
 - `/admin/agents` — Agent card grid with stats, Tree of Life diagram, activity feed
 - `/admin/contacts` — Contact list with status badges, search, detail slide-out
@@ -276,10 +276,11 @@ Config stored in `tola_config` table, managed via `/api/admin/settings`.
 - Floating button on all public pages (bottom-right, periwinkle with green pulse dot)
 - Opens dark-themed chat panel matching site design
 - Claude Haiku model (fast, cost-effective for visitor queries)
-- System prompt with full service/pricing/case study knowledge
+- System prompt with full service/pricing/case study knowledge + natural lead qualification
 - Suggested starter questions for empty state
 - Rate limited: 10 messages/minute per IP, context trimmed to last 10 messages, max 512 tokens
 - Graceful fallback if ANTHROPIC_API_KEY not set
+- **Chat-to-Pipeline Integration:** After 3+ user messages, a second Haiku call extracts contact info (name, email, company, role, pain points, interest level). If email found → auto-creates contact in CRM. If high interest + business context → auto-creates discovery with `pipeline_status: pending`, triggering the full Guardian → Visionary → Architect → Oracle assessment pipeline. All activity logged to `tola_agent_log` under Catalyst agent. Duplicate-safe via email matching.
 - API route: `POST /api/chat`
 
 ### Admin Chat (`src/components/admin/admin-chat.tsx`)
