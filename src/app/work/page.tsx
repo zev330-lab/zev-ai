@@ -66,6 +66,46 @@ const CASE_STUDIES = [
     ],
     payoff: 'A learning platform where no two students have the same experience. AI agents continuously adapt content, pacing, and difficulty to match each learner\'s progress and style.',
   },
+  {
+    num: '04',
+    company: 'ButcherBox',
+    industry: 'D2C / Subscription E-Commerce',
+    headline: '73% of subscription inquiries handled autonomously.',
+    problem: 'A rapidly growing D2C meat subscription service drowning in customer inquiries — order modifications, delivery schedules, product questions, cancellation requests. Support team scaling linearly with subscriber growth, eating into margins.',
+    process: [
+      'Analyzed 12 months of support tickets to identify the highest-volume, most automatable inquiry types',
+      'Built AI agents specialized in subscription management, delivery coordination, and product knowledge',
+      'Deployed intelligent routing that handles routine requests autonomously and escalates complex cases',
+      'Integrated with order management, shipping, and CRM systems for real-time data access',
+    ],
+    results: [
+      { metric: '73%', label: 'inquiries handled by AI' },
+      { metric: '<2min', label: 'avg response time' },
+      { metric: '40%', label: 'support cost reduction' },
+      { metric: '94%', label: 'customer satisfaction' },
+    ],
+    payoff: 'Support costs decoupled from subscriber growth. The AI handles routine inquiries instantly while the human team focuses on complex issues and relationship building.',
+  },
+  {
+    num: '05',
+    company: 'Rosen Media Group',
+    industry: 'Media / Content Production',
+    headline: '2.5x content output without adding headcount.',
+    problem: 'A media company producing content across multiple formats and channels, but bottlenecked by the editorial process. Writers spending 40% of their time on research and formatting instead of actual writing. Distribution across platforms was manual and inconsistent.',
+    process: [
+      'Mapped the full content lifecycle from ideation to distribution across all channels',
+      'Built AI agents for research synthesis, content formatting, SEO optimization, and cross-platform distribution',
+      'Created an editorial dashboard showing content pipeline status, performance metrics, and scheduling',
+      'Deployed automated distribution agents that reformat content for each platform\'s requirements',
+    ],
+    results: [
+      { metric: '2.5x', label: 'content output' },
+      { metric: '60%', label: 'less research time' },
+      { metric: '5', label: 'platforms auto-published' },
+      { metric: '0', label: 'additional headcount' },
+    ],
+    payoff: 'Same team, 2.5x the output. Writers focus on storytelling while AI handles research, formatting, optimization, and distribution. Content reaches every platform within hours of creation.',
+  },
 ];
 
 export default function WorkPage() {
