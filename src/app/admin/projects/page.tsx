@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface Project {
   id: string; name: string; client: string; status: string; description: string;
   tola_node: string; start_date: string; target_end_date: string | null;
   totalMilestones: number; completeMilestones: number; totalHours: number;
+  hoursThisWeek: number; hasOverdue: boolean;
   created_at: string; updated_at: string;
 }
 
@@ -36,6 +37,8 @@ const MS_BADGE: Record<string, { bg: string; text: string }> = {
 
 const FILTERS = ['all', 'active', 'paused', 'completed'] as const;
 
+const TODAY = new Date().toISOString().slice(0, 10);
+
 export default function AdminProjectsPage() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -44,9 +47,11 @@ export default function AdminProjectsPage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<{ project: Project; milestones: Milestone[]; entries: TimeEntry[] } | null>(null);
   const [showLogTime, setShowLogTime] = useState(false);
-  const [logForm, setLogForm] = useState({ project_id: '', hours: '', description: '', billable: true });
+  const [logForm, setLogForm] = useState({ project_id: '', hours: '', description: '', billable: true, date: TODAY });
   const [showAddMs, setShowAddMs] = useState(false);
   const [msForm, setMsForm] = useState({ title: '', due_date: '', description: '' });
+  // Track whether the quick-log fab was opened without a pre-selected project
+  const [quickLog, setQuickLog] = useState(false);
 
   const fetchProjects = useCallback(async () => {
     const params = filter !== 'all' ? `?status=${filter}` : '';
@@ -66,14 +71,33 @@ export default function AdminProjectsPage() {
 
   useEffect(() => { if (selected) fetchDetail(selected); }, [selected, fetchDetail]);
 
+  const openQuickLog = () => {
+    setQuickLog(true);
+    setLogForm({ project_id: projects[0]?.id || '', hours: '', description: '', billable: true, date: TODAY });
+    setShowLogTime(true);
+  };
+
+  const openDetailLog = () => {
+    setQuickLog(false);
+    setLogForm({ project_id: selected || projects[0]?.id || '', hours: '', description: '', billable: true, date: TODAY });
+    setShowLogTime(true);
+  };
+
   const logTime = async () => {
     if (!logForm.project_id || !logForm.hours) return;
     await fetch('/api/admin/projects', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ _type: 'time_entry', project_id: logForm.project_id, hours: parseFloat(logForm.hours), description: logForm.description, billable: logForm.billable, date: new Date().toISOString().slice(0, 10) }),
+      body: JSON.stringify({
+        _type: 'time_entry',
+        project_id: logForm.project_id,
+        hours: parseFloat(logForm.hours),
+        description: logForm.description,
+        billable: logForm.billable,
+        date: logForm.date || TODAY,
+      }),
     });
     setShowLogTime(false);
-    setLogForm({ project_id: '', hours: '', description: '', billable: true });
+    setLogForm({ project_id: '', hours: '', description: '', billable: true, date: TODAY });
     fetchProjects();
     if (selected) fetchDetail(selected);
   };
@@ -94,14 +118,12 @@ export default function AdminProjectsPage() {
     if (selected) fetchDetail(selected);
   };
 
-  // Weekly summary
-  const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
-  const weekStats = useMemo(() => {
-    // We'd need time entries for this week — simplified from project totals
-    const activeCount = projects.filter((p) => p.status === 'active').length;
-    const totalHours = projects.reduce((s, p) => s + p.totalHours, 0);
-    return { activeCount, totalHours };
-  }, [projects]);
+  // Derived stats — computed inline, no useMemo
+  const activeCount = projects.filter((p) => p.status === 'active').length;
+  const totalHoursAll = projects.reduce((s, p) => s + p.totalHours, 0);
+  const totalMsComplete = projects.reduce((s, p) => s + p.completeMilestones, 0);
+  const totalMsAll = projects.reduce((s, p) => s + p.totalMilestones, 0);
+  const hoursThisWeek = projects.reduce((s, p) => s + (p.hoursThisWeek || 0), 0);
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -111,20 +133,25 @@ export default function AdminProjectsPage() {
           <div>
             <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">Projects</h1>
             <p className="text-xs text-[var(--color-muted)] mt-1">
-              {projects.filter((p) => p.status === 'active').length} active &middot; {projects.reduce((s, p) => s + p.totalHours, 0).toFixed(1)}h total
+              {activeCount} active &middot; {totalHoursAll.toFixed(1)}h total
             </p>
           </div>
-          <button onClick={() => { setShowLogTime(true); setLogForm({ ...logForm, project_id: projects[0]?.id || '' }); }} className="px-4 py-2 text-xs font-medium rounded-lg bg-[var(--color-accent)] text-white hover:opacity-90 cursor-pointer">Log Time</button>
+          <button
+            onClick={openQuickLog}
+            className="px-4 py-2 text-xs font-medium rounded-lg bg-[var(--color-accent)] text-white hover:opacity-90 cursor-pointer"
+          >
+            Log Time
+          </button>
         </div>
       </div>
 
       {/* Stats */}
       <div className="px-6 py-4 border-b border-[var(--color-admin-border)] shrink-0">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <MiniStat label="Active Projects" value={String(projects.filter((p) => p.status === 'active').length)} />
-          <MiniStat label="Total Hours" value={projects.reduce((s, p) => s + p.totalHours, 0).toFixed(1)} />
-          <MiniStat label="Milestones Done" value={String(projects.reduce((s, p) => s + p.completeMilestones, 0))} />
-          <MiniStat label="Total Milestones" value={String(projects.reduce((s, p) => s + p.totalMilestones, 0))} />
+          <MiniStat label="Active Projects" value={String(activeCount)} />
+          <MiniStat label="Hours This Week" value={hoursThisWeek.toFixed(1)} accent />
+          <MiniStat label="Milestones Done" value={String(totalMsComplete)} />
+          <MiniStat label="Total Milestones" value={String(totalMsAll)} />
         </div>
       </div>
 
@@ -139,28 +166,66 @@ export default function AdminProjectsPage() {
 
       {/* Project cards */}
       <div className="flex-1 overflow-auto px-6 py-4">
-        {loading ? <p className="text-sm text-[var(--color-muted)] py-12 text-center">Loading...</p> : projects.length === 0 ? <p className="text-sm text-[var(--color-muted)] py-12 text-center">No projects found.</p> : (
+        {loading ? (
+          <p className="text-sm text-[var(--color-muted)] py-12 text-center">Loading projects...</p>
+        ) : projects.length === 0 ? (
+          <div className="py-20 text-center">
+            <p className="text-sm text-[var(--color-muted)]">No projects found.</p>
+            <p className="text-xs text-[var(--color-muted)]/60 mt-1">Change the filter above or create your first project.</p>
+          </div>
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map((p) => {
               const badge = STATUS_BADGE[p.status] || STATUS_BADGE.active;
               const pct = p.totalMilestones > 0 ? Math.round((p.completeMilestones / p.totalMilestones) * 100) : 0;
+              // Progress bar color: green when complete, amber when partially done, muted when zero
+              const barColor = pct === 100 ? '#4ade80' : pct > 0 ? '#7c9bf5' : 'var(--color-admin-border)';
               return (
-                <div key={p.id} onClick={() => setSelected(p.id)} className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-5 cursor-pointer hover:border-[var(--color-accent)]/30 transition-colors">
+                <div
+                  key={p.id}
+                  onClick={() => setSelected(p.id)}
+                  className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-5 cursor-pointer hover:border-[var(--color-accent)]/30 transition-colors relative overflow-hidden"
+                  style={p.hasOverdue ? { borderLeftColor: '#f87171', borderLeftWidth: 3 } : {}}
+                >
+                  {/* Overdue indicator dot */}
+                  {p.hasOverdue && (
+                    <span
+                      title="Has overdue milestone"
+                      className="absolute top-3 right-3 w-2 h-2 rounded-full bg-red-400"
+                      style={{ display: 'block' }}
+                    />
+                  )}
+
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-semibold text-[var(--color-foreground-strong)] truncate">{p.name}</h3>
+                    <h3 className="text-sm font-semibold text-[var(--color-foreground-strong)] truncate pr-4">{p.name}</h3>
                     <span className="inline-block px-2 py-0.5 text-[10px] font-medium rounded-full shrink-0" style={{ backgroundColor: badge.bg, color: badge.text }}>{badge.label}</span>
                   </div>
                   <p className="text-[11px] text-[var(--color-muted)]">{p.client}</p>
-                  {/* Progress bar */}
-                  <div className="mt-3 flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-[var(--color-admin-border)] rounded-full overflow-hidden">
-                      <div className="h-full bg-[var(--color-accent)] rounded-full transition-all" style={{ width: `${pct}%` }} />
+
+                  {/* Milestone progress bar */}
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] text-[var(--color-muted)]">
+                        {p.completeMilestones}/{p.totalMilestones} milestones
+                      </span>
+                      <span className="text-[10px] font-medium" style={{ color: barColor }}>{pct}%</span>
                     </div>
-                    <span className="text-[10px] text-[var(--color-muted)] w-8 text-right">{pct}%</span>
+                    <div className="h-1.5 bg-[var(--color-admin-border)] rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{ width: `${pct}%`, backgroundColor: barColor }}
+                      />
+                    </div>
                   </div>
+
                   <div className="mt-3 flex items-center gap-4 text-[10px] text-[var(--color-muted)]">
-                    <span>{p.totalHours.toFixed(1)}h logged</span>
-                    <span>{p.completeMilestones}/{p.totalMilestones} milestones</span>
+                    <span>{p.totalHours.toFixed(1)}h total</span>
+                    {(p.hoursThisWeek || 0) > 0 && (
+                      <span className="text-[var(--color-accent)]">{p.hoursThisWeek.toFixed(1)}h this week</span>
+                    )}
+                    {p.hasOverdue && (
+                      <span className="text-red-400 font-medium">overdue</span>
+                    )}
                   </div>
                 </div>
               );
@@ -168,6 +233,20 @@ export default function AdminProjectsPage() {
           </div>
         )}
       </div>
+
+      {/* Quick Log Time FAB — bottom-right floating */}
+      <button
+        onClick={openQuickLog}
+        title="Quick Log Time"
+        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-[var(--color-accent)] text-white shadow-lg hover:opacity-90 active:scale-95 transition-all cursor-pointer flex items-center justify-center"
+        style={{ boxShadow: '0 4px 24px rgba(124,155,245,0.35)' }}
+      >
+        {/* Clock icon */}
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      </button>
 
       {/* Project Detail Slide-out */}
       {selected && detail && (
@@ -182,7 +261,7 @@ export default function AdminProjectsPage() {
               <p className="text-xs text-[var(--color-muted)]">{detail.project.client} &middot; {detail.project.tola_node} node</p>
               <div className="flex items-center gap-2 mt-3">
                 <button onClick={() => setShowAddMs(true)} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--color-accent)]/20 text-[var(--color-accent)] cursor-pointer">Add Milestone</button>
-                <button onClick={() => { setShowLogTime(true); setLogForm({ ...logForm, project_id: selected }); }} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-500/20 text-purple-400 cursor-pointer">Log Time</button>
+                <button onClick={openDetailLog} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-500/20 text-purple-400 cursor-pointer">Log Time</button>
               </div>
             </div>
 
@@ -194,14 +273,19 @@ export default function AdminProjectsPage() {
                   <div className="space-y-2">
                     {detail.milestones.map((m) => {
                       const mb = MS_BADGE[m.status] || MS_BADGE.pending;
+                      const isOverdue = m.status !== 'complete' && m.due_date && m.due_date < TODAY;
                       return (
-                        <div key={m.id} className="flex items-start gap-3 p-3 bg-[var(--color-admin-bg)] rounded-lg">
+                        <div key={m.id} className="flex items-start gap-3 p-3 bg-[var(--color-admin-bg)] rounded-lg" style={isOverdue ? { borderLeft: '2px solid #f87171' } : {}}>
                           <button onClick={() => updateMilestone(m.id, { status: m.status === 'complete' ? 'pending' : 'complete', completed_at: m.status === 'complete' ? null : new Date().toISOString() })} className="mt-0.5 w-4 h-4 rounded border border-[var(--color-admin-border)] flex items-center justify-center shrink-0 cursor-pointer" style={m.status === 'complete' ? { backgroundColor: '#4ade80', borderColor: '#4ade80' } : {}}>
                             {m.status === 'complete' && <span className="text-[10px] text-white">&#10003;</span>}
                           </button>
                           <div className="flex-1 min-w-0">
                             <p className={`text-sm font-medium ${m.status === 'complete' ? 'text-[var(--color-muted)] line-through' : 'text-[var(--color-foreground-strong)]'}`}>{m.title}</p>
-                            {m.due_date && <p className="text-[10px] text-[var(--color-muted)] mt-0.5">{new Date(m.due_date).toLocaleDateString()}</p>}
+                            {m.due_date && (
+                              <p className={`text-[10px] mt-0.5 ${isOverdue ? 'text-red-400' : 'text-[var(--color-muted)]'}`}>
+                                {isOverdue ? 'Overdue · ' : ''}{new Date(m.due_date).toLocaleDateString()}
+                              </p>
+                            )}
                           </div>
                           <span className="inline-block px-1.5 py-0.5 text-[9px] font-medium rounded-full shrink-0" style={{ backgroundColor: mb.bg, color: mb.text }}>{m.status.replace('_', ' ')}</span>
                         </div>
@@ -236,21 +320,55 @@ export default function AdminProjectsPage() {
       {showLogTime && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50">
           <div className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-6 w-full max-w-sm">
-            <h3 className="text-sm font-semibold text-[var(--color-foreground-strong)] mb-4">Log Time</h3>
+            <h3 className="text-sm font-semibold text-[var(--color-foreground-strong)] mb-1">
+              {quickLog ? 'Quick Log Time' : 'Log Time'}
+            </h3>
+            {quickLog && (
+              <p className="text-[11px] text-[var(--color-muted)] mb-4">Fast entry — no need to open a project first.</p>
+            )}
+            {!quickLog && <div className="mb-4" />}
             <div className="space-y-3">
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1 block">Project</label>
-                <select value={logForm.project_id} onChange={(e) => setLogForm({ ...logForm, project_id: e.target.value })} className="w-full bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-foreground-strong)]">
+                <select
+                  value={logForm.project_id}
+                  onChange={(e) => setLogForm({ ...logForm, project_id: e.target.value })}
+                  className="w-full bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-foreground-strong)]"
+                >
+                  <option value="">Select project...</option>
                   {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1 block">Hours</label>
-                <input type="number" step="0.25" min="0" value={logForm.hours} onChange={(e) => setLogForm({ ...logForm, hours: e.target.value })} className="w-full bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-foreground-strong)]" placeholder="1.5" />
+                <input
+                  type="number"
+                  step="0.25"
+                  min="0"
+                  value={logForm.hours}
+                  onChange={(e) => setLogForm({ ...logForm, hours: e.target.value })}
+                  className="w-full bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-foreground-strong)]"
+                  placeholder="1.5"
+                  autoFocus
+                />
               </div>
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1 block">Description</label>
-                <input value={logForm.description} onChange={(e) => setLogForm({ ...logForm, description: e.target.value })} className="w-full bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-foreground-strong)]" placeholder="What did you work on?" />
+                <input
+                  value={logForm.description}
+                  onChange={(e) => setLogForm({ ...logForm, description: e.target.value })}
+                  className="w-full bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-foreground-strong)]"
+                  placeholder="What did you work on?"
+                />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1 block">Date</label>
+                <input
+                  type="date"
+                  value={logForm.date}
+                  onChange={(e) => setLogForm({ ...logForm, date: e.target.value })}
+                  className="w-full bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-foreground-strong)]"
+                />
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={logForm.billable} onChange={(e) => setLogForm({ ...logForm, billable: e.target.checked })} className="accent-[var(--color-accent)]" />
@@ -273,7 +391,7 @@ export default function AdminProjectsPage() {
             <div className="space-y-3">
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1 block">Title</label>
-                <input value={msForm.title} onChange={(e) => setMsForm({ ...msForm, title: e.target.value })} className="w-full bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-foreground-strong)]" />
+                <input value={msForm.title} onChange={(e) => setMsForm({ ...msForm, title: e.target.value })} className="w-full bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg px-3 py-2 text-sm text-[var(--color-foreground-strong)]" autoFocus />
               </div>
               <div>
                 <label className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1 block">Due Date</label>
@@ -291,11 +409,11 @@ export default function AdminProjectsPage() {
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: string }) {
+function MiniStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-lg px-4 py-3">
       <p className="text-[10px] uppercase tracking-wider text-[var(--color-muted)]">{label}</p>
-      <p className="text-xl font-semibold mt-1 text-[var(--color-foreground-strong)]">{value}</p>
+      <p className={`text-xl font-semibold mt-1 ${accent ? 'text-[var(--color-accent)]' : 'text-[var(--color-foreground-strong)]'}`}>{value}</p>
     </div>
   );
 }

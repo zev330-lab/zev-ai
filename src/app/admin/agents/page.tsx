@@ -16,6 +16,21 @@ import {
 } from '@/lib/tola-agents';
 import { GEOMETRY_COMPONENTS } from '@/components/sacred-geometry';
 
+// Agent dot colors for leaderboard — matches status palette but is distinct per agent
+const AGENT_COLORS: Record<string, string> = {
+  crown:      '#c4b5e0',
+  visionary:  '#7c9bf5',
+  architect:  '#60a5fa',
+  oracle:     '#a78bfa',
+  guardian:   '#4ade80',
+  catalyst:   '#fb923c',
+  nexus:      '#38bdf8',
+  sentinel:   '#f472b6',
+  prism:      '#facc15',
+  foundation: '#94a3b8',
+  gateway:    '#6ee7b7',
+};
+
 function staticToLive(agent: TolaAgentStatic): TolaAgent {
   return {
     id: agent.id,
@@ -44,11 +59,19 @@ function relativeTime(iso: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
+interface AgentCostRow {
+  agent_id: string;
+  tokens: number;
+  actions: number;
+  cost: number;
+}
+
 export default function AdminAgentsPage() {
   const { agents, loading, error } = useRealtimeAgents();
   const [selectedId, setSelectedId] = useState<AgentId | null>(null);
   const [agentLogs, setAgentLogs] = useState<Record<string, TolaAgentLog[]>>({});
   const [agentStats, setAgentStats] = useState<Record<string, { total: number; avgLatency: number }>>({});
+  const [agentCosts, setAgentCosts] = useState<AgentCostRow[]>([]);
 
   // Fetch logs for ALL agents
   useEffect(() => {
@@ -80,6 +103,18 @@ export default function AdminAgentsPage() {
       setAgentStats(statsMap);
     });
   }, [agents]);
+
+  // Fetch 7-day agent cost/action totals from stats API (for leaderboard)
+  useEffect(() => {
+    fetch('/api/admin/stats')
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.agent_costs && Array.isArray(data.agent_costs)) {
+          setAgentCosts(data.agent_costs as AgentCostRow[]);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const agentMap = useMemo(() => {
     const map = new Map<string, TolaAgent>();
@@ -132,6 +167,38 @@ export default function AdminAgentsPage() {
     }
   }, []);
 
+  // Leaderboard: 7-day rankings from stats API, MVP from per-agent log counts
+  const leaderboardRankings = useMemo(() => {
+    // Merge stats API data with display names from TOLA_AGENTS
+    const nameMap = new Map(TOLA_AGENTS.map((a) => [a.id, a.display_name]));
+
+    // Start from all 11 agents so unactive agents still appear at rank 11
+    const all = TOLA_AGENTS.map((a) => {
+      const cost = agentCosts.find((c) => c.agent_id === a.id);
+      return {
+        id: a.id,
+        name: nameMap.get(a.id) ?? a.id,
+        actions: cost?.actions ?? 0,
+        tokens: cost?.tokens ?? 0,
+      };
+    });
+
+    return all.sort((a, b) => b.actions - a.actions);
+  }, [agentCosts]);
+
+  const todayMvp = useMemo(() => {
+    // Use per-agent log totals already in agentStats (fetched per agent)
+    const entries = TOLA_AGENTS.map((a) => ({
+      id: a.id,
+      name: a.display_name,
+      total: agentStats[a.id]?.total ?? 0,
+    }));
+    const top = entries.sort((a, b) => b.total - a.total)[0];
+    return top?.total > 0 ? top : null;
+  }, [agentStats]);
+
+  const maxActions7d = leaderboardRankings[0]?.actions ?? 1;
+
   const healthyCount = agents.filter((a) => a.status === 'healthy').length;
   const degradedCount = agents.filter((a) => a.status === 'degraded').length;
   const criticalCount = agents.filter((a) => a.status === 'critical').length;
@@ -180,6 +247,114 @@ export default function AdminAgentsPage() {
 
       {/* Agent cards grid */}
       <div className="flex-1 overflow-y-auto p-6">
+
+        {/* Leaderboard */}
+        <div className="mb-8 bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-[var(--color-admin-border)] flex items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-widest text-[var(--color-muted)]">Agent Leaderboard</span>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] divide-y lg:divide-y-0 lg:divide-x divide-[var(--color-admin-border)]">
+
+            {/* MVP Card */}
+            <div className="p-5 flex flex-col justify-center gap-3">
+              <div className="flex items-center gap-2 mb-1">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 2L14.09 8.26L20.18 9.27L15.59 13.74L16.83 20.03L12 17.27L7.17 20.03L8.41 13.74L3.82 9.27L9.91 8.26L12 2Z" fill="#facc15" />
+                </svg>
+                <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-muted)]">Most Active Today</span>
+              </div>
+              {todayMvp ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+                      style={{
+                        backgroundColor: `${AGENT_COLORS[todayMvp.id] ?? '#7c9bf5'}22`,
+                        color: AGENT_COLORS[todayMvp.id] ?? '#7c9bf5',
+                        border: `1.5px solid ${AGENT_COLORS[todayMvp.id] ?? '#7c9bf5'}55`,
+                      }}
+                    >
+                      {todayMvp.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-base font-semibold text-[var(--color-foreground-strong)] leading-tight">{todayMvp.name}</p>
+                      <p className="text-[11px] text-[var(--color-muted)] mt-0.5">
+                        <span className="text-[var(--color-accent)] font-medium">{todayMvp.total.toLocaleString()}</span> actions logged
+                      </p>
+                    </div>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-[var(--color-admin-border)] overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: '100%', backgroundColor: AGENT_COLORS[todayMvp.id] ?? '#7c9bf5' }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-4">
+                  <p className="text-xs text-[var(--color-muted)]">No agent activity yet today</p>
+                  <p className="text-[10px] text-[var(--color-muted)]/60 mt-1">Agents will appear as they run</p>
+                </div>
+              )}
+            </div>
+
+            {/* 7-day rankings */}
+            <div className="p-5">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-muted)] mb-3">Rankings — 7 days</p>
+              <div className="space-y-2">
+                {leaderboardRankings.map((agent, idx) => {
+                  const barPct = maxActions7d > 0 ? Math.round((agent.actions / maxActions7d) * 100) : 0;
+                  const color = AGENT_COLORS[agent.id] ?? '#7c9bf5';
+                  const isMvp = idx === 0 && agent.actions > 0;
+                  return (
+                    <div key={agent.id} className="flex items-center gap-3 group">
+                      {/* Rank */}
+                      <span
+                        className="text-[10px] font-mono w-5 shrink-0 text-right"
+                        style={{ color: idx < 3 && agent.actions > 0 ? color : 'var(--color-muted)' }}
+                      >
+                        #{idx + 1}
+                      </span>
+                      {/* Dot */}
+                      <div
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: agent.actions > 0 ? color : 'var(--color-admin-border)' }}
+                      />
+                      {/* Name */}
+                      <span
+                        className="text-[11px] w-20 shrink-0 truncate"
+                        style={{ color: agent.actions > 0 ? 'var(--color-foreground-strong)' : 'var(--color-muted)' }}
+                      >
+                        {agent.name}
+                        {isMvp && (
+                          <svg className="inline ml-1 -mt-0.5" width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M12 2L14.09 8.26L20.18 9.27L15.59 13.74L16.83 20.03L12 17.27L7.17 20.03L8.41 13.74L3.82 9.27L9.91 8.26L12 2Z" fill="#facc15" />
+                          </svg>
+                        )}
+                      </span>
+                      {/* Bar */}
+                      <div className="flex-1 h-1.5 rounded-full bg-[var(--color-admin-border)] overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{
+                            width: `${barPct}%`,
+                            backgroundColor: color,
+                            opacity: agent.actions > 0 ? 1 : 0,
+                          }}
+                        />
+                      </div>
+                      {/* Count */}
+                      <span className="text-[10px] font-mono w-8 text-right shrink-0 text-[var(--color-muted)]">
+                        {agent.actions > 0 ? agent.actions.toLocaleString() : '--'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
           {allAgentIds.map((agentId) => {
             const agent = TOLA_AGENTS.find((a) => a.id === agentId)!;

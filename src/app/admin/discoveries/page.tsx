@@ -510,6 +510,9 @@ export default function AdminDiscoveriesPage() {
               </div>
             )}
 
+            {/* Pipeline Timeline */}
+            <PipelineTimeline discovery={selected} />
+
             {/* Tabs */}
             <div className="flex border-b border-[var(--color-admin-border)]">
               {(['overview', 'research', 'assessment', 'meeting', 'proposal'] as const).map((tab) => (
@@ -901,6 +904,240 @@ function EmptyState({ message, active }: { message: string; active?: boolean }) 
         </div>
       )}
       <p className="text-sm text-[var(--color-muted)]">{message}</p>
+    </div>
+  );
+}
+
+// Pipeline stage definitions — ordered journey from submission to completion
+const PIPELINE_STAGES: {
+  key: string;
+  label: string;
+  agent: string;
+  minPct: number;
+  maxPct: number;
+}[] = [
+  { key: 'submitted',   label: 'Submitted',   agent: '',          minPct: 0,   maxPct: 0   },
+  { key: 'pending',     label: 'Queued',       agent: 'Guardian',  minPct: 0,   maxPct: 10  },
+  { key: 'researching', label: 'Researched',   agent: 'Visionary', minPct: 15,  maxPct: 35  },
+  { key: 'scoping',     label: 'Scoped',       agent: 'Architect', minPct: 40,  maxPct: 65  },
+  { key: 'synthesizing',label: 'Synthesized',  agent: 'Oracle',    minPct: 70,  maxPct: 90  },
+  { key: 'complete',    label: 'Complete',     agent: '',          minPct: 100, maxPct: 100 },
+];
+
+function formatDuration(ms: number): string {
+  const secs = Math.floor(ms / 1000);
+  if (secs < 60) return `${secs}s`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ${secs % 60}s`;
+  const hrs = Math.floor(mins / 60);
+  return `${hrs}h ${mins % 60}m`;
+}
+
+function PipelineTimeline({ discovery }: { discovery: Discovery }) {
+  const {
+    pipeline_status,
+    pipeline_error,
+    pipeline_started_at,
+    pipeline_step_completed_at,
+    pipeline_completed_at,
+    created_at,
+    progress_pct,
+    pipeline_retry_count,
+  } = discovery;
+
+  // Only render if a pipeline has ever been initiated
+  if (!pipeline_status) return null;
+
+  const isFailed = pipeline_status === 'failed';
+  const isComplete = pipeline_status === 'complete';
+
+  // Determine which stage index is currently active
+  const activeStageKey = isFailed
+    ? (() => {
+        // Infer where it failed from progress_pct
+        if (progress_pct >= 70) return 'synthesizing';
+        if (progress_pct >= 40) return 'scoping';
+        if (progress_pct >= 15) return 'researching';
+        return 'pending';
+      })()
+    : pipeline_status;
+
+  const activeIdx = PIPELINE_STAGES.findIndex((s) => s.key === activeStageKey);
+
+  // Build stage state + timestamps
+  const stagesWithState = PIPELINE_STAGES.map((stage, idx) => {
+    let stageState: 'done' | 'current' | 'failed' | 'pending';
+
+    if (isFailed && idx === activeIdx) {
+      stageState = 'failed';
+    } else if (isComplete || idx < activeIdx) {
+      stageState = 'done';
+    } else if (idx === activeIdx) {
+      stageState = 'current';
+    } else {
+      stageState = 'pending';
+    }
+
+    // Assign best available timestamp per stage
+    let timestamp: string | null = null;
+    if (idx === 0) {
+      // Submitted
+      timestamp = created_at;
+    } else if (idx === 1 && pipeline_started_at) {
+      // Queued → pipeline started
+      timestamp = pipeline_started_at;
+    } else if (stageState === 'done' || stageState === 'failed') {
+      // For intermediate done stages, use step_completed_at as an approximation;
+      // for the final complete stage use pipeline_completed_at
+      if (stage.key === 'complete' && pipeline_completed_at) {
+        timestamp = pipeline_completed_at;
+      } else if (pipeline_step_completed_at) {
+        timestamp = pipeline_step_completed_at;
+      }
+    }
+
+    return { ...stage, state: stageState, timestamp };
+  });
+
+  // Compute duration from submission to last known event
+  const lastEventTs =
+    pipeline_completed_at ||
+    pipeline_step_completed_at ||
+    pipeline_started_at ||
+    null;
+
+  const totalDuration =
+    lastEventTs && created_at
+      ? Date.now() - new Date(created_at).getTime()
+      : null;
+
+  const dotColor = (state: string) => {
+    if (state === 'done') return '#4ade80';
+    if (state === 'current') return '#60a5fa';
+    if (state === 'failed') return '#f87171';
+    return 'var(--color-admin-border)';
+  };
+
+  const dotBg = (state: string) => {
+    if (state === 'done') return 'rgba(74,222,128,0.12)';
+    if (state === 'current') return 'rgba(96,165,250,0.12)';
+    if (state === 'failed') return 'rgba(248,113,113,0.12)';
+    return 'rgba(75,85,99,0.15)';
+  };
+
+  const lineColor = (fromState: string) => {
+    if (fromState === 'done') return '#4ade80';
+    return 'var(--color-admin-border)';
+  };
+
+  return (
+    <div className="px-6 py-4 border-b border-[var(--color-admin-border)]">
+      <p className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-3">
+        Pipeline Journey
+        {totalDuration && (
+          <span className="normal-case ml-2 text-[var(--color-muted)]">
+            &middot; {formatDuration(totalDuration)} elapsed
+          </span>
+        )}
+        {pipeline_retry_count != null && pipeline_retry_count > 0 && (
+          <span className="normal-case ml-2 text-amber-400">
+            &middot; {pipeline_retry_count} {pipeline_retry_count === 1 ? 'retry' : 'retries'}
+          </span>
+        )}
+      </p>
+
+      <div className="relative flex items-start gap-0">
+        {stagesWithState.map((stage, idx) => {
+          const isLast = idx === stagesWithState.length - 1;
+          return (
+            <div key={stage.key} className="flex-1 flex flex-col items-center relative min-w-0">
+              {/* Connector line to the right (skip for last item) */}
+              {!isLast && (
+                <div
+                  className="absolute top-[10px] left-1/2 right-0 h-px z-0"
+                  style={{
+                    width: '100%',
+                    left: '50%',
+                    backgroundColor: lineColor(stagesWithState[idx].state),
+                    opacity: stagesWithState[idx].state === 'pending' ? 0.25 : 0.6,
+                  }}
+                />
+              )}
+
+              {/* Dot */}
+              <div
+                className="relative z-10 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mb-1.5"
+                style={{
+                  backgroundColor: dotBg(stage.state),
+                  border: `1.5px solid ${dotColor(stage.state)}`,
+                  boxShadow:
+                    stage.state === 'current'
+                      ? '0 0 0 3px rgba(96,165,250,0.15)'
+                      : stage.state === 'failed'
+                        ? '0 0 0 3px rgba(248,113,113,0.15)'
+                        : 'none',
+                }}
+              >
+                {stage.state === 'done' && (
+                  <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                    <path d="M1.5 4.5l2 2 4-4" stroke="#4ade80" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+                {stage.state === 'current' && (
+                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
+                )}
+                {stage.state === 'failed' && (
+                  <svg width="9" height="9" viewBox="0 0 9 9" fill="none">
+                    <path d="M2 2l5 5M7 2L2 7" stroke="#f87171" strokeWidth="1.5" strokeLinecap="round" />
+                  </svg>
+                )}
+                {stage.state === 'pending' && (
+                  <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--color-admin-border)' }} />
+                )}
+              </div>
+
+              {/* Label */}
+              <p
+                className="text-[9px] font-medium text-center leading-tight px-0.5 truncate w-full"
+                style={{
+                  color:
+                    stage.state === 'done'
+                      ? '#4ade80'
+                      : stage.state === 'current'
+                        ? '#60a5fa'
+                        : stage.state === 'failed'
+                          ? '#f87171'
+                          : 'var(--color-muted)',
+                }}
+              >
+                {stage.label}
+              </p>
+
+              {/* Agent name */}
+              {stage.agent && (
+                <p className="text-[8px] text-[var(--color-muted)] text-center mt-0.5 opacity-70 truncate w-full px-0.5">
+                  {stage.agent}
+                </p>
+              )}
+
+              {/* Timestamp */}
+              {stage.timestamp && stage.state !== 'pending' && (
+                <p className="text-[8px] text-[var(--color-muted)] text-center mt-0.5 leading-tight opacity-60 px-0.5">
+                  {relativeDate(stage.timestamp)}
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Error message */}
+      {isFailed && pipeline_error && (
+        <div className="mt-3 px-3 py-2 bg-red-500/8 border border-red-500/20 rounded-lg">
+          <p className="text-[10px] uppercase tracking-wider text-red-400 mb-0.5">Pipeline Error</p>
+          <p className="text-xs text-red-300/80 leading-relaxed">{pipeline_error}</p>
+        </div>
+      )}
     </div>
   );
 }

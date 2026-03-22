@@ -38,9 +38,18 @@ export async function GET(request: NextRequest) {
   // Fetch aggregates for all projects
   const projectIds = (projects || []).map((p) => p.id);
   const [{ data: milestones }, { data: entries }] = await Promise.all([
-    supabase.from('project_milestones').select('project_id, status').in('project_id', projectIds),
+    supabase.from('project_milestones').select('project_id, status, due_date').in('project_id', projectIds),
     supabase.from('project_time_entries').select('project_id, hours, billable, hourly_rate, date').in('project_id', projectIds),
   ]);
+
+  const today = new Date().toISOString().slice(0, 10);
+  // Start of the current week (Monday)
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sun
+  const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - daysToMonday);
+  const weekStartStr = weekStart.toISOString().slice(0, 10);
 
   const enriched = (projects || []).map((p) => {
     const pm = (milestones || []).filter((m) => m.project_id === p.id);
@@ -48,7 +57,9 @@ export async function GET(request: NextRequest) {
     const totalMilestones = pm.length;
     const completeMilestones = pm.filter((m) => m.status === 'complete').length;
     const totalHours = pe.reduce((s, e) => s + Number(e.hours), 0);
-    return { ...p, totalMilestones, completeMilestones, totalHours };
+    const hoursThisWeek = pe.filter((e) => e.date >= weekStartStr).reduce((s, e) => s + Number(e.hours), 0);
+    const hasOverdue = pm.some((m) => m.status !== 'complete' && m.due_date && m.due_date < today);
+    return { ...p, totalMilestones, completeMilestones, totalHours, hoursThisWeek, hasOverdue };
   });
 
   return NextResponse.json(enriched);
