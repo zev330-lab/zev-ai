@@ -86,16 +86,16 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 ### Admin (11) — not in nav, noindex, dark theme operations center
 Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Family > Knowledge > Agents > Contacts
 
-- `/admin/tola` — TOLA Operating System: 3 tabs (System/Workflows/Costs). System tab: React Flow 11-node graph with 22 paths, real-time agent health, MiniMap, Controls, agent panels with triads + communication directions, fullscreen/kiosk mode (F11). Workflows tab: 4 visual pipeline flows (Assessment, Content, Social, Health) with agent chains and triads. Costs tab: per-agent token usage table, live + estimated cost breakdown.
+- `/admin/tola` — TOLA Operating System: 3 tabs (System/Workflows/Costs). System tab: React Flow 11-node graph with 22 paths, real-time agent health, MiniMap, Controls, agent panels with triads + communication directions, fullscreen/kiosk mode (F11). Workflows tab: 4 visual pipeline flows (Assessment, Content, Social, Health) with agent chains, triads, and pipeline replay animation (select a completed discovery, watch it animate step-by-step). Costs tab: per-agent token usage table, live + estimated cost breakdown.
 - `/admin` — Operations Center: morning briefing card, 5 clickable stat cards (discoveries, agents, pipeline time, system cost, alerts), cross-module stats with links, cost control toggle with actual spend, pipeline stage breakdown, cost breakdown pie chart (Recharts), system health score ring (0-100), activity feed, quick navigation links.
-- `/admin/discoveries` — Sortable list with real-time progress bars (0-100%, color-coded staleness), 5-tab detail
-- `/admin/content` — Content engine: Blog Posts + Social Queue, approve/publish workflow, calendar view, platform previews
-- `/admin/projects` — Project Command Center (Architect sub-agent): card grid with milestone progress, time tracking, Log Time modal. Seeded with 6 projects.
+- `/admin/discoveries` — Sortable list with real-time progress bars (0-100%, color-coded staleness), 5-tab detail, pipeline timeline visualization (step-by-step journey with colored nodes, timestamps, duration, error callouts)
+- `/admin/content` — Content engine: Blog Posts + Social Queue, approve/publish workflow, calendar view, platform previews. On publish: auto-generates internal links to related posts, backlink outreach suggestions stored in knowledge base.
+- `/admin/projects` — Project Command Center (Architect sub-agent): card grid with milestone progress bars, overdue milestone red borders, Quick Log Time floating button, "Hours This Week" stat, time tracking. Seeded with 6 projects.
 - `/admin/finance` — Financial Overview (Foundation sub-agent): revenue/outstanding/hours/pipeline value metrics, invoice CRUD, Recharts chart
 - `/admin/family` — Family Hub (Catalyst sub-agent): morning briefing greeting, week-at-a-glance calendar strip, kanban tasks with priority-colored borders and hover actions, events with attendee avatars and Google Calendar links, notes with delete, family member avatars (Zev, Irit, Havi, Parker, Allan, Sarina) with task count badges.
 - `/admin/knowledge` — Knowledge Base (Oracle sub-agent): prominent search bar, source-categorized entries (Meeting/Voice Memo/Article/Insight/Lesson/Discovery), quick capture, "Sync from Discoveries" + "Sync from Blog" auto-ingestion, pgvector similarity search
-- `/admin/agents` — Agent card grid with stats, Tree of Life diagram, activity feed
-- `/admin/contacts` — Contact list with status badges, search, detail slide-out with Gmail deep links and Google company search
+- `/admin/agents` — Agent leaderboard ("Most Active Today" MVP + ranked 7-day activity), agent card grid with stats, Tree of Life diagram, activity feed
+- `/admin/contacts` — Contact list with status badges, search, detail slide-out with Gmail deep links, Google company search, linked discovery indicator, "Prep for Meeting" AI briefing generator, "Compose Email" and "Schedule Meeting" quick action buttons
 - `/admin/login` — Password auth
 
 ### Admin Shell Features
