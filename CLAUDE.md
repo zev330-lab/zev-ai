@@ -86,17 +86,28 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 ### Admin (11) — not in nav, noindex, dark theme operations center
 Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Family > Knowledge > Agents > Contacts
 
-- `/admin/tola` — TOLA Operating System (React Flow): 11-node graph with 22 paths, real-time agent health, MiniMap, Controls, click-to-expand panels with sub-agent sections for Architect/Foundation/Catalyst/Oracle
-- `/admin` — Dashboard home: stat cards, pipeline stage breakdown, activity feed
+- `/admin/tola` — TOLA Operating System: 3 tabs (System/Workflows/Costs). System tab: React Flow 11-node graph with 22 paths, real-time agent health, MiniMap, Controls, agent panels with triads + communication directions, fullscreen/kiosk mode (F11). Workflows tab: 4 visual pipeline flows (Assessment, Content, Social, Health) with agent chains and triads. Costs tab: per-agent token usage table, live + estimated cost breakdown.
+- `/admin` — Operations Center: morning briefing card, 5 clickable stat cards (discoveries, agents, pipeline time, system cost, alerts), cross-module stats with links, cost control toggle with actual spend, pipeline stage breakdown, cost breakdown pie chart (Recharts), system health score ring (0-100), activity feed, quick navigation links.
 - `/admin/discoveries` — Sortable list with real-time progress bars (0-100%, color-coded staleness), 5-tab detail
 - `/admin/content` — Content engine: Blog Posts + Social Queue, approve/publish workflow, calendar view, platform previews
 - `/admin/projects` — Project Command Center (Architect sub-agent): card grid with milestone progress, time tracking, Log Time modal. Seeded with 6 projects.
-- `/admin/finance` — Financial Overview (Foundation sub-agent): revenue/outstanding/hours metrics, invoice CRUD, Recharts chart
-- `/admin/family` — Family Hub (Catalyst sub-agent): Today view, kanban tasks (To Do/In Progress/Done), quick capture bar, events list with Google Calendar link generation and delete, notes feed with delete, family member avatar filters. Seeded with family member placeholders.
+- `/admin/finance` — Financial Overview (Foundation sub-agent): revenue/outstanding/hours/pipeline value metrics, invoice CRUD, Recharts chart
+- `/admin/family` — Family Hub (Catalyst sub-agent): morning briefing greeting, week-at-a-glance calendar strip, kanban tasks with priority-colored borders and hover actions, events with attendee avatars and Google Calendar links, notes with delete, family member avatars (Zev, Irit, Havi, Parker, Allan, Sarina) with task count badges.
 - `/admin/knowledge` — Knowledge Base (Oracle sub-agent): prominent search bar, source-categorized entries (Meeting/Voice Memo/Article/Insight/Lesson/Discovery), quick capture, "Sync from Discoveries" + "Sync from Blog" auto-ingestion, pgvector similarity search
 - `/admin/agents` — Agent card grid with stats, Tree of Life diagram, activity feed
-- `/admin/contacts` — Contact list with status badges, search, detail slide-out
+- `/admin/contacts` — Contact list with status badges, search, detail slide-out with Gmail deep links and Google company search
 - `/admin/login` — Password auth
+
+### Admin Shell Features
+- **Command Palette (Cmd+K):** Global search across discoveries, contacts, blog posts. Page navigation, quick actions. Debounced API search with keyboard navigation.
+- **Notification Badges:** Red dots on sidebar nav items showing stalled discoveries, pending reviews, overdue invoices, overdue tasks. Auto-refreshes every 60s.
+- **Fullscreen/Kiosk Mode:** F11 or button on TOLA page hides sidebar for demo presentations.
+
+### Proactive Automations (Migration 019)
+- **Auto-flag overdue invoices:** Daily 9am ET, moves sent → overdue when past due_date
+- **Stale contact alerts:** Daily, flags contacts in 'new' status for 3+ days with no notes
+- **Stuck pipeline recovery:** Every 5 min, resets discoveries stuck in processing for 30+ min (max 5 retries)
+- **Content cadence watchdog:** Daily 10am ET, alerts if no blog post published in 7+ days
 
 ## Authentication & Security
 - **Auth module:** `src/lib/auth.ts` — shared session token generation using Web Crypto API (SHA-256)
@@ -286,7 +297,7 @@ Config stored in `tola_config` table, managed via `/api/admin/settings`.
 ### Admin Chat (`src/components/admin/admin-chat.tsx`)
 - Sparkle icon button in admin dashboard (bottom-right)
 - Claude Sonnet model (full capability for architecture/content questions)
-- System prompt with complete TOLA architecture, pipeline details, admin features
+- **Data-connected:** Queries live data from ALL admin modules before each response (discoveries, contacts, invoices, agents, family tasks, content queue, agent costs). "What should I prioritize?" returns specific names, numbers, and actionable recommendations.
 - Up to 20 messages context, 2048 max tokens
 - Auth-protected via session cookie
 - API route: `POST /api/admin/chat` (requires admin auth)
