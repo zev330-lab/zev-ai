@@ -110,7 +110,7 @@ export default function AdminFinancePage() {
         {/* Monthly Trend Chart */}
         {chartData.length > 0 && (
           <div className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-5">
-            <p className="text-xs tracking-[0.15em] uppercase text-[var(--color-muted)] mb-4">Monthly Revenue</p>
+            <p className="text-xs tracking-[0.15em] uppercase text-[var(--color-muted)] mb-4">Monthly Revenue & Costs</p>
             <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
@@ -118,7 +118,8 @@ export default function AdminFinancePage() {
                   <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#4a4e5e' }} />
                   <YAxis tick={{ fontSize: 10, fill: '#4a4e5e' }} />
                   <Tooltip contentStyle={{ backgroundColor: '#0d1020', border: '1px solid #161a2e', borderRadius: 8, fontSize: 12 }} />
-                  <Bar dataKey="revenue" fill="#7c9bf5" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="revenue" fill="#7c9bf5" radius={[4, 4, 0, 0]} name="Revenue" />
+                  <Bar dataKey="costs" fill="#f8717140" radius={[4, 4, 0, 0]} name="Costs" />
                 </BarChart>
               </ResponsiveContainer>
             </div>
