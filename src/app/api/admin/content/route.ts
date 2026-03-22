@@ -140,6 +140,55 @@ export async function PATCH(request: NextRequest) {
         });
       }
     }
+
+    // Internal linking: scan other published posts for keyword overlap
+    if (pubPost?.content && pubPost?.title) {
+      try {
+        const { data: otherPosts } = await supabase
+          .from('blog_posts')
+          .select('id, slug, title, content')
+          .eq('status', 'published')
+          .neq('id', id)
+          .limit(50);
+
+        if (otherPosts && otherPosts.length > 0) {
+          // Extract key phrases from new post title (words 4+ chars)
+          const keywords = pubPost.title.toLowerCase()
+            .split(/\s+/)
+            .filter((w: string) => w.length >= 4 && !['with', 'your', 'from', 'that', 'this', 'what', 'when', 'should', 'about'].includes(w));
+
+          let linksAdded = 0;
+          for (const other of otherPosts) {
+            if (!other.content) continue;
+            // Check if other post mentions keywords but doesn't already link to new post
+            const hasKeyword = keywords.some((kw: string) => other.content.toLowerCase().includes(kw));
+            const alreadyLinked = other.content.includes(`/blog/${pubPost.slug}`);
+
+            if (hasKeyword && !alreadyLinked) {
+              // Find first occurrence of a keyword and add link as a related post note at the bottom
+              const relatedSection = `\n\n> **Related:** [${pubPost.title}](/blog/${pubPost.slug})`;
+              if (!other.content.includes('**Related:**')) {
+                await supabase.from('blog_posts').update({
+                  content: other.content + relatedSection,
+                }).eq('id', other.id);
+                linksAdded++;
+                if (other.slug) revalidatePath(`/blog/${other.slug}`);
+              }
+            }
+          }
+
+          if (linksAdded > 0) {
+            await supabase.from('tola_agent_log').insert({
+              agent_id: 'gateway',
+              action: 'internal-links-added',
+              output: { post_slug: pubPost.slug, links_added: linksAdded },
+            });
+          }
+        }
+      } catch {
+        // Silent fail — internal linking is non-critical
+      }
+    }
   }
 
   return NextResponse.json({ success: true });

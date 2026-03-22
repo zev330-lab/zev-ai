@@ -173,13 +173,34 @@ async function extractAndStoreLead(apiKey: string, messages: { role: string; con
     // Build chat transcript for notes
     const userMessages = messages.filter(m => m.role === 'user').map(m => m.content).join('\n---\n');
     if (!existing) {
+      // Auto-research company if available
+      let researchNotes = '';
+      if (extracted.company) {
+        try {
+          const researchRes = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+            body: JSON.stringify({
+              model: 'claude-haiku-4-5-20251001',
+              max_tokens: 300,
+              system: 'You are a business research assistant. Given a company name (and optionally role/industry context), provide a brief 3-4 sentence summary of what the company likely does, its size category, and potential AI use cases. Be concise and practical. If you cannot determine the company, say so briefly.',
+              messages: [{ role: 'user', content: `Company: ${extracted.company}${extracted.role ? `, Contact role: ${extracted.role}` : ''}${extracted.business_overview ? `, Context: ${extracted.business_overview}` : ''}` }],
+            }),
+          });
+          if (researchRes.ok) {
+            const researchData = await researchRes.json();
+            researchNotes = `\n\nAuto-research:\n${researchData.content?.[0]?.text || ''}`;
+          }
+        } catch { /* silent */ }
+      }
+
       await supabase.from('contacts').insert({
         name: extracted.name || 'Chat Visitor',
         email: extracted.email,
         company: extracted.company || null,
         message: `[Via chat] ${extracted.pain_points || extracted.business_overview || 'Engaged via website chat'}`,
-        status: 'new',
-        notes: `Chat transcript:\n${userMessages}`,
+        status: extracted.company ? 'researched' : 'new',
+        notes: `Chat transcript:\n${userMessages}${researchNotes}`,
       });
     } else {
       // Update existing contact with latest chat context

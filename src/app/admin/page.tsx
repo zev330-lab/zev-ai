@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ActivityFeed } from '@/components/admin/activity-feed';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts';
 
 const STAGE_COLORS: Record<string, string> = {
   none: '#6b7280',
@@ -52,6 +52,7 @@ interface DashboardStats {
   total_cost_7d?: number;
   system_uptime_hours?: number;
   agent_costs?: { agent_id: string; tokens: number; actions: number; cost: number }[];
+  daily_trend?: { date: string; actions: number; tokens: number; cost: number }[];
 }
 
 function formatDuration(seconds: number): string {
@@ -210,14 +211,24 @@ export default function AdminDashboardPage() {
           <StatCard label="Total Discoveries" value={stats?.total_discoveries ?? 0} href="/admin/discoveries" />
           <StatCard label="Active Agents" value={`${stats?.active_agents ?? 0}/11`} href="/admin/agents" />
           <StatCard label="Avg Pipeline Time" value={formatDuration(stats?.avg_pipeline_seconds ?? 0)} href="/admin/discoveries" />
-          <StatCard label="System Cost Today" value={stats?.total_cost_today != null ? `$${stats.total_cost_today.toFixed(2)}` : '--'} href="/admin/tola" />
-          <StatCard label="Alerts" value={(stats?.alerts?.length ?? 0)} accent={(stats?.alerts?.length ?? 0) > 0} />
+          <StatCard
+            label="System Cost Today"
+            value={stats?.total_cost_today != null ? `$${stats.total_cost_today.toFixed(2)}` : '--'}
+            href="/admin/tola"
+            sparkline={stats?.daily_trend?.map(d => ({ value: d.cost }))}
+          />
+          <StatCard
+            label="Actions Today"
+            value={stats?.actions_today ?? 0}
+            href="/admin/tola"
+            sparkline={stats?.daily_trend?.map(d => ({ value: d.actions }))}
+          />
         </div>
 
         {/* Secondary stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MiniStat label="Actions Today" value={stats?.actions_today ?? 0} href="/admin/tola" />
           <MiniStat label="Pipelines Today" value={stats?.pipelines_today ?? 0} href="/admin/discoveries" />
+          <MiniStat label="Alerts" value={stats?.alerts?.length ?? 0} alert={(stats?.alerts?.length ?? 0) > 0} />
           <MiniStat label="Review Queue" value={stats?.tier3_queue ?? 0} alert={(stats?.tier3_queue ?? 0) > 0} href="/admin/discoveries" />
           <MiniStat label="Blog Pending" value={stats?.blog_pending_review ?? 0} alert={(stats?.blog_pending_review ?? 0) > 0} href="/admin/content" />
         </div>
@@ -430,24 +441,37 @@ function StatCard({
   value,
   accent,
   href,
+  sparkline,
 }: {
   label: string;
   value: number | string;
   accent?: boolean;
   href?: string;
+  sparkline?: { value: number }[];
 }) {
   const inner = (
     <div className={`bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl px-5 py-4 ${href ? 'hover:border-[var(--color-accent)]/30 transition-colors cursor-pointer' : ''}`}>
       <p className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1">
         {label}
       </p>
-      <p
-        className={`text-2xl font-semibold ${
-          accent ? 'text-[var(--color-accent)]' : 'text-[var(--color-foreground-strong)]'
-        }`}
-      >
-        {value}
-      </p>
+      <div className="flex items-end justify-between gap-3">
+        <p
+          className={`text-2xl font-semibold ${
+            accent ? 'text-[var(--color-accent)]' : 'text-[var(--color-foreground-strong)]'
+          }`}
+        >
+          {value}
+        </p>
+        {sparkline && sparkline.length > 1 && (
+          <div className="w-16 h-8 shrink-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={sparkline}>
+                <Area type="monotone" dataKey="value" stroke="#7c9bf5" fill="#7c9bf5" fillOpacity={0.15} strokeWidth={1.5} dot={false} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
     </div>
   );
   return href ? <Link href={href}>{inner}</Link> : inner;
