@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { CommandPalette } from './command-palette';
+import { ToastProvider } from './toast';
 
 interface NavBadges {
   discoveries: number;
@@ -57,6 +58,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   ];
 
   return (
+    <ToastProvider>
     <div
       className="h-screen flex"
       style={{
@@ -156,6 +158,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       <CommandPalette />
     </div>
+    </ToastProvider>
   );
 }
 
