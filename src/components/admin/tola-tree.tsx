@@ -61,12 +61,49 @@ function relativeTime(iso: string): string {
 }
 
 function getActiveAgents(logs: TolaAgentLog[]): Set<string> {
-  const cutoff = Date.now() - 5 * 60 * 1000;
+  const cutoff = Date.now() - 60 * 60 * 1000; // 60 min window (matches reduced cron schedules)
   const active = new Set<string>();
   for (const log of logs) {
     if (log.agent_id && new Date(log.created_at).getTime() > cutoff) active.add(log.agent_id);
   }
   return active;
+}
+
+// Compute health dynamically from heartbeat age + error count instead of trusting stored status
+function computeHealth(agent: TolaAgent | undefined, logs: TolaAgentLog[]): AgentStatus {
+  if (!agent) return 'offline';
+  if (agent.kill_switch) return 'critical';
+  if (!agent.is_active) return 'offline';
+
+  // Expected cron intervals per agent (ms) — doubled as grace period
+  const intervals: Record<string, number> = {
+    nexus: 60 * 60 * 1000, guardian: 60 * 60 * 1000,
+    crown: 4 * 60 * 60 * 1000, prism: 12 * 60 * 60 * 1000,
+    catalyst: 8 * 60 * 60 * 1000, gateway: 12 * 60 * 60 * 1000,
+    foundation: 24 * 60 * 60 * 1000, sentinel: 48 * 60 * 60 * 1000,
+    // Pipeline agents only run on demand — generous window
+    visionary: 48 * 60 * 60 * 1000, architect: 48 * 60 * 60 * 1000,
+    oracle: 48 * 60 * 60 * 1000,
+  };
+
+  const heartbeatAge = agent.last_heartbeat
+    ? Date.now() - new Date(agent.last_heartbeat).getTime()
+    : Infinity;
+  const maxAge = intervals[agent.id] || 4 * 60 * 60 * 1000;
+
+  if (heartbeatAge > maxAge * 2) return 'critical';
+  if (heartbeatAge > maxAge) return 'degraded';
+
+  // Check recent errors in the last hour
+  const hourAgo = Date.now() - 60 * 60 * 1000;
+  const recentErrors = logs.filter(
+    (l) => l.agent_id === agent.id && l.action?.includes('error') && new Date(l.created_at).getTime() > hourAgo,
+  ).length;
+
+  if (recentErrors >= 3) return 'critical';
+  if (recentErrors >= 1) return 'degraded';
+
+  return 'healthy';
 }
 
 function isMiddlePillar(srcId: AgentId, tgtId: AgentId): boolean {
@@ -355,7 +392,7 @@ export function TolaTreeOS() {
 
   const activeAgents = useMemo(() => getActiveAgents(activityLogs), [activityLogs]);
 
-  const getStatus = useCallback((id: string): AgentStatus => agentMap.get(id)?.status ?? 'offline', [agentMap]);
+  const getStatus = useCallback((id: string): AgentStatus => computeHealth(agentMap.get(id), activityLogs), [agentMap, activityLogs]);
   const getHealthColor = useCallback((id: string) => HEALTH_COLORS[getStatus(id)] ?? HEALTH_COLORS.offline, [getStatus]);
 
   const handleNodeClick = useCallback((id: AgentId) => setSelectedId(id), []);
@@ -366,10 +403,10 @@ export function TolaTreeOS() {
     await fetch('/api/admin/agents', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, tier }) });
   }, []);
 
-  // Health counts
-  const healthyCount = agents.filter((a) => a.status === 'healthy').length;
-  const degradedCount = agents.filter((a) => a.status === 'degraded').length;
-  const criticalCount = agents.filter((a) => a.status === 'critical').length;
+  // Health counts (computed dynamically, not from stored status)
+  const healthyCount = agents.filter((a) => computeHealth(a, activityLogs) === 'healthy').length;
+  const degradedCount = agents.filter((a) => computeHealth(a, activityLogs) === 'degraded').length;
+  const criticalCount = agents.filter((a) => computeHealth(a, activityLogs) === 'critical').length;
 
   // System health indicator
   const systemHealth = criticalCount > 0 ? 'critical' : degradedCount > 0 ? 'degraded' : healthyCount > 0 ? 'healthy' : 'offline';

@@ -218,6 +218,96 @@ export const GEOMETRY_LABELS: Record<GeometryEngine, string> = {
 // Technical equivalents for the /tola page jargon mapping
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Agent operational details — actions, interactions, schedule, cost
+// ---------------------------------------------------------------------------
+
+export const AGENT_DETAILS: Record<AgentId, {
+  actions: string[];
+  interactsWith: AgentId[];
+  schedule: string;
+  costPerDay: { low: string; medium: string; high: string };
+  fullDescription: string;
+}> = {
+  crown: {
+    actions: ['governance-scan', 'token-spend-tracking', 'tier-3-queue-scan', 'failure-scan', 'daily-governance-digest'],
+    interactsWith: ['nexus', 'guardian', 'visionary', 'architect', 'oracle'],
+    schedule: 'Every 2h (medium) / 2x daily (low)',
+    costPerDay: { low: '$0.002', medium: '$0.01', high: '$0.04' },
+    fullDescription: 'Governance and oversight. Tracks token spend across all agents, monitors the Tier 3 approval queue for discoveries needing human review, counts failed/stalled pipelines, and generates a daily governance digest stored in the knowledge base.',
+  },
+  visionary: {
+    actions: ['13-dimension-research', 'web-search', 'competitive-analysis', 'trend-identification', 'topic-research'],
+    interactsWith: ['guardian', 'architect', 'oracle', 'nexus'],
+    schedule: 'On-demand (pipeline trigger)',
+    costPerDay: { low: '$0.02/run', medium: '$0.05/run', high: '$0.05/run' },
+    fullDescription: 'Multi-source research engine. Performs 13-dimension analysis of prospects using Claude + web_search tool. Covers company overview, industry, pain points, competitors, AI readiness, budget signals, and decision-maker profiles. Activates during assessment pipeline (Guardian → Visionary).',
+  },
+  architect: {
+    actions: ['9-constraint-scoping', 'system-design', 'timeline-estimation', 'risk-assessment', 'deliverable-planning'],
+    interactsWith: ['visionary', 'oracle', 'guardian', 'nexus'],
+    schedule: 'On-demand (pipeline trigger)',
+    costPerDay: { low: '$0.02/run', medium: '$0.05/run', high: '$0.05/run' },
+    fullDescription: 'Constraint-based planning. Takes Visionary research and scopes engagements across 9 constraints: technical complexity, timeline, budget, team readiness, data availability, integration depth, compliance, risk, and ROI potential. Produces structured assessment documents.',
+  },
+  oracle: {
+    actions: ['meeting-prep-synthesis', 'knowledge-aggregation', 'insight-generation', 'cross-reference-analysis'],
+    interactsWith: ['visionary', 'architect', 'crown', 'nexus'],
+    schedule: 'On-demand (pipeline trigger)',
+    costPerDay: { low: '$0.02/run', medium: '$0.05/run', high: '$0.05/run' },
+    fullDescription: 'Synthesis and knowledge. Combines Visionary research and Architect assessment into actionable meeting prep documents. Manages the knowledge base with semantic search (pgvector). Phantom node — operates as the bridge between research and action.',
+  },
+  guardian: {
+    actions: ['safety-scan', 'anomaly-detection', 'token-spike-detection', 'latency-monitoring', 'circuit-breaker', 'form-validation', 'brand-enforcement'],
+    interactsWith: ['nexus', 'crown', 'prism', 'catalyst'],
+    schedule: 'Every 30min (medium) / Every 2h (low)',
+    costPerDay: { low: '$0.001', medium: '$0.005', high: '$0.02' },
+    fullDescription: 'Safety and validation. Scans all agent logs for anomalies — token spikes (>100K), latency anomalies (>5 min), error patterns. Implements circuit breaker: 10 errors in 1 hour auto-kills the failing agent. Also validates discovery form inputs and enforces brand consistency in content.',
+  },
+  catalyst: {
+    actions: ['velocity-analysis', 'bottleneck-detection', 'pipeline-duration-tracking', 'trend-comparison', 'retry-frequency-monitoring', 'social-content-generation'],
+    interactsWith: ['guardian', 'nexus', 'visionary', 'architect', 'oracle'],
+    schedule: 'Every 4h (medium) / Daily (low)',
+    costPerDay: { low: '$0.001', medium: '$0.005', high: '$0.02' },
+    fullDescription: 'Engagement and optimization. Analyzes pipeline velocity — avg duration, per-stage latency, bottleneck identification, retry frequency. Compares recent vs. historical trends. Also drives social content generation and distribution cadence.',
+  },
+  nexus: {
+    actions: ['health-check', 'health-scoring', 'path-activity-aggregation', 'status-flagging', 'degraded-detection'],
+    interactsWith: ['crown', 'guardian', 'visionary', 'architect', 'oracle', 'catalyst', 'prism', 'sentinel', 'foundation', 'gateway'],
+    schedule: 'Every 30min (medium) / Every 2h (low)',
+    costPerDay: { low: '$0.001', medium: '$0.005', high: '$0.02' },
+    fullDescription: 'Central routing and health monitoring. Health-checks all 11 agents by measuring heartbeat freshness and error rates. Computes health scores (0-100) and flags degraded agents. Aggregates path activity between agent pairs for the Tree of Life visualization.',
+  },
+  sentinel: {
+    actions: ['system-monitoring', 'api-verification', 'database-checks', 'uptime-tracking'],
+    interactsWith: ['nexus', 'prism', 'guardian'],
+    schedule: 'Via tola-agent (legacy)',
+    costPerDay: { low: '$0', medium: '$0', high: '$0.01' },
+    fullDescription: 'Health monitoring agent. Verifies API availability, database connectivity, and system uptime. Works through the legacy tola-agent Edge Function. Provides redundant verification alongside Prism.',
+  },
+  prism: {
+    actions: ['quality-check', 'synthetic-health-checks', 'page-response-monitoring', 'agent-output-audit', 'daily-quality-report'],
+    interactsWith: ['nexus', 'guardian', 'gateway'],
+    schedule: 'Every 6h (medium) / Daily (low)',
+    costPerDay: { low: '$0.001', medium: '$0.003', high: '$0.01' },
+    fullDescription: 'Quality assurance. Runs synthetic health checks on 5 public pages (/, /discover, /blog, /approach, /services) with 10s timeout. Audits recent agent outputs for token/latency anomalies. Generates daily quality reports stored in the knowledge base.',
+  },
+  foundation: {
+    actions: ['maintenance-run', 'table-row-counting', 'metrics-archival', 'log-archival', 'path-activity-cleanup', 'daily-infrastructure-report'],
+    interactsWith: ['nexus'],
+    schedule: 'Every 12h (medium) / Daily (low)',
+    costPerDay: { low: '$0.001', medium: '$0.002', high: '$0.005' },
+    fullDescription: 'Infrastructure maintenance. Counts rows across 8 core tables (logs, metrics, paths, discoveries, contacts, blog, social, knowledge). Archives old data: metrics >30 days, path activity >7 days, logs >30 days. Generates daily infrastructure reports.',
+  },
+  gateway: {
+    actions: ['seo-check', 'sitemap-validation', 'robots-txt-validation', 'rss-feed-validation', 'ai-crawler-verification', 'page-count-tracking'],
+    interactsWith: ['nexus', 'prism'],
+    schedule: 'Every 6h (medium) / Daily (low)',
+    costPerDay: { low: '$0.001', medium: '$0.003', high: '$0.01' },
+    fullDescription: 'SEO and application health. Validates sitemap.xml structure and URL count, robots.txt directives (GPTBot, ClaudeBot, PerplexityBot allowed), RSS feed format. Tracks total page count (static + published blog posts). Independent monitoring of public-facing infrastructure.',
+  },
+};
+
 export const ENGINE_TECHNICAL_MAP: Array<{
   engine: GeometryEngine;
   label: string;

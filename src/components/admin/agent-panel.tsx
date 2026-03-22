@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { GEOMETRY_COMPONENTS } from '@/components/sacred-geometry';
 import type { TolaAgent, TolaAgentLog } from '@/lib/tola-agents';
-import { STATUS_COLORS, GEOMETRY_LABELS } from '@/lib/tola-agents';
+import { STATUS_COLORS, GEOMETRY_LABELS, AGENT_DETAILS, TREE_NODE_MAP } from '@/lib/tola-agents';
 
 interface AgentPanelProps {
   agent: TolaAgent;
@@ -182,7 +182,72 @@ export function AgentPanel({ agent, onClose, onToggleKillSwitch, onTierChange }:
           {/* Description */}
           <div>
             <p className="text-xs tracking-[0.15em] uppercase text-[var(--color-muted)] mb-2">Description</p>
-            <p className="text-sm text-[var(--color-muted-light)] leading-relaxed">{agent.description}</p>
+            <p className="text-sm text-[var(--color-muted-light)] leading-relaxed">
+              {AGENT_DETAILS[agent.id]?.fullDescription || agent.description}
+            </p>
+          </div>
+
+          {/* Actions */}
+          {AGENT_DETAILS[agent.id]?.actions && (
+            <div>
+              <p className="text-xs tracking-[0.15em] uppercase text-[var(--color-muted)] mb-2">
+                Actions ({AGENT_DETAILS[agent.id].actions.length})
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {AGENT_DETAILS[agent.id].actions.map((action) => (
+                  <span key={action} className="px-2 py-1 text-[10px] font-mono rounded bg-[var(--color-admin-bg)] text-[var(--color-muted-light)] border border-[var(--color-admin-border)]">
+                    {action}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Interacts With */}
+          {AGENT_DETAILS[agent.id]?.interactsWith && (
+            <div>
+              <p className="text-xs tracking-[0.15em] uppercase text-[var(--color-muted)] mb-2">Communicates With</p>
+              <div className="flex flex-wrap gap-1.5">
+                {AGENT_DETAILS[agent.id].interactsWith.map((id) => (
+                  <span key={id} className="px-2 py-1 text-[10px] rounded-full bg-[var(--color-accent)]/10 text-[var(--color-accent)] capitalize">
+                    {TREE_NODE_MAP[id]?.name || id}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Schedule & Cost */}
+          {AGENT_DETAILS[agent.id] && (
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-[var(--color-admin-bg)] rounded-lg p-3">
+                <p className="text-[10px] text-[var(--color-muted)] mb-1">Schedule</p>
+                <p className="text-xs text-[var(--color-foreground-strong)]">{AGENT_DETAILS[agent.id].schedule}</p>
+              </div>
+              <div className="bg-[var(--color-admin-bg)] rounded-lg p-3">
+                <p className="text-[10px] text-[var(--color-muted)] mb-1">Est. Cost/Day</p>
+                <p className="text-xs text-[var(--color-foreground-strong)]">{AGENT_DETAILS[agent.id].costPerDay.medium}</p>
+                <p className="text-[9px] text-[var(--color-muted)]">at medium tier</p>
+              </div>
+            </div>
+          )}
+
+          {/* Runs & Fails */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-[var(--color-admin-bg)] rounded-lg p-3 text-center">
+              <p className="text-lg font-semibold text-[var(--color-foreground-strong)]">{logs.length}</p>
+              <p className="text-[10px] text-[var(--color-muted)]">Recent Runs</p>
+            </div>
+            <div className="bg-[var(--color-admin-bg)] rounded-lg p-3 text-center">
+              <p className="text-lg font-semibold text-green-400">{logs.filter((l) => !l.action?.includes('error')).length}</p>
+              <p className="text-[10px] text-[var(--color-muted)]">Successes</p>
+            </div>
+            <div className="bg-[var(--color-admin-bg)] rounded-lg p-3 text-center">
+              <p className={`text-lg font-semibold ${logs.some((l) => l.action?.includes('error')) ? 'text-red-400' : 'text-[var(--color-foreground-strong)]'}`}>
+                {logs.filter((l) => l.action?.includes('error')).length}
+              </p>
+              <p className="text-[10px] text-[var(--color-muted)]">Failures</p>
+            </div>
           </div>
 
           {/* Last Heartbeat */}
