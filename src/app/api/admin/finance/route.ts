@@ -35,11 +35,12 @@ export async function GET(request: NextRequest) {
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-  const [{ data: paidThisMonth }, { data: outstanding }, { data: timeThisMonth }, { data: allInvoices }] = await Promise.all([
+  const [{ data: paidThisMonth }, { data: outstanding }, { data: timeThisMonth }, { data: allInvoices }, { data: activePipeline }] = await Promise.all([
     supabase.from('invoices').select('amount').eq('status', 'paid').gte('paid_date', monthStart.slice(0, 10)),
     supabase.from('invoices').select('amount, status').in('status', ['sent', 'overdue']),
     supabase.from('project_time_entries').select('hours, billable, hourly_rate').eq('billable', true).gte('date', monthStart.slice(0, 10)),
     supabase.from('invoices').select('amount, status, paid_date, created_at').order('created_at', { ascending: false }).limit(100),
+    supabase.from('discoveries').select('pipeline_status').not('pipeline_status', 'in', '("failed","complete")'),
   ]);
 
   const revenueThisMonth = (paidThisMonth || []).reduce((s, i) => s + Number(i.amount), 0);
@@ -47,12 +48,21 @@ export async function GET(request: NextRequest) {
   const hoursBilledThisMonth = (timeThisMonth || []).reduce((s, e) => s + Number(e.hours), 0);
   const effectiveRate = hoursBilledThisMonth > 0 ? Math.round(revenueThisMonth / hoursBilledThisMonth) : 0;
 
+  // Pipeline value: active discoveries weighted by stage probability
+  const stageWeight: Record<string, number> = { pending: 0.1, researching: 0.2, scoping: 0.4, synthesizing: 0.6 };
+  const baseValue = 2500; // Assessment package starting price
+  const pipelineValue = (activePipeline || []).reduce((sum, d) => {
+    const row = d as { pipeline_status: string };
+    return sum + baseValue * (stageWeight[row.pipeline_status] || 0.1);
+  }, 0);
+
   return NextResponse.json({
     revenueThisMonth,
     outstandingTotal,
     hoursBilledThisMonth,
     effectiveRate,
     invoiceCount: (allInvoices || []).length,
+    pipelineValue,
   });
 }
 

@@ -170,6 +170,8 @@ async function extractAndStoreLead(apiKey: string, messages: { role: string; con
       .eq('email', extracted.email)
       .maybeSingle();
 
+    // Build chat transcript for notes
+    const userMessages = messages.filter(m => m.role === 'user').map(m => m.content).join('\n---\n');
     if (!existing) {
       await supabase.from('contacts').insert({
         name: extracted.name || 'Chat Visitor',
@@ -177,7 +179,13 @@ async function extractAndStoreLead(apiKey: string, messages: { role: string; con
         company: extracted.company || null,
         message: `[Via chat] ${extracted.pain_points || extracted.business_overview || 'Engaged via website chat'}`,
         status: 'new',
+        notes: `Chat transcript:\n${userMessages}`,
       });
+    } else {
+      // Update existing contact with latest chat context
+      await supabase.from('contacts').update({
+        notes: `Chat transcript (updated):\n${userMessages}`,
+      }).eq('id', existing.id);
     }
   }
 

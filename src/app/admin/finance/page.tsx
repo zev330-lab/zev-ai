@@ -9,6 +9,7 @@ interface FinanceMetrics {
   outstandingTotal: number;
   hoursBilledThisMonth: number;
   effectiveRate: number;
+  pipelineValue: number;
 }
 
 interface Invoice {
@@ -98,7 +99,7 @@ export default function AdminFinancePage() {
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <MetricCard label="Revenue (this month)" value={`$${metrics.revenueThisMonth.toLocaleString()}`} accent />
             <MetricCard label="Outstanding" value={`$${metrics.outstandingTotal.toLocaleString()}`} warn={metrics.outstandingTotal > 0} />
-            <MetricCard label="Pipeline Value" value="--" />
+            <MetricCard label="Pipeline Value" value={metrics.pipelineValue > 0 ? `$${metrics.pipelineValue.toLocaleString()}` : '--'} />
             <MetricCard label="Hours Billed" value={metrics.hoursBilledThisMonth.toFixed(1)} />
             <MetricCard label="Effective Rate" value={metrics.effectiveRate > 0 ? `$${metrics.effectiveRate}/hr` : '--'} />
           </div>
