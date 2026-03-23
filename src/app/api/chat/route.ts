@@ -14,7 +14,6 @@ SERVICES:
 
 CASE STUDIES:
 - Blank Industries (Manufacturing): 6 disconnected systems unified, 90% faster reporting
-- Rosen Media Group (Media): 2.5x content output after AI pipeline deployment
 
 APPROACH:
 Multi-agent AI systems using coordination patterns from nature. 11 specialized agents, 22 communication pathways, 3-tier human oversight.

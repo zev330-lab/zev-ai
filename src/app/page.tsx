@@ -273,14 +273,7 @@ export default function Home() {
                 metric: '6→1',
                 metricLabel: 'unified data source',
               },
-              {
-                company: 'Rosen Media Group',
-                industry: 'Media / Publishing',
-                problem: 'Content production bottleneck — editorial team spending 60% of time on formatting, tagging, and distribution instead of creating.',
-                result: 'AI pipeline handles formatting, metadata, SEO optimization, and multi-channel distribution. Editorial team produces 2.5x more original content.',
-                metric: '2.5x',
-                metricLabel: 'content output',
-              },
+
             ].map((study) => (
               <StaggerChild key={study.company}>
                 <div className="border border-border rounded-2xl p-8 h-full flex flex-col">

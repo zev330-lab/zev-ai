@@ -66,27 +66,8 @@ const CASE_STUDIES = [
     ],
     payoff: 'A learning platform where no two students have the same experience. AI agents continuously adapt content, pacing, and difficulty to match each learner\'s progress and style.',
   },
-  {
-    num: '04',
-    company: 'Rosen Media Group',
-    industry: 'Media / Content Production',
-    headline: '2.5x content output without adding headcount.',
-    problem: 'A media company producing content across multiple formats and channels, but bottlenecked by the editorial process. Writers spending 40% of their time on research and formatting instead of actual writing. Distribution across platforms was manual and inconsistent.',
-    process: [
-      'Mapped the full content lifecycle from ideation to distribution across all channels',
-      'Built AI agents for research synthesis, content formatting, SEO optimization, and cross-platform distribution',
-      'Created an editorial dashboard showing content pipeline status, performance metrics, and scheduling',
-      'Deployed automated distribution agents that reformat content for each platform\'s requirements',
-    ],
-    results: [
-      { metric: '2.5x', label: 'content output' },
-      { metric: '60%', label: 'less research time' },
-      { metric: '5', label: 'platforms auto-published' },
-      { metric: '0', label: 'additional headcount' },
-    ],
-    payoff: 'Same team, 2.5x the output. Writers focus on storytelling while AI handles research, formatting, optimization, and distribution. Content reaches every platform within hours of creation.',
-  },
 ];
+
 
 export default function WorkPage() {
   return (
