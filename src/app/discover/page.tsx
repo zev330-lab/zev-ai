@@ -321,11 +321,36 @@ export default function DiscoverPage() {
                       the more useful the conversation.
                     </p>
                   </motion.div>
+
+                  {/* What happens next + pricing clarity */}
+                  <motion.div
+                    className="mt-8 p-5 rounded-2xl border border-border/60 bg-border/10 max-w-xl"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.22, ease: EASE }}
+                  >
+                    <p className="text-xs tracking-[0.18em] uppercase text-accent font-medium mb-3">What happens after you submit</p>
+                    <ul className="space-y-2 text-base text-muted-light leading-relaxed">
+                      <li className="flex gap-2.5">
+                        <span className="text-accent mt-0.5 flex-shrink-0">→</span>
+                        <span>Our research system runs a full analysis of your business and market.</span>
+                      </li>
+                      <li className="flex gap-2.5">
+                        <span className="text-accent mt-0.5 flex-shrink-0">→</span>
+                        <span>Within <strong className="text-foreground-strong">48 hours</strong> you&apos;ll receive a detailed proposal and full assessment.</span>
+                      </li>
+                      <li className="flex gap-2.5">
+                        <span className="text-accent mt-0.5 flex-shrink-0">→</span>
+                        <span>The <strong className="text-foreground-strong">$2,500 assessment fee</strong> is credited in full toward your build if you move forward.</span>
+                      </li>
+                    </ul>
+                  </motion.div>
+
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.3, ease: EASE }}
-                    className="mt-10"
+                    className="mt-10 flex flex-wrap items-center gap-4 sm:gap-6"
                   >
                     <button
                       onClick={next}
@@ -336,6 +361,15 @@ export default function DiscoverPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                       </svg>
                     </button>
+                    <p className="text-sm text-muted">
+                      Prefer to talk first?{' '}
+                      <a
+                        href="mailto:hello@askzev.ai"
+                        className="text-accent hover:text-accent-hover transition-colors duration-300 underline underline-offset-2"
+                      >
+                        Email hello@askzev.ai
+                      </a>
+                    </p>
                   </motion.div>
                 </div>
               )}
