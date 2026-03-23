@@ -63,6 +63,11 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <JsonLd />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="TOLA" />
+        <meta name="theme-color" content="#0a0a0f" />
       </head>
       <body className={`${sora.variable} ${sourceSerif.variable} antialiased`}>
         <LayoutWrapper>{children}</LayoutWrapper>
