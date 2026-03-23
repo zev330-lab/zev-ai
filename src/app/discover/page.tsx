@@ -311,14 +311,13 @@ export default function DiscoverPage() {
                     transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
                   >
                     <p>
-                      This form takes about 8 minutes. What you write here goes directly into TOLA&apos;s research
-                      pipeline: Visionary researches your market, Architect scopes the opportunity, Oracle prepares
-                      the meeting brief.
+                      About 8 minutes. The more specific you are about what&apos;s actually broken,
+                      the more useful what comes back will be.
                     </p>
                     <p>
-                      By the time we talk, I&apos;ve already done several hours of work on your business.
-                      Fill it out honestly — the more specific you are about what&apos;s actually broken,
-                      the more useful the conversation.
+                      Before I respond, I do my homework — your market, your competitors, where the real 
+                      leverage is. By the time you hear from me, I&apos;ve already been thinking about your 
+                      business. That&apos;s what makes the conversation worth having.
                     </p>
                   </motion.div>
 
@@ -329,19 +328,23 @@ export default function DiscoverPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.22, ease: EASE }}
                   >
-                    <p className="text-xs tracking-[0.18em] uppercase text-accent font-medium mb-3">What happens after you submit</p>
+                    <p className="text-xs tracking-[0.18em] uppercase text-accent font-medium mb-3">What happens next</p>
                     <ul className="space-y-2 text-base text-muted-light leading-relaxed">
                       <li className="flex gap-2.5">
                         <span className="text-accent mt-0.5 flex-shrink-0">→</span>
-                        <span>Our research system runs a full analysis of your business and market.</span>
+                        <span>I review your submission and research your business and market personally.</span>
                       </li>
                       <li className="flex gap-2.5">
                         <span className="text-accent mt-0.5 flex-shrink-0">→</span>
-                        <span>Within <strong className="text-foreground-strong">48 hours</strong> you&apos;ll receive a detailed proposal and full assessment.</span>
+                        <span>Within <strong className="text-foreground-strong">48 hours</strong> you receive a detailed Insight Report — specific to your situation, not a template.</span>
                       </li>
                       <li className="flex gap-2.5">
                         <span className="text-accent mt-0.5 flex-shrink-0">→</span>
-                        <span>The <strong className="text-foreground-strong">$499 Insight Report</strong> is credited in full toward your build if you move forward.</span>
+                        <span>The <strong className="text-foreground-strong">$499 report fee</strong> is credited in full toward your build if you move forward.</span>
+                      </li>
+                      <li className="flex gap-2.5">
+                        <span className="text-accent mt-0.5 flex-shrink-0">→</span>
+                        <span>Prefer to talk first? <a href="mailto:hello@askzev.ai" className="text-accent hover:underline">Email hello@askzev.ai</a></span>
                       </li>
                     </ul>
                   </motion.div>
