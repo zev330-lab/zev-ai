@@ -426,7 +426,7 @@ export default function CainPage() {
             <span className="text-xl">🗡️</span>
             <div>
               <h1 className="text-sm font-bold text-[var(--color-foreground-strong)]">Cain</h1>
-              <p className="text-[11px] text-[var(--color-muted)]">March 23, 2026</p>
+              <p className="text-[11px] text-[var(--color-muted)]">{new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-[var(--color-muted)]">
@@ -493,7 +493,7 @@ export default function CainPage() {
         {/* ── WHAT CAIN DID ── */}
         <section>
           <h2 className="text-[11px] font-bold uppercase tracking-widest text-[var(--color-muted)] mb-4">
-            What Cain Did · {RECENT_WORK.length} completed today
+            What Cain Built · {RECENT_WORK.length} shipped
           </h2>
           <div className="border border-[var(--color-admin-border)] rounded-xl overflow-hidden">
             {RECENT_WORK.map((item, i) => (
