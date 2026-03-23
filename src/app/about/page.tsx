@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Reveal } from '@/components/reveal';
 
@@ -31,6 +32,19 @@ export default function AboutPage() {
               I build production AI systems for businesses. Hands-on. End to end.
               The kind of systems that run 24/7 and pay for themselves.
             </p>
+
+            {/* Headshot */}
+            <div className="mt-10">
+              <Image
+                src="/zev-headshot.jpg"
+                alt="Zev Steinmetz"
+                width={160}
+                height={160}
+                className="rounded-2xl object-cover"
+                priority
+              />
+              <p className="mt-3 text-sm text-muted">Zev Steinmetz — Newton, MA</p>
+            </div>
           </motion.div>
         </div>
       </section>
