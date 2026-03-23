@@ -341,7 +341,7 @@ export default function DiscoverPage() {
                       </li>
                       <li className="flex gap-2.5">
                         <span className="text-accent mt-0.5 flex-shrink-0">→</span>
-                        <span>The <strong className="text-foreground-strong">$2,500 assessment fee</strong> is credited in full toward your build if you move forward.</span>
+                        <span>The <strong className="text-foreground-strong">$499 Insight Report</strong> is credited in full toward your build if you move forward.</span>
                       </li>
                     </ul>
                   </motion.div>

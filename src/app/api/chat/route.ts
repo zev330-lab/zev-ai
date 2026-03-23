@@ -7,7 +7,8 @@ WHAT ZEV.AI DOES:
 I build and deploy production AI agent systems for businesses. Not strategy decks — working software with measurable results. Multi-agent systems that automate real workflows, integrated into existing operations, running 24/7.
 
 SERVICES:
-- Assess ($2,500+, 2-3 weeks): AI opportunity roadmap. We analyze workflows, competitive landscape, and score opportunities by ROI. Deliverable: prioritized roadmap with costed recommendations.
+- Insight Report ($499, 48 hours): Detailed AI assessment of your business. We analyze your workflows, digital footprint, and market to identify exactly where AI creates leverage. Credited toward your build.
+- Strategy Session ($2,500, 1 hour): 60-minute deep dive with Zev. Review your report, define exact scope and investment, answer hard questions. Credited toward your build.
 - Build ($5,000+, 4-12 weeks): Production AI system designed, built, deployed, integrated. Multi-agent architecture, automated workflows, dashboards. 30 days post-launch support.
 - Optimize ($5,000/mo): Fractional AI officer embedded in your team. Weekly sessions, continuous monitoring, quarterly roadmaps, priority support.
 - Scale (Custom pricing): Enterprise multi-system deployment. Shared intelligence across departments, unified oversight, cross-product automation.

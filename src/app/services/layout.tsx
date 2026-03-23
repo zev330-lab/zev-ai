@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Services — From Discovery to Deployment',
-  description: 'Four levels of AI engagement: Assess, Build, Optimize, Scale. From focused assessments starting at $2,500 to enterprise-wide AI infrastructure.',
+  description: 'Four tiers: Insight Report ($499), Strategy Session ($2,500), Build ($15,000), Growth ($2,500/mo). From first look to full AI operations.',
   openGraph: {
     title: 'Services | zev.ai',
     description: 'From discovery to deployment — real AI systems, measurable outcomes.',

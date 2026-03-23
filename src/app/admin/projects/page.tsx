@@ -9,6 +9,8 @@ interface Project {
   totalMilestones: number; completeMilestones: number; totalHours: number;
   hoursThisWeek: number; hasOverdue: boolean;
   created_at: string; updated_at: string;
+  deployed_url: string | null; github_url: string | null;
+  tech_stack: string[] | null; last_commit_message: string | null;
 }
 
 interface Milestone {
@@ -201,6 +203,7 @@ export default function AdminProjectsPage() {
                     <span className="inline-block px-2 py-0.5 text-[10px] font-medium rounded-full shrink-0" style={{ backgroundColor: badge.bg, color: badge.text }}>{badge.label}</span>
                   </div>
                   <p className="text-[11px] text-[var(--color-muted)]">{p.client}</p>
+                  {p.description && <p className="text-[11px] text-[var(--color-muted-light)] mt-1 line-clamp-2 leading-relaxed">{p.description}</p>}
 
                   {/* Milestone progress bar */}
                   <div className="mt-3">
@@ -259,6 +262,33 @@ export default function AdminProjectsPage() {
                 <button onClick={() => { setSelected(null); setDetail(null); }} className="text-[var(--color-muted)] hover:text-[var(--color-foreground-strong)] text-xl cursor-pointer">&times;</button>
               </div>
               <p className="text-xs text-[var(--color-muted)]">{detail.project.client} &middot; {detail.project.tola_node} node</p>
+              {/* Description */}
+              {detail.project.description && (
+                <p className="text-sm text-[var(--color-muted-light)] mt-2 leading-relaxed">{detail.project.description}</p>
+              )}
+              {/* Links */}
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
+                {detail.project.deployed_url && (
+                  <a href={detail.project.deployed_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-accent)] hover:underline">🌐 {detail.project.deployed_url.replace(/^https?:\/\//, '')}</a>
+                )}
+                {detail.project.github_url && (
+                  <a href={detail.project.github_url} target="_blank" rel="noopener noreferrer" className="text-xs text-[var(--color-muted)] hover:text-[var(--color-muted-light)]">⌥ GitHub</a>
+                )}
+              </div>
+              {/* Tech stack */}
+              {detail.project.tech_stack && detail.project.tech_stack.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {detail.project.tech_stack.map((t) => (
+                    <span key={t} className="text-[9px] bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded px-1.5 py-0.5 text-[var(--color-muted)]">{t}</span>
+                  ))}
+                </div>
+              )}
+              {/* Stats row */}
+              <div className="flex items-center gap-4 mt-3 text-xs text-[var(--color-muted)]">
+                <span>{detail.project.totalHours.toFixed(1)}h logged</span>
+                <span>{detail.project.completeMilestones}/{detail.project.totalMilestones} milestones done</span>
+                {(detail.project.hoursThisWeek || 0) > 0 && <span className="text-[var(--color-accent)]">{detail.project.hoursThisWeek.toFixed(1)}h this week</span>}
+              </div>
               <div className="flex items-center gap-2 mt-3">
                 <button onClick={() => setShowAddMs(true)} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-[var(--color-accent)]/20 text-[var(--color-accent)] cursor-pointer">Add Milestone</button>
                 <button onClick={openDetailLog} className="px-3 py-1.5 text-xs font-medium rounded-lg bg-purple-500/20 text-purple-400 cursor-pointer">Log Time</button>
