@@ -294,7 +294,7 @@ export default function DiscoverPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: EASE }}
                   >
-                    Your discovery starts here.
+                    Tell me about your business.
                   </motion.h1>
                   <motion.p
                     className="mt-4 text-sm tracking-[0.15em] uppercase text-accent font-medium"
@@ -302,7 +302,7 @@ export default function DiscoverPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.08, ease: EASE }}
                   >
-                    Not a contact form. The actual beginning of the process.
+                    Free to submit. No commitment.
                   </motion.p>
                   <motion.div
                     className="mt-8 space-y-4 text-lg text-muted-light max-w-xl leading-relaxed"
@@ -311,13 +311,13 @@ export default function DiscoverPage() {
                     transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
                   >
                     <p>
-                      About 8 minutes. The more specific you are about what&apos;s actually broken,
-                      the more useful what comes back will be.
+                      Answer a few questions about your business — what&apos;s working, what&apos;s not, 
+                      and what you wish you could fix. Takes about 8 minutes.
                     </p>
                     <p>
-                      Before I respond, I do my homework — your market, your competitors, where the real 
-                      leverage is. By the time you hear from me, I&apos;ve already been thinking about your 
-                      business. That&apos;s what makes the conversation worth having.
+                      You&apos;ll get a free summary of what I see. If you want the full picture — 
+                      a detailed analysis of your market, your competitors, and exactly where AI 
+                      moves the needle — that&apos;s the Insight Report.
                     </p>
                   </motion.div>
 
@@ -328,25 +328,26 @@ export default function DiscoverPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.22, ease: EASE }}
                   >
-                    <p className="text-xs tracking-[0.18em] uppercase text-accent font-medium mb-3">What happens next</p>
-                    <ul className="space-y-2 text-base text-muted-light leading-relaxed">
+                    <p className="text-xs tracking-[0.18em] uppercase text-accent font-medium mb-3">How it works</p>
+                    <ul className="space-y-3 text-base text-muted-light leading-relaxed">
                       <li className="flex gap-2.5">
-                        <span className="text-accent mt-0.5 flex-shrink-0">→</span>
-                        <span>I review your submission and research your business and market personally.</span>
+                        <span className="text-accent mt-0.5 flex-shrink-0 font-bold">1</span>
+                        <span><strong className="text-foreground-strong">Submit for free</strong> — I review your answers and send back a free summary of what I see.</span>
                       </li>
                       <li className="flex gap-2.5">
-                        <span className="text-accent mt-0.5 flex-shrink-0">→</span>
-                        <span>Within <strong className="text-foreground-strong">48 hours</strong> you receive a detailed Insight Report — specific to your situation, not a template.</span>
+                        <span className="text-accent mt-0.5 flex-shrink-0 font-bold">2</span>
+                        <span><strong className="text-foreground-strong">Insight Report — $4.99</strong> — Full analysis: your market, competitors, where AI creates real leverage. Delivered in 48 hours. Credited toward the next step.</span>
                       </li>
                       <li className="flex gap-2.5">
-                        <span className="text-accent mt-0.5 flex-shrink-0">→</span>
-                        <span>The <strong className="text-foreground-strong">$499 report fee</strong> is credited in full toward your build if you move forward.</span>
+                        <span className="text-accent mt-0.5 flex-shrink-0 font-bold">3</span>
+                        <span><strong className="text-foreground-strong">Strategy Session — $2,500</strong> — 60 minutes with me. I&apos;ve read your report, done more research, and have a specific plan for your business. The $4.99 is credited — you pay $2,495 more. Credited toward your build.</span>
                       </li>
                       <li className="flex gap-2.5">
-                        <span className="text-accent mt-0.5 flex-shrink-0">→</span>
-                        <span>Prefer to talk first? <a href="mailto:hello@askzev.ai" className="text-accent hover:underline">Email hello@askzev.ai</a></span>
+                        <span className="text-accent mt-0.5 flex-shrink-0 font-bold">4</span>
+                        <span><strong className="text-foreground-strong">Build — $15,000</strong> — We build it. The $2,500 is credited. You pay the difference.</span>
                       </li>
                     </ul>
+                    <p className="mt-4 text-sm text-muted italic">Prefer to talk first? <a href="mailto:hello@askzev.ai" className="text-accent hover:underline">Email hello@askzev.ai</a></p>
                   </motion.div>
 
                   <motion.div
