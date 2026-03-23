@@ -1,414 +1,523 @@
 'use client';
 
 // ─── /admin/cain ─────────────────────────────────────────────────────────────
-// Cain's dashboard — what's in flight, what got done, what needs Zev's call.
-// Phase 1: Static/hardcoded. Phase 2: Supabase-backed (cain_sessions table).
+// Cain's command center. Every card is a fully self-contained task.
+// One button = the thing is done.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface Task {
-  title: string;
-  status: 'completed' | 'partial' | 'skipped' | 'failed' | 'in-progress';
-  detail?: string;
-}
+type Priority = 'urgent' | 'today' | 'when-ready';
 
-interface Artifact {
-  type: 'file' | 'commit' | 'deployment' | 'proposal';
-  label: string;
-  url?: string;
-  repo?: string;
-}
+interface EmailAction { type: 'email'; to: string; subject: string; body: string }
+interface SMSAction  { type: 'sms';   body: string; phoneNumber?: string }
+interface LinkAction { type: 'link';  url: string; label: string }
+interface SQLAction  { type: 'sql';   sql: string; dashboardUrl: string }
+interface InfoAction { type: 'info';  rows: Array<{ label: string; value: string; secret?: boolean }> }
 
-interface ActionItem {
+type TaskAction = EmailAction | SMSAction | LinkAction | SQLAction | InfoAction;
+
+interface ActionCard {
   id: string;
+  priority: Priority;
   title: string;
   context: string;
-  options: string[];
-}
-
-interface Session {
-  id: string;
-  label: string;
-  type: 'overnight' | 'task' | 'on-demand';
-  status: 'completed' | 'partial' | 'active';
-  date: string;
-  tasks: Task[];
-  artifacts: Artifact[];
-  actionItems: ActionItem[];
-  summary: string;
+  actions: TaskAction[];
 }
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
-const SESSIONS: Session[] = [
+const JOHN_EMAIL_BODY = `Hi John,
+
+Hope you're well. I put together two things based on the discovery you submitted:
+
+1. The proposal — scope, timeline, and investment:
+https://atlantic-laser-v2.vercel.app
+
+2. The full assessment — everything we found:
+https://atlantic-laser-assessment.vercel.app
+
+With your laser cleaning launch coming up, timing matters. Happy to jump on a quick call this week.
+
+— Zev
+zev.ai | hello@askzev.ai`;
+
+const ZION_TEXT = `Hey Zion — been heads down on some new work and wanted to circle back. Rebuilt your proposal with updated pricing and also put together something I think you're going to like.
+
+Two links for you:
+
+Updated proposal: https://zion-proposal-deploy.vercel.app
+
+And a working prototype of that customer decision tool we talked about: https://bay-state-decision-tool.vercel.app
+
+Take a look and let me know what you think. Happy to jump on a call this week.`;
+
+const LISA_TEXT = `Hey Lisa — just wanted to check in and see if you'd had a chance to look at the proposal. No rush at all, I know you're managing a lot right now.
+
+I built the tiers specifically so you could start at whatever level feels right — honestly even the Starter Tier would give you consistent social content without you having to write a single post from scratch, and we're talking a few hundred bucks a month, not agency rates.
+
+The thing that keeps standing out to me is that 173K Facebook audience sitting there dormant. That's a remarketing pool most businesses would pay a lot of money to build, and you already have it. Even just getting consistent content going again would start warming them up before we ever spent a dollar on ads.
+
+If it helps to talk through any of it — even just a 20-minute call — happy to do that. And if the timing isn't right right now, totally get it.
+
+— Zev`;
+
+const SUPABASE_SQL = `DO $$ BEGIN
+  ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_type text;
+  ALTER TABLE leads ADD COLUMN IF NOT EXISTS budget_range text;
+  ALTER TABLE leads ADD COLUMN IF NOT EXISTS timeline text;
+  ALTER TABLE leads ADD COLUMN IF NOT EXISTS investment_strategy text;
+  ALTER TABLE leads ADD COLUMN IF NOT EXISTS target_cap_rate text;
+  ALTER TABLE leads ADD COLUMN IF NOT EXISTS investment_property_types text[];
+  ALTER TABLE leads ADD COLUMN IF NOT EXISTS referrer_name text;
+  ALTER TABLE leads ADD COLUMN IF NOT EXISTS referrer_email text;
+EXCEPTION WHEN others THEN NULL;
+END $$;`;
+
+const ACTION_ITEMS: ActionCard[] = [
   {
-    id: 'wave5',
-    label: 'Wave 5 — March 23, 2026',
-    type: 'overnight',
-    status: 'active',
-    date: '2026-03-23',
-    summary: 'Lisa Rosen proposal + strategy doc, Cain admin dashboard (this page), Steinmetz /invest API fix, 20 LinkedIn posts for askzev.ai, security vendor research.',
-    tasks: [
-      { title: 'Lisa Rosen discovery data read + strategy doc written', status: 'completed', detail: 'Full summary of what she asked for, three-tier pricing recap, warm follow-up text for Zev, and HTML proposal page.' },
-      { title: 'Lisa Rosen HTML proposal page', status: 'completed', detail: 'Saved to /docs/proposals/lisa-rosen-proposal.html — same dark-mode format as Atlantic Laser and Bay State.' },
-      { title: 'Cain admin dashboard (/admin/cain)', status: 'completed', detail: 'Phase 1 static implementation. Shows current work, recent completions, pending decisions, proposal links.' },
-      { title: 'Steinmetz /invest API fix — lead field mapping', status: 'completed', detail: 'Fixed the TODO in /api/leads/route.ts: investment fields (timeline, strategy, capRateTarget, propertyTypes, towns) now stored in metadata since migration 002 columns not yet applied to DB.' },
-      { title: 'LinkedIn content — 20 posts for askzev.ai', status: 'completed', detail: 'Saved to /docs/content/askzevai-linkedin-posts.md. Practitioner tone, specific, no buzzword soup.' },
-      { title: 'Security vendor research (next 10)', status: 'completed', detail: 'Saved to /docs/security-vendor-complete-list.md. 17 total vendors documented with status.' },
-    ],
-    artifacts: [
-      { type: 'file', label: 'lisa-rosen-strategy.md', url: '/docs/proposals/lisa-rosen-strategy.md' },
-      { type: 'proposal', label: 'lisa-rosen-proposal.html', url: 'https://askzev.ai/proposals/lisa-rosen' },
-      { type: 'file', label: 'askzevai-linkedin-posts.md', url: '/docs/content/askzevai-linkedin-posts.md' },
-      { type: 'file', label: 'security-vendor-complete-list.md', url: '/docs/security-vendor-complete-list.md' },
-      { type: 'commit', label: 'steinmetz-real-estate: invest API fix + leads metadata', repo: 'steinmetz-real-estate' },
-      { type: 'commit', label: 'zev-ai: /admin/cain dashboard (this page)', repo: 'zev-ai' },
-    ],
-    actionItems: [
+    id: 'john-email',
+    priority: 'urgent',
+    title: "Send John's email",
+    context: "Atlantic Laser — proposal + assessment are live. He needs to see them before his laser cleaning launch.",
+    actions: [
       {
-        id: 'lisa-followup',
-        title: 'Send Lisa Rosen follow-up text',
-        context: 'The warm follow-up text is written in /docs/proposals/lisa-rosen-strategy.md. It\'s casual friend tone, not sales. Mentions the 173K Facebook audience angle. Zev just needs to send it.',
-        options: ['I\'ll send it', 'Edit the text first', 'Not yet — wait longer'],
-      },
-      {
-        id: 'invest-migration',
-        title: 'Run Steinmetz DB migration 002',
-        context: 'The /api/leads/route.ts has TODO\'d columns (property_type, timeline, investment_strategy, target_cap_rate, investment_property_types). The migration SQL is at supabase/migrations/002_add_missing_lead_columns.sql. Running it will let us uncomment those field mappings and use dedicated columns instead of metadata JSON.',
-        options: ['Run it via Supabase dashboard', 'I\'ll handle it', 'Low priority — skip for now'],
-      },
-      {
-        id: 'linkedin-scheduling',
-        title: 'Schedule the 20 LinkedIn posts for askzev.ai',
-        context: '20 posts written and saved to /docs/content/askzevai-linkedin-posts.md. There\'s no Buffer connection for askzev.ai yet. Either connect Buffer or schedule manually. Posts are ready to go.',
-        options: ['Connect Buffer and schedule', 'Schedule manually', 'Hold — not ready to post yet'],
+        type: 'email',
+        to: 'jonathanproctor68@gmail.com',
+        subject: 'Your Atlantic Laser proposal — two things to review',
+        body: JOHN_EMAIL_BODY,
       },
     ],
   },
   {
-    id: 'wave4',
-    label: 'Wave 4 — March 23, 2026',
-    type: 'overnight',
-    status: 'completed',
-    date: '2026-03-23',
-    summary: 'TOLA client workflow spec, wearable AI comparison, Skyslope sync skeleton, /discover page improvements, Finance module updated.',
-    tasks: [
-      { title: 'TOLA client workflow spec', status: 'completed' },
-      { title: 'Wearable AI comparison doc', status: 'completed' },
-      { title: 'Skyslope sync skeleton', status: 'completed' },
-      { title: '/discover page improvements', status: 'completed' },
-      { title: 'Finance module updated', status: 'completed' },
+    id: 'zion-text',
+    priority: 'urgent',
+    title: 'Text Zion',
+    context: "Bay State — rebuilt proposal + decision tool prototype are ready. He's been waiting.",
+    actions: [
+      {
+        type: 'sms',
+        body: ZION_TEXT,
+      },
     ],
-    artifacts: [
-      { type: 'file', label: 'tola-client-workflow-spec.md' },
-      { type: 'file', label: 'wearable-ai-comparison.md' },
+  },
+  {
+    id: 'lisa-text',
+    priority: 'today',
+    title: 'Send Lisa follow-up text',
+    context: "Close friend. Proposal sent a few days ago. Casual check-in, no pressure — don't wait too long.",
+    actions: [
+      {
+        type: 'sms',
+        body: LISA_TEXT,
+      },
     ],
-    actionItems: [],
+  },
+  {
+    id: 'supabase-migration',
+    priority: 'today',
+    title: 'Run Supabase migration',
+    context: 'Steinmetz DB — adds missing lead columns. The API is working around these with metadata JSON right now.',
+    actions: [
+      {
+        type: 'sql',
+        sql: SUPABASE_SQL,
+        dashboardUrl: 'https://supabase.com/dashboard',
+      },
+    ],
+  },
+  {
+    id: 'buffer-linkedin',
+    priority: 'today',
+    title: 'Connect askzev.ai to Buffer · schedule 20 posts',
+    context: '20 LinkedIn posts are written and ready. Buffer needs to be connected for askzev.ai.',
+    actions: [
+      {
+        type: 'link',
+        url: 'https://buffer.com',
+        label: 'Open Buffer',
+      },
+      {
+        type: 'info',
+        rows: [
+          { label: 'Login', value: 'zev330@gmail.com' },
+          { label: 'Password', value: 'Complicated1*', secret: true },
+          { label: 'Posts file', value: '/docs/content/askzevai-linkedin-posts.md' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'limitless-pendant',
+    priority: 'when-ready',
+    title: 'Order Limitless Pendant',
+    context: 'Best wearable for TOLA. Only one with a real API for auto-pushing meeting transcripts. $99 + $19/month.',
+    actions: [
+      {
+        type: 'link',
+        url: 'https://www.limitless.ai',
+        label: 'Order on Limitless.ai →',
+      },
+    ],
+  },
+  {
+    id: 'elevenlabs-upgrade',
+    priority: 'when-ready',
+    title: 'Upgrade ElevenLabs',
+    context: 'Voice replies are paused — quota exceeded. Creator plan is $22/month for 100K chars.',
+    actions: [
+      {
+        type: 'link',
+        url: 'https://elevenlabs.io/app/billing',
+        label: 'Upgrade to Creator ($22/mo) →',
+      },
+    ],
+  },
+  {
+    id: 'sarina-skyslope',
+    priority: 'when-ready',
+    title: "Send Sarina's Skyslope credentials to Cain",
+    context: 'Needed for overnight transaction sync. Send your raveis365.com login via Telegram when ready.',
+    actions: [
+      {
+        type: 'link',
+        url: 'https://t.me',
+        label: 'Open Telegram →',
+      },
+    ],
   },
 ];
 
-const PROPOSAL_LINKS = [
-  { label: 'Atlantic Laser Solutions', url: 'https://askzev.ai/proposals/atlantic-laser', status: 'live' },
-  { label: 'Bay State Remodeling', url: 'https://askzev.ai/proposals/bay-state', status: 'live' },
-  { label: 'Lisa Rosen / IGS', url: 'https://askzev.ai/proposals/lisa-rosen', status: 'pending-deploy' },
-  { label: 'Jonathan (Atlantic Laser v2)', url: '/docs/proposals/jonathan-assessment-doc.html', status: 'local' },
-  { label: 'Zion / Bay State Decision Tool', url: 'https://askzev.ai/proposals/bay-state-decision', status: 'live' },
+const RECENT_WORK = [
+  'Projects crash fix on askzev.ai',
+  'Knowledge Base populated (Newton + 6 other neighborhoods)',
+  'Quality Monitor critical issue fixed',
+  'Stale agents fixed (4→12+ healthy)',
+  "Sarina's transaction form built",
+  '10 social posts scheduled in Buffer',
+  'Google Analytics connected (both sites)',
+  'Google Search Console verified (both sites)',
+  'Stripe configured + payment links created',
+  'ElevenLabs voice configured',
+  'Atlantic Laser interactive proposal app live',
+  'Zion Bay State proposal + decision tool mockup live',
+  'Zev headshot added to About page',
+  'PWA manifest added (add to home screen)',
+  'TOLA client workflow spec written',
+  'Wearable AI comparison written',
+  '20 LinkedIn posts written for askzev.ai',
 ];
 
-const CURRENT_WORK = [
-  'Wave 5: Lisa Rosen proposal, /admin/cain dashboard, invest API fix, LinkedIn content, security vendor research',
-];
+// ─── Priority config ──────────────────────────────────────────────────────────
 
-// ─── Icons ───────────────────────────────────────────────────────────────────
+const PRIORITY_CONFIG = {
+  urgent:     { emoji: '🔴', label: 'Urgent',     color: 'text-red-400',     border: 'border-red-500/30',    bg: 'bg-red-500/5' },
+  today:      { emoji: '🟡', label: 'Today',      color: 'text-amber-400',   border: 'border-amber-500/30',  bg: 'bg-amber-500/5' },
+  'when-ready': { emoji: '🟢', label: 'When Ready', color: 'text-emerald-400', border: 'border-[var(--color-admin-border)]', bg: 'bg-[var(--color-admin-surface)]' },
+};
 
-function CainIcon() {
+// ─── Copy Button ─────────────────────────────────────────────────────────────
+
+function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [text]);
+
   return (
-    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M12 3l2 5h5l-4 3 2 5-5-3-5 3 2-5-4-3h5z" />
-    </svg>
+    <button
+      onClick={handleCopy}
+      className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer ${
+        copied
+          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+          : 'bg-[var(--color-admin-surface)] text-[var(--color-foreground-strong)] border border-[var(--color-admin-border)] hover:border-[var(--color-accent)]/40'
+      }`}
+    >
+      {copied ? '✓ Copied!' : `📋 ${label}`}
+    </button>
   );
 }
 
-function StatusBadge({ status }: { status: Task['status'] }) {
-  const configs = {
-    completed: { bg: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20', icon: '✓', label: 'Done' },
-    partial: { bg: 'bg-amber-500/10 text-amber-400 border-amber-500/20', icon: '⚠', label: 'Partial' },
-    'in-progress': { bg: 'bg-blue-500/10 text-blue-400 border-blue-500/20', icon: '↻', label: 'Active' },
-    skipped: { bg: 'bg-[var(--color-admin-surface)] text-[var(--color-muted)] border-[var(--color-admin-border)]', icon: '—', label: 'Skipped' },
-    failed: { bg: 'bg-red-500/10 text-red-400 border-red-500/20', icon: '✗', label: 'Failed' },
-  };
-  const c = configs[status];
-  return (
-    <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded border ${c.bg}`}>
-      <span>{c.icon}</span> {c.label}
-    </span>
-  );
+// ─── Action Renderer ──────────────────────────────────────────────────────────
+
+function ActionRenderer({ action }: { action: TaskAction }) {
+  const [showText, setShowText] = useState(false);
+  const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
+
+  if (action.type === 'email') {
+    const mailto = `mailto:${action.to}?subject=${encodeURIComponent(action.subject)}&body=${encodeURIComponent(action.body)}`;
+    return (
+      <div className="flex flex-col gap-3">
+        <a
+          href={mailto}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+        >
+          ✉ Send Email
+        </a>
+        <div className="text-xs text-[var(--color-muted)] space-y-0.5">
+          <div><span className="text-[var(--color-muted-light)]">To:</span> {action.to}</div>
+          <div><span className="text-[var(--color-muted-light)]">Subject:</span> {action.subject}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (action.type === 'sms') {
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <CopyButton text={action.body} label="Copy Message" />
+          <button
+            onClick={() => setShowText(v => !v)}
+            className="text-xs text-[var(--color-muted)] hover:text-[var(--color-muted-light)] transition-colors cursor-pointer"
+          >
+            {showText ? '▲ Hide' : '▼ Preview'}
+          </button>
+        </div>
+        {showText && (
+          <pre className="text-xs text-[var(--color-muted-light)] leading-relaxed whitespace-pre-wrap bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg p-3 font-sans">
+            {action.body}
+          </pre>
+        )}
+      </div>
+    );
+  }
+
+  if (action.type === 'link') {
+    return (
+      <a
+        href={action.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+      >
+        {action.label}
+      </a>
+    );
+  }
+
+  if (action.type === 'sql') {
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <CopyButton text={action.sql} label="Copy SQL" />
+          <a
+            href={action.dashboardUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-[var(--color-accent)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            Open Supabase →
+          </a>
+        </div>
+        <p className="text-xs text-[var(--color-muted)]">SQL Editor → paste → Run</p>
+        <button
+          onClick={() => setShowText(v => !v)}
+          className="text-xs text-left text-[var(--color-muted)] hover:text-[var(--color-muted-light)] transition-colors cursor-pointer"
+        >
+          {showText ? '▲ Hide SQL' : '▼ Preview SQL'}
+        </button>
+        {showText && (
+          <pre className="text-xs text-emerald-300/80 leading-relaxed whitespace-pre-wrap bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg p-3 font-mono overflow-x-auto">
+            {action.sql}
+          </pre>
+        )}
+      </div>
+    );
+  }
+
+  if (action.type === 'info') {
+    return (
+      <div className="space-y-2">
+        {action.rows.map((row) => (
+          <div key={row.label} className="flex items-center gap-2 text-xs">
+            <span className="text-[var(--color-muted)] w-16 shrink-0">{row.label}</span>
+            {row.secret ? (
+              <div className="flex items-center gap-2">
+                <span className="text-[var(--color-foreground-strong)] font-mono">
+                  {showSecret[row.label] ? row.value : '••••••••••'}
+                </span>
+                <button
+                  onClick={() => setShowSecret(v => ({ ...v, [row.label]: !v[row.label] }))}
+                  className="text-[var(--color-muted)] hover:text-[var(--color-muted-light)] text-[10px] cursor-pointer"
+                >
+                  {showSecret[row.label] ? 'hide' : 'show'}
+                </button>
+                <CopyButton text={row.value} label="" />
+              </div>
+            ) : (
+              <span className="text-[var(--color-foreground-strong)] font-mono">{row.value}</span>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
 }
 
-function SessionTypeBadge({ type }: { type: Session['type'] }) {
-  const configs = {
-    overnight: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-    task: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    'on-demand': 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-  };
+// ─── Task Card ────────────────────────────────────────────────────────────────
+
+function TaskCard({ item }: { item: ActionCard }) {
+  const [done, setDone] = useState(false);
+  const cfg = PRIORITY_CONFIG[item.priority];
+
   return (
-    <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${configs[type]}`}>
-      {type}
-    </span>
+    <div className={`rounded-xl border p-4 transition-opacity ${cfg.border} ${cfg.bg} ${done ? 'opacity-40' : ''}`}>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span className={`text-[10px] font-bold uppercase tracking-widest ${cfg.color}`}>
+              {cfg.emoji} {cfg.label}
+            </span>
+          </div>
+          <h3 className={`text-sm font-semibold leading-snug ${done ? 'line-through text-[var(--color-muted)]' : 'text-[var(--color-foreground-strong)]'}`}>
+            {item.title}
+          </h3>
+          <p className="text-xs text-[var(--color-muted)] mt-1 leading-relaxed">{item.context}</p>
+        </div>
+        <button
+          onClick={() => setDone(v => !v)}
+          title={done ? 'Undo' : 'Mark done'}
+          className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center text-xs transition-colors cursor-pointer ${
+            done
+              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+              : 'border-[var(--color-admin-border)] text-[var(--color-muted)] hover:border-emerald-500/40 hover:text-emerald-400'
+          }`}
+        >
+          {done ? '✓' : '○'}
+        </button>
+      </div>
+
+      {/* Actions */}
+      {!done && (
+        <div className="space-y-3">
+          {item.actions.map((action, i) => (
+            <ActionRenderer key={i} action={action} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function CainPage() {
-  const [selectedSession, setSelectedSession] = useState(SESSIONS[0]);
-  const [expandedTask, setExpandedTask] = useState<string | null>(null);
+  const urgent    = ACTION_ITEMS.filter(a => a.priority === 'urgent');
+  const today     = ACTION_ITEMS.filter(a => a.priority === 'today');
+  const whenReady = ACTION_ITEMS.filter(a => a.priority === 'when-ready');
 
-  const pendingActions = SESSIONS.flatMap(s => s.actionItems);
+  const totalPending = ACTION_ITEMS.length;
 
   return (
-    <div className="flex h-full min-h-0">
-
-      {/* ── Sidebar ── */}
-      <aside className="w-64 shrink-0 border-r border-[var(--color-admin-border)] flex flex-col overflow-hidden hidden lg:flex">
-
-        {/* Header */}
-        <div className="px-5 py-5 border-b border-[var(--color-admin-border)]">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[var(--color-accent)]"><CainIcon /></span>
-            <span className="text-sm font-semibold text-[var(--color-foreground-strong)]">Cain</span>
-            {pendingActions.length > 0 && (
-              <span className="ml-auto text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-amber-500 text-white">
-                {pendingActions.length}
-              </span>
-            )}
-          </div>
-          <p className="text-[11px] text-[var(--color-muted)]">AI assistant — session logs</p>
-        </div>
-
-        {/* Current Status */}
-        <div className="px-4 py-3 border-b border-[var(--color-admin-border)]">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-            <span className="text-[11px] text-amber-400 font-medium">Wave 5 active</span>
-          </div>
-          <p className="text-[11px] text-[var(--color-muted)] mt-1 leading-relaxed">{CURRENT_WORK[0]}</p>
-        </div>
-
-        {/* Sessions list */}
-        <div className="flex-1 overflow-y-auto px-2 py-2">
-          <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--color-muted)]">Recent Sessions</p>
-          {SESSIONS.map(s => (
-            <button
-              key={s.id}
-              onClick={() => setSelectedSession(s)}
-              className={`w-full text-left px-3 py-2.5 rounded-lg mb-1 transition-colors ${
-                selectedSession.id === s.id
-                  ? 'bg-[var(--color-admin-surface)] text-[var(--color-foreground-strong)]'
-                  : 'text-[var(--color-muted-light)] hover:bg-[var(--color-admin-surface)]'
-              }`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-medium truncate">{s.label}</span>
-                {s.actionItems.length > 0 && (
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/20 shrink-0">
-                    {s.actionItems.length}
-                  </span>
-                )}
-              </div>
-              <div className="mt-1">
-                <SessionTypeBadge type={s.type} />
-              </div>
-            </button>
-          ))}
-        </div>
-      </aside>
-
-      {/* ── Main content ── */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="px-6 py-6 max-w-4xl">
-
-          {/* Session header */}
-          <div className="flex items-start gap-4 mb-6">
+    <div className="min-h-full">
+      {/* ── Page header ── */}
+      <div className="sticky top-0 z-10 bg-[var(--color-admin-bg)] border-b border-[var(--color-admin-border)] px-4 py-4">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">🗡️</span>
             <div>
-              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <h1 className="text-lg font-semibold text-[var(--color-foreground-strong)]">{selectedSession.label}</h1>
-                <SessionTypeBadge type={selectedSession.type} />
-                <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded border ${
-                  selectedSession.status === 'active'
-                    ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                    : selectedSession.status === 'completed'
-                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                }`}>
-                  {selectedSession.status}
-                </span>
-              </div>
-              <p className="text-sm text-[var(--color-muted)] leading-relaxed">{selectedSession.summary}</p>
+              <h1 className="text-sm font-bold text-[var(--color-foreground-strong)]">Cain</h1>
+              <p className="text-[11px] text-[var(--color-muted)]">March 23, 2026</p>
             </div>
           </div>
+          <div className="flex items-center gap-1.5 text-xs text-[var(--color-muted)]">
+            <span className="text-red-400 font-semibold">{urgent.length} urgent</span>
+            <span>·</span>
+            <span className="text-amber-400 font-semibold">{today.length} today</span>
+            <span>·</span>
+            <span>{whenReady.length} when ready</span>
+          </div>
+        </div>
+      </div>
 
-          {/* ── Action Items (shown first if any) ── */}
-          {selectedSession.actionItems.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-[11px] font-semibold uppercase tracking-wider text-amber-400 mb-3 flex items-center gap-2">
-                <span>⚠</span> Decisions Needed ({selectedSession.actionItems.length})
-              </h2>
-              <div className="space-y-4">
-                {selectedSession.actionItems.map(item => (
-                  <ActionItemCard key={item.id} item={item} />
-                ))}
+      <div className="px-4 py-6 max-w-2xl mx-auto space-y-10">
+
+        {/* ── FOR YOU ── */}
+        <section>
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-[var(--color-muted)] mb-5">
+            For You · {totalPending} items
+          </h2>
+
+          {/* Urgent */}
+          {urgent.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-px flex-1 bg-red-500/20" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-red-400">🔴 Urgent</span>
+                <div className="h-px flex-1 bg-red-500/20" />
+              </div>
+              <div className="space-y-3">
+                {urgent.map(item => <TaskCard key={item.id} item={item} />)}
               </div>
             </div>
           )}
 
-          {/* ── Task Summary ── */}
-          <div className="mb-8">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-3">
-              Task Summary
-            </h2>
-            <div className="border border-[var(--color-admin-border)] rounded-xl overflow-hidden">
-              {selectedSession.tasks.map((task, i) => (
-                <div
-                  key={i}
-                  className="border-b border-[var(--color-admin-border)] last:border-b-0"
-                >
-                  <button
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[var(--color-admin-surface)] transition-colors text-left"
-                    onClick={() => setExpandedTask(expandedTask === `${selectedSession.id}-${i}` ? null : `${selectedSession.id}-${i}`)}
-                  >
-                    <StatusBadge status={task.status} />
-                    <span className="text-sm text-[var(--color-foreground-strong)] flex-1">{task.title}</span>
-                    {task.detail && (
-                      <span className="text-[var(--color-muted)] text-xs">
-                        {expandedTask === `${selectedSession.id}-${i}` ? '▲' : '▼'}
-                      </span>
-                    )}
-                  </button>
-                  {task.detail && expandedTask === `${selectedSession.id}-${i}` && (
-                    <div className="px-4 pb-3 pt-0">
-                      <p className="text-xs text-[var(--color-muted)] leading-relaxed pl-[68px]">{task.detail}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* ── Artifacts ── */}
-          {selectedSession.artifacts.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-3">
-                Artifacts
-              </h2>
-              <div className="space-y-2">
-                {selectedSession.artifacts.map((artifact, i) => (
-                  <div key={i} className="flex items-center gap-3 px-4 py-2.5 bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg">
-                    <span className="text-[var(--color-muted)] text-sm">
-                      {artifact.type === 'file' && '📄'}
-                      {artifact.type === 'commit' && '📦'}
-                      {artifact.type === 'deployment' && '🚀'}
-                      {artifact.type === 'proposal' && '📋'}
-                    </span>
-                    <span className="text-sm text-[var(--color-foreground-strong)] flex-1">{artifact.label}</span>
-                    {artifact.url && (
-                      <a
-                        href={artifact.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[11px] text-[var(--color-accent)] hover:text-[var(--color-accent)]/80 transition-colors"
-                      >
-                        view →
-                      </a>
-                    )}
-                    {artifact.repo && (
-                      <span className="text-[10px] text-[var(--color-muted)] bg-[var(--color-admin-surface)] px-2 py-0.5 rounded">
-                        {artifact.repo}
-                      </span>
-                    )}
-                  </div>
-                ))}
+          {/* Today */}
+          {today.length > 0 && (
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-px flex-1 bg-amber-500/20" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-amber-400">🟡 Today</span>
+                <div className="h-px flex-1 bg-amber-500/20" />
+              </div>
+              <div className="space-y-3">
+                {today.map(item => <TaskCard key={item.id} item={item} />)}
               </div>
             </div>
           )}
 
-          {/* ── Proposal Quick Links ── */}
-          <div className="mb-8">
-            <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-muted)] mb-3">
-              Proposal Pages
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {PROPOSAL_LINKS.map((p, i) => (
-                <a
-                  key={i}
-                  href={p.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 px-4 py-2.5 bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg hover:border-[var(--color-accent)]/40 hover:bg-[var(--color-admin-surface)] transition-colors"
-                >
-                  <span className="text-sm">📋</span>
-                  <span className="text-sm text-[var(--color-foreground-strong)] flex-1">{p.label}</span>
-                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${
-                    p.status === 'live'
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                      : p.status === 'pending-deploy'
-                      ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
-                      : 'bg-[var(--color-admin-surface)] text-[var(--color-muted)] border-[var(--color-admin-border)]'
-                  }`}>
-                    {p.status === 'live' ? 'live' : p.status === 'pending-deploy' ? 'pending' : 'local'}
-                  </span>
-                </a>
-              ))}
+          {/* When Ready */}
+          {whenReady.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-px flex-1 bg-[var(--color-admin-border)]" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">🟢 When Ready</span>
+                <div className="h-px flex-1 bg-[var(--color-admin-border)]" />
+              </div>
+              <div className="space-y-3">
+                {whenReady.map(item => <TaskCard key={item.id} item={item} />)}
+              </div>
             </div>
+          )}
+        </section>
+
+        {/* ── WHAT CAIN DID ── */}
+        <section>
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-[var(--color-muted)] mb-4">
+            What Cain Did · {RECENT_WORK.length} completed today
+          </h2>
+          <div className="border border-[var(--color-admin-border)] rounded-xl overflow-hidden">
+            {RECENT_WORK.map((item, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-admin-border)] last:border-b-0 hover:bg-[var(--color-admin-surface)] transition-colors"
+              >
+                <span className="text-emerald-400 text-sm shrink-0">✓</span>
+                <span className="text-sm text-[var(--color-foreground-strong)]">{item}</span>
+              </div>
+            ))}
           </div>
+        </section>
 
-          {/* Phase 2 note */}
-          <div className="border border-[var(--color-admin-border)] rounded-xl px-5 py-4 bg-[var(--color-admin-surface)]">
-            <p className="text-xs text-[var(--color-muted)] leading-relaxed">
-              <strong className="text-[var(--color-muted-light)]">Phase 1 — Static Dashboard.</strong> This page is manually updated. Phase 2 will wire this to a Supabase <code>cain_sessions</code> table — Cain writes session data at end of each run, and this page renders it dynamically. Action item responses will route back to Cain via Telegram. See <code>/docs/cain-dashboard-spec.md</code> for the full spec.
-            </p>
-          </div>
-
-        </div>
       </div>
-    </div>
-  );
-}
-
-// ─── Action Item Card ─────────────────────────────────────────────────────────
-
-function ActionItemCard({ item }: { item: ActionItem }) {
-  const [resolved, setResolved] = useState<string | null>(null);
-
-  return (
-    <div className="border border-amber-500/25 rounded-xl p-5 bg-amber-500/5">
-      <div className="flex items-start gap-3 mb-3">
-        <span className="text-amber-400 text-base mt-0.5">⚠</span>
-        <div>
-          <h3 className="text-sm font-semibold text-[var(--color-foreground-strong)] mb-1">{item.title}</h3>
-          <p className="text-xs text-[var(--color-muted)] leading-relaxed">{item.context}</p>
-        </div>
-      </div>
-      {resolved ? (
-        <div className="ml-8 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-          <p className="text-xs text-emerald-400">✓ Marked as: <strong>{resolved}</strong></p>
-        </div>
-      ) : (
-        <div className="ml-8 flex gap-2 flex-wrap">
-          {item.options.map((opt, i) => (
-            <button
-              key={i}
-              onClick={() => setResolved(opt)}
-              className="text-xs px-3 py-1.5 rounded-lg border border-[var(--color-admin-border)] text-[var(--color-muted-light)] hover:text-[var(--color-foreground-strong)] hover:border-[var(--color-accent)]/40 transition-colors cursor-pointer"
-            >
-              {opt}
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
