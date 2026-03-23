@@ -82,6 +82,34 @@ const SERVICES = [
     note: 'No lock-in. Cancel anytime.',
     cta: 'Start growth',
   },
+  {
+    num: '05',
+    name: 'Custom Apps',
+    problem: 'You need a specific tool built for your team, your clients, or yourself — something off-the-shelf doesn\'t cover and a full platform build is overkill.',
+    whatWeDo: [
+      'Scope the app together in a 30-minute call',
+      'Design and build a focused, polished app for your exact use case',
+      'Deploy it to the web or package it for mobile',
+      'Built to be used — not a prototype, not an MVP with asterisks',
+    ],
+    whatYouGet: 'A working app, delivered. Simple as that.',
+    timeline: '1–4 weeks depending on complexity',
+    price: 'From $1,000',
+    note: '',
+    cta: 'Tell us what you need',
+    examples: [
+      'Custody log and co-parenting documentation tool ($1,000)',
+      'Daily habit or accountability tracker ($1,000)',
+      'Client intake and onboarding workflow ($2,500)',
+      'Internal reporting dashboard for a small team ($2,500)',
+      'Multi-user platform with logins and data persistence ($5,000)',
+    ],
+    tiers: [
+      { label: 'Simple Utility', price: '$1,000', desc: 'Single-purpose tool, one user or shared. Examples: daily tracker, log tool, simple calculator or calculator.' },
+      { label: 'Standard', price: '$2,500', desc: 'Multi-screen app with data storage, forms, or workflows. Examples: client onboarding, internal dashboard, reporting tool.' },
+      { label: 'Complex', price: '$5,000', desc: 'Multi-user, custom logic, integrations. Examples: team platform, client-facing tool with accounts, automated workflows.' },
+    ],
+  },
 ];
 
 export default function ServicesPage() {
@@ -102,9 +130,8 @@ export default function ServicesPage() {
               From discovery to deployment.
             </h1>
             <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
-              Four levels of engagement — from a focused assessment to enterprise-wide
-              AI infrastructure. Every engagement delivers real, deployed systems
-              and measurable business outcomes.
+              From a quick insight report to a full AI operations platform — and custom apps 
+              for anything in between. Every engagement delivers real, working software.
             </p>
           </motion.div>
         </div>
@@ -183,7 +210,26 @@ export default function ServicesPage() {
                       </p>
                     </div>
 
-                    {'examples' in svc && svc.examples && (
+                    {'tiers' in svc && svc.tiers && (
+                      <div className="mb-10">
+                        <h3 className="text-xs tracking-[0.2em] uppercase text-muted-light mb-4">
+                          Pricing tiers
+                        </h3>
+                        <div className="space-y-3">
+                          {(svc.tiers as {label: string; price: string; desc: string}[]).map((tier) => (
+                            <div key={tier.label} className="flex gap-4 p-4 rounded-xl border border-border/60 bg-border/5">
+                              <div className="min-w-[100px]">
+                                <p className="text-sm font-medium text-foreground-strong">{tier.label}</p>
+                                <p className="text-accent font-medium text-sm">{tier.price}</p>
+                              </div>
+                              <p className="text-sm text-muted-light leading-relaxed">{tier.desc}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {'examples' in svc && svc.examples && !('tiers' in svc) && (
                       <div className="mb-10">
                         <h3 className="text-xs tracking-[0.2em] uppercase text-muted-light mb-4">
                           Common projects
