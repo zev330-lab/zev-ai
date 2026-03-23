@@ -25,7 +25,23 @@ export async function GET(request: NextRequest) {
       supabase.from('project_milestones').select('*').eq('project_id', id).order('sort_order'),
       supabase.from('project_time_entries').select('*').eq('project_id', id).order('date', { ascending: false }).limit(50),
     ]);
-    return NextResponse.json({ project, milestones: milestones || [], entries: entries || [] });
+    // Compute aggregates so the detail panel can render stats without crashing
+    const safeEntries = entries || [];
+    const safeMilestones = milestones || [];
+    const today = new Date().toISOString().slice(0, 10);
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - daysToMonday);
+    const weekStartStr = weekStart.toISOString().slice(0, 10);
+    const totalHours = safeEntries.reduce((s: number, e: { hours: number }) => s + Number(e.hours), 0);
+    const hoursThisWeek = safeEntries.filter((e: { date: string }) => e.date >= weekStartStr).reduce((s: number, e: { hours: number }) => s + Number(e.hours), 0);
+    const totalMilestones = safeMilestones.length;
+    const completeMilestones = safeMilestones.filter((m: { status: string }) => m.status === 'complete').length;
+    const hasOverdue = safeMilestones.some((m: { status: string; due_date: string | null }) => m.status !== 'complete' && m.due_date && m.due_date < today);
+    const enrichedProject = { ...project, totalHours, hoursThisWeek, totalMilestones, completeMilestones, hasOverdue };
+    return NextResponse.json({ project: enrichedProject, milestones: safeMilestones, entries: safeEntries });
   }
 
   // List all projects with aggregates
