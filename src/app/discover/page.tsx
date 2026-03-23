@@ -336,11 +336,11 @@ export default function DiscoverPage() {
                       </li>
                       <li className="flex gap-2.5">
                         <span className="text-accent mt-0.5 flex-shrink-0 font-bold">2</span>
-                        <span><strong className="text-foreground-strong">Insight Report — $4.99</strong> — Full analysis: your market, competitors, where AI creates real leverage. Delivered in 48 hours. Credited toward the next step.</span>
+                        <span><strong className="text-foreground-strong">Insight Report — $499</strong> — Full analysis: your market, competitors, where AI creates real leverage. Delivered in 48 hours. Credited toward the next step.</span>
                       </li>
                       <li className="flex gap-2.5">
                         <span className="text-accent mt-0.5 flex-shrink-0 font-bold">3</span>
-                        <span><strong className="text-foreground-strong">Strategy Session — $2,500</strong> — 60 minutes with me. I&apos;ve read your report, done more research, and have a specific plan for your business. The $4.99 is credited — you pay $2,495 more. Credited toward your build.</span>
+                        <span><strong className="text-foreground-strong">Strategy Session — $2,500</strong> — 60 minutes with me. I&apos;ve read your report, done more research, and have a specific plan for your business. The $499 is credited — you pay $2,000 more. Credited toward your build.</span>
                       </li>
                       <li className="flex gap-2.5">
                         <span className="text-accent mt-0.5 flex-shrink-0 font-bold">4</span>
