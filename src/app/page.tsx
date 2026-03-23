@@ -44,9 +44,9 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
             >
               <p className="mt-8 text-lg text-muted-light max-w-lg leading-relaxed">
-                I build and deploy multi-agent AI systems for businesses — not strategy
-                decks, not roadmaps. Production systems with agents that run 24/7,
-                integrated into your operations, delivering measurable results.
+                I build and deploy multi-agent AI systems for businesses. Not decks.
+                Not prototypes. Production systems with agents that run 24/7, integrated
+                into your operations — delivering results you can measure.
               </p>
             </motion.div>
 

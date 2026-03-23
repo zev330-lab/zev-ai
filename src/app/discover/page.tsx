@@ -294,17 +294,33 @@ export default function DiscoverPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: EASE }}
                   >
-                    Before we meet
+                    Your discovery starts here.
                   </motion.h1>
                   <motion.p
-                    className="mt-6 text-lg text-muted-light max-w-xl leading-relaxed"
+                    className="mt-4 text-sm tracking-[0.15em] uppercase text-accent font-medium"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.08, ease: EASE }}
+                  >
+                    Not a contact form. The actual beginning of the process.
+                  </motion.p>
+                  <motion.div
+                    className="mt-8 space-y-4 text-lg text-muted-light max-w-xl leading-relaxed"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
                   >
-                    A few questions so we can prepare for our conversation.
-                    Takes about 5 minutes.
-                  </motion.p>
+                    <p>
+                      This form takes about 8 minutes. What you write here goes directly into TOLA&apos;s research
+                      pipeline: Visionary researches your market, Architect scopes the opportunity, Oracle prepares
+                      the meeting brief.
+                    </p>
+                    <p>
+                      By the time we talk, I&apos;ve already done several hours of work on your business.
+                      Fill it out honestly — the more specific you are about what&apos;s actually broken,
+                      the more useful the conversation.
+                    </p>
+                  </motion.div>
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

@@ -107,6 +107,42 @@ export default function ApproachPage() {
         </div>
       </section>
 
+      {/* Plain-English Intro */}
+      <section>
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 pb-0 pt-0">
+          <Reveal>
+            <div className="border border-border rounded-2xl p-10 md:p-14 max-w-3xl">
+              <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">The honest version</p>
+              <p className="text-xl md:text-2xl font-[family-name:var(--font-serif)] leading-relaxed text-foreground-strong mb-6">
+                Here&apos;s the honest version of how this works.
+              </p>
+              <div className="space-y-5 text-muted-light text-lg leading-relaxed">
+                <p>
+                  Most AI projects fail because someone built a demo and called it a system.
+                  A demo runs when you run it. A system runs when you&apos;re not watching.
+                </p>
+                <p>
+                  The difference is architecture. Not AI models — architecture. Which agents handle which tasks,
+                  how they communicate, when they escalate to a human, and how they recover when something breaks.
+                </p>
+                <p>
+                  That&apos;s what we build. Production AI systems — the kind that run 24/7, degrade gracefully
+                  under load, and get smarter over time instead of just accumulating bugs.
+                </p>
+                <p>
+                  The agent architecture draws on coordination patterns that appear in natural systems — branching,
+                  spiraling, self-similar scaling. These patterns define how information flows through a system,
+                  how agents specialize without becoming isolated, and how the whole thing stays coherent as it grows.
+                </p>
+                <p className="text-muted italic">
+                  That&apos;s the plain English version. The architecture section below gets into the specifics.
+                </p>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* The Architecture */}
       <section className="section-light">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
