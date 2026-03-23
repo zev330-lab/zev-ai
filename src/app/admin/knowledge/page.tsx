@@ -20,6 +20,14 @@ const SOURCE_BADGE: Record<string, { bg: string; text: string; label: string }> 
 
 const SOURCES = ['all', 'meeting', 'voice_memo', 'article', 'insight', 'lesson', 'discovery'] as const;
 
+const PROJECT_LABELS: Record<string, string> = {
+  'project:steinmetz-re': 'Steinmetz RE',
+  'project:zev-ai': 'Zev.AI',
+  'project:lisa-rosen': 'Lisa Rosen',
+  'project:blank-industries': 'Blank Ind.',
+  'project:kabbalahq': 'KabbalahQ',
+};
+
 export default function AdminKnowledgePage() {
   const router = useRouter();
   const [entries, setEntries] = useState<KnowledgeEntry[]>([]);
@@ -93,14 +101,6 @@ export default function AdminKnowledgePage() {
   const projectTags = Array.from(new Set(
     entries.flatMap(e => e.tags?.filter(t => t.startsWith('project:')) || [])
   )).sort();
-
-  const PROJECT_LABELS: Record<string, string> = {
-    'project:steinmetz-re': 'Steinmetz RE',
-    'project:zev-ai': 'Zev.AI',
-    'project:lisa-rosen': 'Lisa Rosen',
-    'project:blank-industries': 'Blank Ind.',
-    'project:kabbalahq': 'KabbalahQ',
-  };
 
   const displayedEntries = projectFilter
     ? entries.filter(e => e.tags?.includes(projectFilter))
