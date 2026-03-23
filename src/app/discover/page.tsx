@@ -332,19 +332,19 @@ export default function DiscoverPage() {
                     <ul className="space-y-3 text-base text-muted-light leading-relaxed">
                       <li className="flex gap-2.5">
                         <span className="text-accent mt-0.5 flex-shrink-0 font-bold">1</span>
-                        <span><strong className="text-foreground-strong">Submit for free</strong> — I review your answers and send back a free summary of what I see.</span>
+                        <span><strong className="text-foreground-strong">Free summary</strong> — You get a clear picture of how AI could change your business and your results. No cost, no commitment.</span>
                       </li>
                       <li className="flex gap-2.5">
                         <span className="text-accent mt-0.5 flex-shrink-0 font-bold">2</span>
-                        <span><strong className="text-foreground-strong">Insight Report — $499</strong> — Full analysis: your market, competitors, where AI creates real leverage. Delivered in 48 hours. Credited toward the next step.</span>
+                        <span><strong className="text-foreground-strong">Insight Report — $499</strong> — The full picture: exactly what to build, what each AI agent would do, and what it would take to make it real. Delivered in 48 hours. Credited toward Step 3.</span>
                       </li>
                       <li className="flex gap-2.5">
                         <span className="text-accent mt-0.5 flex-shrink-0 font-bold">3</span>
-                        <span><strong className="text-foreground-strong">Strategy Session — $2,500</strong> — 60 minutes with me. I&apos;ve read your report, done more research, and have a specific plan for your business. The $499 is credited — you pay $2,000 more. Credited toward your build.</span>
+                        <span><strong className="text-foreground-strong">Strategy Session — $2,500</strong> — 60 minutes with me. I&apos;ve read your report and I have specific recommendations for how this applies to your business, your team, and your constraints. The $499 is credited — you pay $2,000 more. Credited toward your build.</span>
                       </li>
                       <li className="flex gap-2.5">
                         <span className="text-accent mt-0.5 flex-shrink-0 font-bold">4</span>
-                        <span><strong className="text-foreground-strong">Build — $15,000</strong> — We build it. The $2,500 is credited. You pay the difference.</span>
+                        <span><strong className="text-foreground-strong">Build — $15,000</strong> — We build it. The $2,500 is credited. You pay the balance.</span>
                       </li>
                     </ul>
                     <p className="mt-4 text-sm text-muted italic">Prefer to talk first? <a href="mailto:hello@askzev.ai" className="text-accent hover:underline">Email hello@askzev.ai</a></p>
