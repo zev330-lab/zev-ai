@@ -13,7 +13,6 @@ SERVICES:
 - Scale (Custom pricing): Enterprise multi-system deployment. Shared intelligence across departments, unified oversight, cross-product automation.
 
 CASE STUDIES:
-- ButcherBox (D2C): AI agents handling 73% of subscription inquiries autonomously
 - Blank Industries (Manufacturing): 6 disconnected systems unified, 90% faster reporting
 - Rosen Media Group (Media): 2.5x content output after AI pipeline deployment
 

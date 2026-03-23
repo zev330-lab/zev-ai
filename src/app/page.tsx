@@ -264,14 +264,7 @@ export default function Home() {
 
           <StaggerReveal className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
-              {
-                company: 'ButcherBox',
-                industry: 'D2C / Food & Beverage',
-                problem: 'Customer service overwhelmed by subscription management — cancellations, skips, swaps handled manually by a team of 12.',
-                result: 'Deployed AI agents handling 73% of subscription inquiries autonomously. Support team refocused on high-value retention conversations.',
-                metric: '73%',
-                metricLabel: 'inquiries automated',
-              },
+
               {
                 company: 'Blank Industries',
                 industry: 'Manufacturing / Business Intelligence',

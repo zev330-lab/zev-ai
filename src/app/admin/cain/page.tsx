@@ -255,22 +255,29 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
 // ─── Action Renderer ──────────────────────────────────────────────────────────
 
 function ActionRenderer({ action }: { action: TaskAction }) {
-  const [showText, setShowText] = useState(false);
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
 
   if (action.type === 'email') {
     const mailto = `mailto:${action.to}?subject=${encodeURIComponent(action.subject)}&body=${encodeURIComponent(action.body)}`;
     return (
       <div className="flex flex-col gap-3">
-        <a
-          href={mailto}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
-        >
-          ✉ Send Email
-        </a>
+        {/* Email meta */}
         <div className="text-xs text-[var(--color-muted)] space-y-0.5">
-          <div><span className="text-[var(--color-muted-light)]">To:</span> {action.to}</div>
-          <div><span className="text-[var(--color-muted-light)]">Subject:</span> {action.subject}</div>
+          <div><span className="text-[var(--color-muted-light)] font-medium">To:</span> {action.to}</div>
+          <div><span className="text-[var(--color-muted-light)] font-medium">Subject:</span> {action.subject}</div>
+        </div>
+        {/* Email body — always visible */}
+        <pre className="text-xs text-[var(--color-muted-light)] leading-relaxed whitespace-pre-wrap bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg p-3 font-sans">
+          {action.body}
+        </pre>
+        <div className="flex items-center gap-2 flex-wrap">
+          <a
+            href={mailto}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+          >
+            ✉ Send Email
+          </a>
+          <CopyButton text={action.body} label="Copy Body" />
         </div>
       </div>
     );
@@ -279,20 +286,11 @@ function ActionRenderer({ action }: { action: TaskAction }) {
   if (action.type === 'sms') {
     return (
       <div className="flex flex-col gap-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <CopyButton text={action.body} label="Copy Message" />
-          <button
-            onClick={() => setShowText(v => !v)}
-            className="text-xs text-[var(--color-muted)] hover:text-[var(--color-muted-light)] transition-colors cursor-pointer"
-          >
-            {showText ? '▲ Hide' : '▼ Preview'}
-          </button>
-        </div>
-        {showText && (
-          <pre className="text-xs text-[var(--color-muted-light)] leading-relaxed whitespace-pre-wrap bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg p-3 font-sans">
-            {action.body}
-          </pre>
-        )}
+        {/* Message body — always visible */}
+        <pre className="text-xs text-[var(--color-muted-light)] leading-relaxed whitespace-pre-wrap bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg p-3 font-sans">
+          {action.body}
+        </pre>
+        <CopyButton text={action.body} label="Copy Message" />
       </div>
     );
   }
@@ -313,6 +311,10 @@ function ActionRenderer({ action }: { action: TaskAction }) {
   if (action.type === 'sql') {
     return (
       <div className="flex flex-col gap-3">
+        {/* SQL — always visible */}
+        <pre className="text-xs text-emerald-300/80 leading-relaxed whitespace-pre-wrap bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg p-3 font-mono overflow-x-auto">
+          {action.sql}
+        </pre>
         <div className="flex items-center gap-2 flex-wrap">
           <CopyButton text={action.sql} label="Copy SQL" />
           <a
@@ -325,17 +327,6 @@ function ActionRenderer({ action }: { action: TaskAction }) {
           </a>
         </div>
         <p className="text-xs text-[var(--color-muted)]">SQL Editor → paste → Run</p>
-        <button
-          onClick={() => setShowText(v => !v)}
-          className="text-xs text-left text-[var(--color-muted)] hover:text-[var(--color-muted-light)] transition-colors cursor-pointer"
-        >
-          {showText ? '▲ Hide SQL' : '▼ Preview SQL'}
-        </button>
-        {showText && (
-          <pre className="text-xs text-emerald-300/80 leading-relaxed whitespace-pre-wrap bg-[var(--color-admin-bg)] border border-[var(--color-admin-border)] rounded-lg p-3 font-mono overflow-x-auto">
-            {action.sql}
-          </pre>
-        )}
       </div>
     );
   }

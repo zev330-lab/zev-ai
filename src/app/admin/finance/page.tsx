@@ -19,6 +19,29 @@ interface Invoice {
   projects?: { name: string } | null;
 }
 
+// Known client contact info + payment links
+const CLIENT_INFO: Record<string, { email: string; paymentLink?: string }> = {
+  'Atlantic Laser': { email: 'jonathanproctor68@gmail.com', paymentLink: 'https://buy.stripe.com/5kQ4gB7Kx8U9ewbgC69R600' },
+  'Blank Industries': { email: 'blankind@gmail.com' },
+  'Bay State': { email: 'zion@baystate.com' },
+};
+
+function getClientInfo(clientName: string) {
+  const key = Object.keys(CLIENT_INFO).find(k => clientName.toLowerCase().includes(k.toLowerCase()));
+  return key ? CLIENT_INFO[key] : null;
+}
+
+function buildSendMailto(inv: Invoice) {
+  const info = getClientInfo(inv.client_name);
+  const to = info?.email || '';
+  const subject = `Invoice from Zev Steinmetz — $${Number(inv.amount).toLocaleString()}`;
+  const paymentLine = info?.paymentLink
+    ? `\nPayment link: ${info.paymentLink}\n`
+    : '';
+  const body = `Hi,\n\nPlease find your invoice details below:\n\nService: ${inv.description || 'AI Consulting Services'}\nAmount: $${Number(inv.amount).toLocaleString()}\nIssued: ${new Date(inv.issued_date).toLocaleDateString()}\n${paymentLine}\nLet me know if you have any questions.\n\nBest,\nZev Steinmetz\nhello@askzev.ai`;
+  return `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
 interface MonthlyMetric {
   month: string; revenue: number; costs: number; hours_billed: number;
 }
@@ -161,9 +184,36 @@ export default function AdminFinancePage() {
                         <td className="px-4 py-3"><span className="inline-block px-2 py-0.5 text-[10px] font-medium rounded-full" style={{ backgroundColor: badge.bg, color: badge.text }}>{badge.label}</span></td>
                         <td className="px-4 py-3 text-[var(--color-muted)] text-xs">{new Date(inv.issued_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
                         <td className="px-4 py-3">
-                          <div className="flex gap-2">
-                            {inv.status === 'sent' && <button onClick={() => updateInvoice(inv.id, { status: 'paid', paid_date: new Date().toISOString().slice(0, 10) })} className="text-[10px] text-green-400 hover:underline cursor-pointer">Mark Paid</button>}
-                            {inv.status === 'draft' && <button onClick={() => updateInvoice(inv.id, { status: 'sent' })} className="text-[10px] text-[var(--color-accent)] hover:underline cursor-pointer">Send</button>}
+                          <div className="flex gap-2 items-center flex-wrap">
+                            {inv.status === 'draft' && (
+                              <>
+                                <a
+                                  href={buildSendMailto(inv)}
+                                  onClick={() => setTimeout(() => updateInvoice(inv.id, { status: 'sent' }), 500)}
+                                  className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded bg-[var(--color-accent)]/20 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/30 transition-colors"
+                                >
+                                  ✉ Send Invoice
+                                </a>
+                                {getClientInfo(inv.client_name)?.paymentLink && (
+                                  <a
+                                    href={getClientInfo(inv.client_name)!.paymentLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-[10px] px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                                  >
+                                    💳 Pay Link
+                                  </a>
+                                )}
+                              </>
+                            )}
+                            {inv.status === 'sent' && (
+                              <>
+                                <button onClick={() => updateInvoice(inv.id, { status: 'paid', paid_date: new Date().toISOString().slice(0, 10) })} className="text-[10px] text-green-400 hover:underline cursor-pointer">Mark Paid</button>
+                                {getClientInfo(inv.client_name)?.paymentLink && (
+                                  <a href={getClientInfo(inv.client_name)!.paymentLink} target="_blank" rel="noopener noreferrer" className="text-[10px] text-emerald-400 hover:underline">Pay Link</a>
+                                )}
+                              </>
+                            )}
                             {inv.status === 'overdue' && <button onClick={() => updateInvoice(inv.id, { status: 'paid', paid_date: new Date().toISOString().slice(0, 10) })} className="text-[10px] text-green-400 hover:underline cursor-pointer">Mark Paid</button>}
                           </div>
                         </td>

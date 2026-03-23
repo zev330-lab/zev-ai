@@ -68,26 +68,6 @@ const CASE_STUDIES = [
   },
   {
     num: '04',
-    company: 'ButcherBox',
-    industry: 'D2C / Subscription E-Commerce',
-    headline: '73% of subscription inquiries handled autonomously.',
-    problem: 'A rapidly growing D2C meat subscription service drowning in customer inquiries — order modifications, delivery schedules, product questions, cancellation requests. Support team scaling linearly with subscriber growth, eating into margins.',
-    process: [
-      'Analyzed 12 months of support tickets to identify the highest-volume, most automatable inquiry types',
-      'Built AI agents specialized in subscription management, delivery coordination, and product knowledge',
-      'Deployed intelligent routing that handles routine requests autonomously and escalates complex cases',
-      'Integrated with order management, shipping, and CRM systems for real-time data access',
-    ],
-    results: [
-      { metric: '73%', label: 'inquiries handled by AI' },
-      { metric: '<2min', label: 'avg response time' },
-      { metric: '40%', label: 'support cost reduction' },
-      { metric: '94%', label: 'customer satisfaction' },
-    ],
-    payoff: 'Support costs decoupled from subscriber growth. The AI handles routine inquiries instantly while the human team focuses on complex issues and relationship building.',
-  },
-  {
-    num: '05',
     company: 'Rosen Media Group',
     industry: 'Media / Content Production',
     headline: '2.5x content output without adding headcount.',
