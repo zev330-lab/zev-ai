@@ -33,6 +33,7 @@ export default function AdminKnowledgePage() {
   const [syncing, setSyncing] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState({ title: '', content: '', tags: '' });
+  const [projectFilter, setProjectFilter] = useState<string | null>(null);
 
   const fetchEntries = useCallback(async () => {
     const params = new URLSearchParams();
@@ -88,7 +89,24 @@ export default function AdminKnowledgePage() {
     } finally { setSyncing(null); }
   };
 
-  const totalCount = entries.length;
+  // Derive project tags from entries (tags starting with "project:")
+  const projectTags = Array.from(new Set(
+    entries.flatMap(e => e.tags?.filter(t => t.startsWith('project:')) || [])
+  )).sort();
+
+  const PROJECT_LABELS: Record<string, string> = {
+    'project:steinmetz-re': 'Steinmetz RE',
+    'project:zev-ai': 'Zev.AI',
+    'project:lisa-rosen': 'Lisa Rosen',
+    'project:blank-industries': 'Blank Ind.',
+    'project:kabbalahq': 'KabbalahQ',
+  };
+
+  const displayedEntries = projectFilter
+    ? entries.filter(e => e.tags?.includes(projectFilter))
+    : entries;
+
+  const totalCount = displayedEntries.length;
 
   return (
     <div className="flex-1 flex flex-col min-h-0">
@@ -119,33 +137,47 @@ export default function AdminKnowledgePage() {
         </div>
       </div>
 
-      {/* Sources + sync buttons */}
-      <div className="px-6 py-3 border-b border-[var(--color-admin-border)] flex items-center gap-3 flex-wrap shrink-0">
-        <div className="flex gap-1">
-          {SOURCES.map((s) => (
-            <button key={s} onClick={() => setSourceFilter(s)} className={`px-2.5 py-1 text-[10px] rounded-full capitalize cursor-pointer ${sourceFilter === s ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)]' : 'text-[var(--color-muted)] hover:text-[var(--color-muted-light)]'}`}>{s === 'voice_memo' ? 'Voice Memos' : s}</button>
-          ))}
+      {/* Sources + project filters + sync buttons */}
+      <div className="px-6 py-3 border-b border-[var(--color-admin-border)] flex flex-col gap-2 shrink-0">
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex gap-1 flex-wrap">
+            {SOURCES.map((s) => (
+              <button key={s} onClick={() => setSourceFilter(s)} className={`px-2.5 py-1 text-[10px] rounded-full capitalize cursor-pointer ${sourceFilter === s ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)]' : 'text-[var(--color-muted)] hover:text-[var(--color-muted-light)]'}`}>{s === 'voice_memo' ? 'Voice Memos' : s}</button>
+            ))}
+          </div>
+          <div className="ml-auto flex gap-2">
+            <button onClick={() => syncFrom('discoveries')} disabled={syncing !== null} className="text-[10px] text-[var(--color-accent)] hover:underline cursor-pointer disabled:opacity-50">{syncing === 'discoveries' ? 'Syncing...' : 'Sync Discoveries'}</button>
+            <button onClick={() => syncFrom('blog')} disabled={syncing !== null} className="text-[10px] text-[var(--color-accent)] hover:underline cursor-pointer disabled:opacity-50">{syncing === 'blog' ? 'Syncing...' : 'Sync Blog'}</button>
+          </div>
         </div>
-        <div className="ml-auto flex gap-2">
-          <button onClick={() => syncFrom('discoveries')} disabled={syncing !== null} className="text-[10px] text-[var(--color-accent)] hover:underline cursor-pointer disabled:opacity-50">{syncing === 'discoveries' ? 'Syncing...' : 'Sync Discoveries'}</button>
-          <button onClick={() => syncFrom('blog')} disabled={syncing !== null} className="text-[10px] text-[var(--color-accent)] hover:underline cursor-pointer disabled:opacity-50">{syncing === 'blog' ? 'Syncing...' : 'Sync Blog'}</button>
-        </div>
+        {/* Project filter chips */}
+        {projectTags.length > 0 && (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[9px] text-[var(--color-muted)] uppercase tracking-wider">Project:</span>
+            <button onClick={() => setProjectFilter(null)} className={`px-2 py-0.5 text-[10px] rounded-full cursor-pointer ${!projectFilter ? 'bg-purple-500/20 text-purple-400' : 'text-[var(--color-muted)] hover:text-[var(--color-muted-light)]'}`}>All</button>
+            {projectTags.map((tag) => (
+              <button key={tag} onClick={() => setProjectFilter(projectFilter === tag ? null : tag)} className={`px-2 py-0.5 text-[10px] rounded-full cursor-pointer ${projectFilter === tag ? 'bg-purple-500/20 text-purple-400' : 'text-[var(--color-muted)] hover:text-[var(--color-muted-light)]'}`}>
+                {PROJECT_LABELS[tag] || tag.replace('project:', '')}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Entries */}
       <div className="flex-1 overflow-auto px-6 py-4">
         {loading ? <p className="text-sm text-[var(--color-muted)] py-12 text-center">Loading...</p> :
-          entries.length === 0 ? (
+          displayedEntries.length === 0 ? (
             <div className="text-center py-16">
               <svg className="w-12 h-12 mx-auto text-[var(--color-muted)]/30 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" />
               </svg>
-              <p className="text-sm text-[var(--color-muted-light)]">{search ? `No results for "${search}"` : 'Your knowledge base is empty.'}</p>
+              <p className="text-sm text-[var(--color-muted-light)]">{search ? `No results for "${search}"` : projectFilter ? `No entries tagged for this project yet.` : 'Your knowledge base is empty.'}</p>
               <p className="text-xs text-[var(--color-muted)] mt-1">{search ? 'Try a different search term or broaden your query.' : 'Add entries manually, or use "Sync Discoveries" / "Sync Blog" to auto-import.'}</p>
             </div>
           ) : (
             <div className="space-y-3">
-              {entries.map((e) => {
+              {displayedEntries.map((e) => {
                 const badge = SOURCE_BADGE[e.source] || SOURCE_BADGE.insight;
                 return (
                   <div key={e.id} onClick={() => { setSelected(e); setEditMode(false); setEditForm({ title: e.title, content: e.content, tags: e.tags.join(', ') }); }} className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-4 cursor-pointer hover:border-[var(--color-accent)]/30 transition-colors">
