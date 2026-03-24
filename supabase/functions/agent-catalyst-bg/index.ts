@@ -7,6 +7,7 @@
 import { getServiceClient } from '../_shared/supabase.ts';
 import { checkKillSwitch, logAction, updateHeartbeat, recordMetric } from '../_shared/agent-utils.ts';
 import { CORS_HEADERS } from '../_shared/pipeline-utils.ts';
+import { writeContext } from '../_shared/context-utils.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
@@ -84,7 +85,47 @@ Deno.serve(async (req) => {
       latencyMs: Date.now() - start,
     });
 
-    return new Response(JSON.stringify({ avg_duration: avgDuration, trend: velocityTrend, bottleneck }), { status: 200 });
+    // ── Path 19: Check for follow-up opportunities (Nurture) ──────────
+    const threeDaysAgo = new Date(Date.now() - 3 * 86400000).toISOString();
+    const { data: deliveredNoFollowup } = await supabase
+      .from('discoveries')
+      .select('id, name, company, email, delivered_at')
+      .eq('pipeline_status', 'complete')
+      .not('delivered_at', 'is', null)
+      .lt('delivered_at', threeDaysAgo)
+      .order('delivered_at', { ascending: true })
+      .limit(5);
+
+    for (const disc of deliveredNoFollowup || []) {
+      // Check if we already sent a follow-up reminder for this discovery
+      const { data: existingReminder } = await supabase
+        .from('tola_shared_context')
+        .select('id')
+        .eq('pipeline_id', disc.id)
+        .eq('path_name', 'catalyst_to_nexus_followup')
+        .limit(1);
+
+      if (!existingReminder || existingReminder.length === 0) {
+        const daysSince = Math.round((Date.now() - new Date(disc.delivered_at as string).getTime()) / 86400000);
+        await writeContext(supabase, {
+          pipelineId: disc.id as string,
+          pipelineType: 'nurture',
+          fromAgent: 'catalyst',
+          toAgent: 'nexus',
+          pathName: 'catalyst_to_nexus_followup',
+          payload: {
+            contact_name: disc.name,
+            company: disc.company,
+            email: disc.email,
+            days_since_delivery: daysSince,
+            suggestion: `${disc.name} received their insight report ${daysSince} days ago. No response yet. Suggest follow-up?`,
+          },
+          tierLevel: 2,
+        });
+      }
+    }
+
+    return new Response(JSON.stringify({ avg_duration: avgDuration, trend: velocityTrend, bottleneck, followups: (deliveredNoFollowup || []).length }), { status: 200 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
     console.error('[agent-catalyst-bg]', msg);

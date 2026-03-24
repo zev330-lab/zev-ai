@@ -7,6 +7,7 @@
 import { getServiceClient } from '../_shared/supabase.ts';
 import { checkKillSwitch, logAction, updateHeartbeat, recordMetric } from '../_shared/agent-utils.ts';
 import { CORS_HEADERS } from '../_shared/pipeline-utils.ts';
+import { writeContext } from '../_shared/context-utils.ts';
 
 const SITE_URL = 'https://askzev.ai';
 
@@ -63,12 +64,67 @@ Deno.serve(async (req) => {
     await recordMetric(supabase, 'gateway', 'total_pages', totalPages, { static: staticPages, blog: publishedPosts ?? 0 });
     await recordMetric(supabase, 'gateway', 'sitemap_urls', sitemapUrls);
 
+    // ── Path 21: Check for engagement signals (report views) ────────────
+    const oneDayAgo = new Date(Date.now() - 86400000).toISOString();
+    const { data: recentViews } = await supabase
+      .from('tola_agent_log')
+      .select('input, created_at')
+      .eq('agent_id', 'gateway')
+      .eq('action', 'report-view')
+      .gte('created_at', oneDayAgo)
+      .order('created_at', { ascending: false });
+
+    // Group views by discovery_id and find hot signals (3+ views)
+    const viewCounts: Record<string, number> = {};
+    for (const view of recentViews || []) {
+      const did = (view.input as Record<string, unknown>)?.discovery_id as string;
+      if (did) viewCounts[did] = (viewCounts[did] || 0) + 1;
+    }
+
+    for (const [discoveryId, count] of Object.entries(viewCounts)) {
+      if (count >= 2) {
+        // Check if we already flagged this engagement
+        const { data: existing } = await supabase
+          .from('tola_shared_context')
+          .select('id')
+          .eq('pipeline_id', discoveryId)
+          .eq('path_name', 'gateway_to_nexus_engagement')
+          .gte('created_at', oneDayAgo)
+          .limit(1);
+
+        if (!existing || existing.length === 0) {
+          const { data: disc } = await supabase
+            .from('discoveries')
+            .select('name, company')
+            .eq('id', discoveryId)
+            .single();
+
+          await writeContext(supabase, {
+            pipelineId: discoveryId,
+            pipelineType: 'nurture',
+            fromAgent: 'gateway',
+            toAgent: 'nexus',
+            pathName: 'gateway_to_nexus_engagement',
+            payload: {
+              signal: 'report_revisit',
+              views_24h: count,
+              contact_name: disc?.name,
+              company: disc?.company,
+              message: `${disc?.name || 'Prospect'} viewed their report ${count} times in 24h. Hot signal.`,
+            },
+          });
+        }
+      }
+    }
+
     await logAction(supabase, 'gateway', 'seo-check', {
       geometryPattern: 'flower_of_life',
       output: {
         sitemap_valid: sitemapValid, sitemap_urls: sitemapUrls,
         robots_valid: robotsValid, ai_crawlers: aiCrawlersAllowed,
         rss_valid: rssValid, total_pages: totalPages,
+        report_views_24h: (recentViews || []).length,
+        hot_signals: Object.keys(viewCounts).filter(k => viewCounts[k] >= 2).length,
       },
       latencyMs: Date.now() - start,
     });
