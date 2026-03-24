@@ -32,9 +32,11 @@ export default function Home() {
               transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
             >
               <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.05] tracking-tight font-light">
-                AI systems that
+                AI is everywhere.
                 <br />
-                <span className="italic text-accent">drive revenue.</span>
+                <span className="italic text-accent">That doesn&apos;t mean</span>
+                <br />
+                it has to be confusing.
               </h1>
             </motion.div>
 
@@ -43,10 +45,11 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
             >
-              <p className="mt-8 text-lg text-muted-light max-w-lg leading-relaxed">
-                I build and deploy multi-agent AI systems for businesses. Not decks.
-                Not prototypes. Production systems with agents that run 24/7, integrated
-                into your operations — delivering results you can measure.
+              <p className="mt-8 text-lg text-muted-light max-w-xl leading-relaxed">
+                Most people have tried the tools. Hit a wall. Decided it wasn&apos;t for them.
+                That&apos;s not an AI problem — it&apos;s a &ldquo;nobody showed me how to use this
+                for my actual life&rdquo; problem. I help people cut through the noise and find
+                what AI actually changes. No jargon. No hype.
               </p>
             </motion.div>
 
@@ -60,7 +63,7 @@ export default function Home() {
                 href="/discover"
                 className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
               >
-                Start Your Discovery
+                Start a free discovery
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                 </svg>
@@ -69,7 +72,7 @@ export default function Home() {
                 href="/approach"
                 className="inline-flex items-center gap-2 text-sm text-muted-light hover:text-foreground-strong transition-colors duration-300"
               >
-                See our approach
+                See how it works
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                 </svg>
@@ -100,7 +103,7 @@ export default function Home() {
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-20 md:py-28">
           <Reveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-10 md:mb-14">
-              The problem
+              What I&apos;ve noticed
             </p>
           </Reveal>
 
@@ -108,14 +111,15 @@ export default function Home() {
             <StaggerChild>
               <div className="max-w-[680px] pb-10 md:pb-14">
                 <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
-                  You&apos;ve invested in AI tools
+                  You&apos;ve tried the tools.
                   <br />
-                  your team doesn&apos;t use.
+                  Something didn&apos;t click.
                 </h2>
                 <p className="text-muted-light text-lg leading-relaxed">
-                  ChatGPT subscriptions. Copilot licenses. An &ldquo;AI strategy&rdquo;
-                  presentation your CTO gave six months ago. And yet your team still
-                  copies data between spreadsheets every Monday morning.
+                  ChatGPT gave you a generic answer. The AI assistant felt gimmicky.
+                  You closed the tab and went back to doing it yourself. That&apos;s not a
+                  failure on your part — that&apos;s what happens when a powerful tool has
+                  no one to show you how it actually applies to your specific situation.
                 </p>
               </div>
             </StaggerChild>
@@ -124,14 +128,15 @@ export default function Home() {
               <div className="border-t border-accent/25 pt-10 md:pt-14 pb-10 md:pb-14">
                 <div className="max-w-[680px] md:ml-auto md:text-right">
                   <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
-                    You got a strategy deck
+                    This isn&apos;t just
                     <br />
-                    when you needed a system.
+                    for businesses.
                   </h2>
                   <p className="text-muted-light text-lg leading-relaxed md:ml-auto">
-                    Most AI consultants hand you a PDF and a roadmap. Six figures later,
-                    you still need to hire someone to build the thing. You needed working
-                    software — you got a PowerPoint.
+                    I work with business owners, freelancers, real estate agents, parents
+                    trying to get more organized, students figuring out how to actually
+                    learn faster. If you have a problem that repeats itself, there&apos;s
+                    probably a better way to handle it.
                   </p>
                 </div>
               </div>
@@ -141,14 +146,16 @@ export default function Home() {
               <div className="border-t border-accent/25 pt-10 md:pt-14 pb-10 md:pb-14">
                 <div className="max-w-[680px]">
                   <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
-                    Your competitors are automating.
+                    I didn&apos;t start in tech.
                     <br />
-                    You&apos;re still evaluating.
+                    I started in real estate.
                   </h2>
                   <p className="text-muted-light text-lg leading-relaxed">
-                    Every quarter you spend &ldquo;exploring AI options&rdquo; is a quarter
-                    your competitors spend deploying them. The gap compounds. The cost of
-                    inaction is already higher than you think.
+                    I was a William Raveis agent drowning in follow-ups, paperwork, and
+                    things that felt like they should be automatic. So I built AI systems
+                    to handle the work I hated. It worked. Then people started asking me
+                    to build the same thing for them. That&apos;s what I do now — and my
+                    real estate business still runs on the same system I build for clients.
                   </p>
                 </div>
               </div>
@@ -158,13 +165,14 @@ export default function Home() {
               <div className="border-t border-accent/25 pt-10 md:pt-14">
                 <div className="max-w-[680px] md:ml-auto md:text-right">
                   <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-3">
-                    You don&apos;t need more advice.
+                    You don&apos;t need to
                     <br />
-                    You need a builder.
+                    understand AI. I do.
                   </h2>
                   <p className="text-muted-light text-lg leading-relaxed md:ml-auto">
-                    Someone who understands your business, designs the system, builds it,
-                    deploys it, and proves it works — before you pay full price.
+                    You tell me what&apos;s frustrating, what&apos;s taking too long, what keeps
+                    falling through the cracks. I figure out which parts AI can actually
+                    fix — and build the thing that fixes it. No CS degree required.
                   </p>
                 </div>
               </div>
@@ -178,12 +186,12 @@ export default function Home() {
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
-              How we work
+              How it works
             </p>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-16 md:mb-20">
-              From discovery to deployment.
+              From conversation to
               <br />
-              <span className="italic text-accent">Results at every stage.</span>
+              <span className="italic text-accent">something that actually works.</span>
             </h2>
           </Reveal>
 
@@ -191,27 +199,27 @@ export default function Home() {
             {[
               {
                 num: '01',
-                title: 'Assess',
-                body: 'We analyze your business, workflows, and competitive landscape to find where AI creates the highest leverage. You get a prioritized roadmap with specific, costed recommendations.',
-                outcome: 'AI Opportunity Roadmap',
+                title: 'Discover',
+                body: 'You tell me what\'s going on — your business, your frustrations, what\'s taking too long. I do the research. You get a clear picture of where AI would actually move the needle for your specific situation.',
+                outcome: 'Free personalized summary',
               },
               {
                 num: '02',
-                title: 'Build',
-                body: 'We design and deploy a production AI system integrated into your operations. Multi-agent architecture, automated workflows, real-time dashboards — built to your specs, running on your infrastructure.',
-                outcome: 'Production AI System',
+                title: 'Plan',
+                body: 'The Insight Report is the full picture — exactly what to build, what each piece does, what it would take to make it real. Delivered in 48 hours. No generic roadmap — yours, specifically.',
+                outcome: 'Insight Report · $499',
               },
               {
                 num: '03',
-                title: 'Optimize',
-                body: 'Ongoing AI leadership embedded in your team. We monitor performance, iterate on results, and expand capabilities as your needs evolve. Your AI gets smarter every month.',
-                outcome: 'Continuous Improvement',
+                title: 'Build',
+                body: 'I design it, build it, deploy it, and stay accountable to whether it works. Production systems, not prototypes. Integrated into how you actually work — not bolted on afterward.',
+                outcome: 'Working system · from $15K',
               },
               {
                 num: '04',
-                title: 'Scale',
-                body: 'Multi-system deployment across your organization. Shared intelligence between departments, unified oversight, and cross-product automation that compounds returns.',
-                outcome: 'Enterprise AI Infrastructure',
+                title: 'Improve',
+                body: 'The system gets smarter over time. Monthly check-ins, performance tuning, new capabilities as your needs grow. Month-to-month — no contract, no lock-in.',
+                outcome: 'Ongoing · $2,500/month',
               },
             ].map((phase, i) => (
               <Reveal key={phase.num} delay={i * 0.1}>
@@ -253,12 +261,14 @@ export default function Home() {
       <section className="section-light">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
-            <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">Results</p>
+            <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">What we&apos;ve built</p>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-4">
-              What it looks like in practice
+              Real problems.
+              <br />
+              Real outcomes.
             </h2>
             <p className="text-sm text-muted-light mb-16 md:mb-20">
-              Representative examples of the outcomes we deliver.
+              Built for actual businesses — including my own real estate practice, which still runs on the same system I build for clients.
             </p>
           </Reveal>
 
@@ -329,17 +339,17 @@ export default function Home() {
               <StaggerReveal className="divide-y divide-border">
                 <StaggerChild>
                   <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] tracking-tight py-8 first:pt-0 text-foreground-strong">
-                    AI should build systems, not just answer questions.
+                    The goal is never &ldquo;more AI.&rdquo; The goal is less friction in your actual life.
                   </p>
                 </StaggerChild>
                 <StaggerChild>
                   <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] tracking-tight py-8 text-foreground-strong">
-                    The best AI strategy is a working prototype with agents running.
+                    If I can&apos;t explain it plainly, I haven&apos;t understood your problem yet.
                   </p>
                 </StaggerChild>
                 <StaggerChild>
                   <p className="font-[family-name:var(--font-serif)] italic text-[clamp(1.25rem,3vw,2rem)] leading-[1.4] tracking-tight py-8 last:pb-0 text-foreground-strong">
-                    Small teams with intelligent automation beat large teams without it.
+                    You shouldn&apos;t need a technical background to benefit from a technical tool.
                   </p>
                 </StaggerChild>
               </StaggerReveal>
@@ -354,20 +364,21 @@ export default function Home() {
           <Reveal>
             <div className="max-w-3xl">
               <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight mb-4">
-                Ready to see what AI
+                Not sure if this is for you?
                 <br />
-                can do for your business?
+                <span className="italic text-accent">That&apos;s exactly who it&apos;s for.</span>
               </h2>
               <p className="text-muted-light text-lg leading-relaxed mb-10 max-w-xl">
-                Our discovery process maps your biggest opportunities and gives you a
-                clear, costed plan — whether you build with us or not.
+                Start with a free discovery — tell me what&apos;s going on, and I&apos;ll give
+                you an honest read on where AI could actually help. No commitment,
+                no pitch. If there&apos;s nothing to build, I&apos;ll tell you that too.
               </p>
               <div className="flex flex-col sm:flex-row items-start gap-6">
                 <Link
                   href="/discover"
                   className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  Start Your Discovery
+                  Start a free discovery
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                   </svg>

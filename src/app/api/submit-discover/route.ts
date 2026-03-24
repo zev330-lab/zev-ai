@@ -12,6 +12,9 @@ export async function POST(request: Request) {
 
     // Insert into Supabase with pipeline status (service role bypasses RLS)
     const supabase = getSupabaseAdmin();
+    const promoCode = body.promoCode?.trim().toUpperCase() || null;
+    const isFriendsFamily = promoCode === 'ZEVGT3';
+
     const { data: inserted, error: dbError } = await supabase.from('discoveries').insert({
       name: body.name.trim(),
       email: body.email?.trim() || null,
@@ -27,6 +30,8 @@ export async function POST(request: Request) {
       magic_wand: body.magicWand?.trim() || null,
       success_vision: body.success?.trim() || null,
       anything_else: body.anythingElse?.trim() || null,
+      promo_code: promoCode,
+      is_friends_family: isFriendsFamily,
       pipeline_status: 'pending',
     }).select('id').single();
 
@@ -69,8 +74,8 @@ export async function POST(request: Request) {
         await resend.emails.send({
           from: process.env.RESEND_FROM_EMAIL || 'askzev.ai <hello@askzev.ai>',
           to: process.env.NOTIFICATION_EMAIL || 'zev330@gmail.com',
-          subject: `New discovery form from ${body.name}${body.company ? ` — ${body.company}` : ''}`,
-          text: `New discovery form submission on askzev.ai\n\n${fields}`,
+          subject: `New discovery form from ${body.name}${body.company ? ` — ${body.company}` : ''}${isFriendsFamily ? ' 🤝 [FRIENDS & FAMILY]' : ''}`,
+          text: `New discovery form submission on askzev.ai${isFriendsFamily ? '\n\n⭐ FRIENDS & FAMILY REFERRAL — Free Insight Report applies (code: ZevGT3)' : ''}\n\n${fields}`,
         });
       } catch (emailError) {
         console.error('Resend notification email error:', emailError);
