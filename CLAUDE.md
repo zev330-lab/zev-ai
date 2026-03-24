@@ -24,46 +24,80 @@ Guardian (validation), Nexus (routing, center), Catalyst (engagement), Sentinel 
 Prism (testing), Foundation (infrastructure), Gateway (application)
 
 ### Runtime — ALL 11 AGENTS ACTIVE
-- **Pipeline functions:** pipeline-guardian, pipeline-visionary, pipeline-architect, pipeline-oracle, pipeline-proposal, pipeline-content-engine, pipeline-social-agent
+- **Pipeline functions:** pipeline-guardian (validation + quality gate), pipeline-visionary, pipeline-architect, pipeline-oracle (report gen + revision), pipeline-proposal, pipeline-gateway-delivery, pipeline-content-engine, pipeline-social-agent
 - **Background agent functions (all with pg_cron):**
   - `agent-nexus` (every 5 min) — health-check all agents, health scoring, path activity aggregation
-  - `agent-guardian-bg` (every 5 min) — anomaly detection, circuit breaker (10 errors → kill switch)
+  - `agent-guardian-bg` (every 5 min) — anomaly detection, circuit breaker (10 errors → kill switch), writes health alerts to shared_context (Path 15)
   - `agent-crown` (every 15 min) — token spend tracking, Tier 3 queue scan, daily governance digest
   - `agent-prism` (every 30 min) — synthetic site health checks, agent output audit, daily quality report
-  - `agent-catalyst-bg` (hourly) — pipeline velocity analysis, bottleneck detection, trend comparison
-  - `agent-gateway` (hourly) — sitemap/robots/RSS validation, SEO audit, page count tracking
-  - `agent-foundation-bg` (every 2h) — database maintenance, row counts, archival (30-day retention), daily infra report
-- **Legacy:** `tola-agent` single fat function for Sentinel + general routing
+  - `agent-catalyst-bg` (hourly) — pipeline velocity analysis, bottleneck detection, follow-up reminders via shared_context (Path 19)
+  - `agent-gateway` (hourly) — sitemap/robots/RSS validation, SEO audit, engagement signal tracking via shared_context (Path 21)
+  - `agent-foundation-bg` (every 2h) — database maintenance, row counts, archival (30-day retention + shared_context cleanup), infra health to shared_context (Path 22)
+- **Nexus routing:** `nexus_route()` SQL function called by `advance_pipeline()` every minute, processes `tola_shared_context` entries addressed to Nexus
+- **Legacy:** `tola-agent` single fat function (superseded by dedicated functions)
 - **Supabase project:** ctrzkvdqkcqgejaedkbr
 
-### Assessment Pipeline
-Discovery form → Guardian validates → Visionary researches (Claude + web_search) → Architect scopes (9 constraints) → Oracle synthesizes meeting prep → Crown review queue.
-Each step is a separate Edge Function (`pipeline-guardian`, `pipeline-visionary`, `pipeline-architect`, `pipeline-oracle`).
+### Assessment Pipeline (22-Path Agent Collaboration)
+Discovery form (or Stripe $499 webhook) → Crown writes to shared_context → Nexus routes → Guardian validates → Visionary researches (Claude + web_search, real searches) → Architect scopes (9 constraints, structured JSON contracts) → Oracle generates meeting prep + client insight report → Guardian quality gates (Claude evaluates against 6 criteria, 0.80 threshold) → Gateway auto-delivers (paid_499 track) or Crown reviews (zevgt3/free track).
+
+**Pipeline Tracks:**
+- `paid_499` — Stripe $499 payment triggers auto-delivery after quality gate passes (Tier 1)
+- `friends_family_zevgt3` — Full pipeline but waits for Crown review before delivery (Tier 3)
+- `free` — Full pipeline, Crown review required (Tier 3)
+
+**Shared State (`tola_shared_context` table):** Inter-agent communication backbone. Every agent reads/writes here. Nexus routing function processes entries where `to_agent='nexus'` and routes to next agent based on path_name and payload.
+
+**Quality Gate (Path 6):** Guardian evaluates Oracle's report against 6 criteria (specificity, honest assessment, decision forks, actionability, value, accuracy) each weighted 0.15-0.20. Pass threshold: 0.80. If `needs_revision` → Oracle revises (max 2 iterations). If still fails → Tier 3 Crown escalation.
+
+**Delivery (Path 7):** `pipeline-gateway-delivery` sends branded email via Resend with report link. Report page at `/discovery/[id]` shows executive summary, findings, opportunities, decision forks, next steps. Tracks views for engagement signals.
+
+**Revenue Pipeline:** $499 Insight Reports auto-deliver without human intervention: Stripe webhook → crown_to_nexus → Guardian → Visionary (real web search) → Architect → Oracle (report_data) → Guardian quality gate → Gateway auto-delivers via email → Crown notified.
+
+**22 Paths:**
+Paths 1-8: Discovery pipeline (Crown→Nexus→Guardian→Visionary→Architect→Oracle→Guardian QG→Gateway→Crown notification)
+Paths 9-14: Content pipeline (Nexus→Visionary→Architect→Oracle→Guardian→Catalyst→Crown approval)
+Paths 15-18: Monitoring (Sentinel/Guardian-bg→Nexus health alerts, Prism→Oracle quality metrics, Oracle daily lessons)
+Paths 19-22: Nurture (Catalyst follow-up reminders, Crown→Catalyst approved follow-up, Gateway engagement signals, Foundation→Sentinel infra health)
 
 **Proposal Generation:** After pipeline completes, "Generate Proposal" button triggers `pipeline-proposal` Edge Function. Calls Claude to generate a professional SOW with executive summary, discovery findings, phased implementation plan, deliverables, and pricing tiers. Stored in `proposal_data` JSONB column. Supports `include_pricing` toggle, PDF download via browser print, and Edit & Regenerate with custom prompt context.
 
-**Chaining:** pg_cron polls every 60s (`advance_pipeline()`), dispatches next step via pg_net with 300s timeout.
+**Chaining:** pg_cron polls every 60s (`advance_pipeline()`), calls `nexus_route()` first to process shared_context, then dispatches next step via pg_net with 300s timeout.
 **Rate limiting:** 60-second global cooldown between Claude API calls (tracked via `pipeline_step_completed_at`).
 **Retry:** Auto-retries on 429/529/timeout errors up to 5 times. Stuck in-flight steps recovered after 5 min.
 **Config:** `_pipeline_config` table stores `supabase_url` and `service_role_key` for pg_net dispatch.
 
 ### Pipeline Statuses
-pending → researching → scoping → synthesizing → complete | failed
+pending → researching → scoping → synthesizing → reporting → delivering → complete | failed
+Also: `revising` (Oracle revises report after Guardian quality gate feedback, max 2 loops)
 
 ### Pipeline Columns (discoveries table)
-`pipeline_status`, `pipeline_error`, `pipeline_completed_at`, `pipeline_step_completed_at` (cooldown tracking), `pipeline_started_at` (in-flight guard), `pipeline_retry_count`, `progress_pct` (0-100 integer), `proposal_data` (JSONB: markdown, generated_at, model_used, tokens_used, prompt_context), `include_pricing` (boolean, default true)
+`pipeline_status`, `pipeline_error`, `pipeline_completed_at`, `pipeline_step_completed_at` (cooldown tracking), `pipeline_started_at` (in-flight guard), `pipeline_retry_count`, `progress_pct` (0-100 integer), `proposal_data` (JSONB), `include_pricing` (boolean, default true), `pipeline_track` (free|paid_499|friends_family_zevgt3), `report_data` (JSONB: report object with exec summary, findings, opportunities, decision forks, next steps, fit assessment), `quality_gate_score` (float 0-1), `revision_count` (int, max 2), `delivered_at` (timestamptz), `report_url` (text), `stripe_payment_id` (text)
+
+### Data Contracts (spec-defined JSON payloads)
+- **Visionary output:** `company_profile`, `contact_profile`, `competitive_landscape`, `industry_trends`, `existing_tech_stack`, `ai_opportunity_signals`, `research_confidence`, `sources_consulted`, `raw_sources`
+- **Architect output:** `opportunities[]` (name, pain_point_addressed, proposed_solution, feasibility, estimated_effort, expected_impact, honest_caveat), `recommended_tier`, `recommended_scope`, `constraints_identified`, `fit_assessment`, `fit_reasoning`, `decision_forks[]`
+- **Oracle output:** `report.executive_summary`, `report.key_findings[]`, `report.opportunities[]` (title, description, expected_impact, honest_assessment, what_i_would_do), `report.decision_forks[]` (question, options, my_recommendation, why), `report.next_steps`, `report.fit_for_zev_ai`, `delivery_ready`, `synthesis_confidence`
+- **Guardian quality gate:** `scores` (specificity, honest_assessment, decision_forks, actionability, value, accuracy), `quality_score`, `verdict` (pass|fail|needs_revision), `issues[]`, `revision_instructions`
 
 ### Pipeline Progress Tracking
 Each stage updates `progress_pct` as it works:
 - Guardian: 0% start → 10% validated
 - Visionary: 15% start → 20% Claude API call → 35% research complete
 - Architect: 40% start → 45% Claude API call → 65% assessment complete
-- Oracle: 70% start → 75% Claude API call → 90% meeting prep complete → 100% done
+- Oracle: 70% start → 75% meeting prep → 82% → 85% report generation → 88% report complete
+- Guardian QG: 88% → quality evaluation → 92% if passing
+- Gateway: 92% → delivery → 100% complete
+
+### Tier Enforcement
+- **Report delivery:** paid_499 = Tier 1 auto-deliver | zevgt3/free = Tier 3 wait for Crown
+- **Email sending:** system notification = Tier 1 | client-facing = Tier 3 wait
+- **Social publishing:** approved template = Tier 2 post+notify | custom = Tier 3 wait
+- **Quality threshold:** score < 0.80 = Tier 3 escalation after max revisions
 
 ### 3-Tier Decision Model
-- **Tier 1 (80%):** Autonomous — UX, technical, operational
-- **Tier 2 (15%):** Notify & proceed — dependencies, infrastructure, trade-offs
-- **Tier 3 (5%):** Full stop — brand, creative, security, scope
+- **Tier 1 (80%):** Autonomous — UX, technical, operational, paid_499 auto-delivery
+- **Tier 2 (15%):** Notify & proceed — dependencies, infrastructure, trade-offs, follow-up reminders
+- **Tier 3 (5%):** Full stop — brand, creative, security, scope, quality gate failures
 
 ## Pages
 
@@ -80,7 +114,8 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `/blog/[slug]` — Dynamic post pages: ToC sidebar, author bio, related posts, JSON-LD BlogPosting + FAQPage schemas
 - `/blog/rss.xml` — RSS feed of published posts
 - `/contact` — Form → Supabase contacts
-- `/discover` — 12-step intake form → assessment pipeline
+- `/discover` — 12-step intake form → assessment pipeline (supports pipeline_track param)
+- `/discovery/[id]` — Personalized AI Insight Report page (public, noindex). Shows executive summary, key findings, opportunities with honest assessments, decision forks, next steps, CTA. Tracks views for engagement signals (Path 21). JSON-LD Report schema.
 - `/tola` — Redirects to /approach
 
 ### Admin (11) — not in nav, noindex, dark theme operations center
@@ -119,7 +154,8 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 
 ## API Routes
 - `POST /api/submit-contact` — Insert contact, send email
-- `POST /api/submit-discover` — Insert discovery, trigger assessment pipeline
+- `POST /api/submit-discover` — Insert discovery with pipeline_track, write crown_to_nexus to shared_context, trigger pipeline
+- `POST /api/webhooks/stripe` — Stripe $499 payment webhook, creates discovery with pipeline_track=paid_499, triggers auto-delivery pipeline
 - `POST /api/admin/login` — Validates password, sets hashed session cookie
 - `GET|PATCH /api/admin/contacts` — CRUD
 - `GET|PATCH|DELETE /api/admin/discoveries` — CRUD
@@ -143,8 +179,9 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 ## Database (Supabase)
 
 ### Tables
+- **tola_shared_context** — id (UUID), pipeline_id (UUID), pipeline_type (discovery|content|nurture|health_check), from_agent, to_agent, path_name, payload (JSONB), status (pending|read|acted_on), quality_score (float), tier_level (1|2|3), created_at. The inter-agent communication backbone — every agent reads/writes here.
 - **contacts** — id, name, email, company, message, status, notes
-- **discoveries** — 13 form fields + research_brief (JSONB), assessment_doc (TEXT), meeting_prep_doc (TEXT), pipeline_status, pipeline_error, pipeline_completed_at, pipeline_step_completed_at, pipeline_started_at, pipeline_retry_count, progress_pct (INT 0-100), proposal_data (JSONB), include_pricing (BOOLEAN)
+- **discoveries** — 13 form fields + research_brief (JSONB), assessment_doc (TEXT), meeting_prep_doc (TEXT), pipeline_status, pipeline_error, pipeline_completed_at, pipeline_step_completed_at, pipeline_started_at, pipeline_retry_count, progress_pct (INT 0-100), proposal_data (JSONB), include_pricing (BOOLEAN), pipeline_track (free|paid_499|friends_family_zevgt3), report_data (JSONB), quality_gate_score (float), revision_count (int), delivered_at, report_url, stripe_payment_id
 - **_pipeline_config** — key/value store for pg_net dispatch (supabase_url, service_role_key)
 - **tola_agents** — id, node_name, geometry_engine, display_name, description, status, tier, last_heartbeat, config, is_active, kill_switch
 - **tola_agent_log** — agent_id, action, geometry_pattern, input, output, confidence, tier_used, tokens_used, latency_ms
@@ -183,6 +220,7 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `015_agent_activity_loops.sql` — tola_path_activity table, dispatch_agent() helper, 7 pg_cron jobs for all background agents
 - `016_social_distribution.sql` — Publishing columns on social_queue, credentials on social_accounts, tola_config table, content_analytics table, distributor pg_cron
 - `017_reduce_cron_frequency.sql` — Scale back all agent cron schedules for cost optimization (Nexus/Guardian 30min, Crown 2h, Prism 6h, Catalyst 4h, Gateway 6h, Foundation 12h, pipeline pollers 5min)
+- `022_shared_context_pipeline.sql` — tola_shared_context table (22-path agent communication backbone), pipeline_track/report_data/quality columns on discoveries, nexus_route() SQL function for shared_context routing, updated advance_pipeline() with new statuses (reporting, revising, delivering)
 
 ### Operations SOP
 Full Standard Operating Procedures document at `src/docs/OPERATIONS-SOP.md` covering: daily ops checklist, content workflow, social media, discovery pipeline, proposal workflow, family hub, knowledge base, project management, invoicing, troubleshooting, and monthly review.
@@ -349,6 +387,7 @@ Chat routes call Claude API directly. Set via `vercel env add ANTHROPIC_API_KEY`
 ### Vercel env vars
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - `RESEND_API_KEY`, `ADMIN_PASSWORD`
+- `STRIPE_WEBHOOK_SECRET` (optional — for $499 Insight Report payment verification)
 
 ### Supabase Edge Function secrets
 - `ANTHROPIC_API_KEY` — **REQUIRED for assessment pipeline.** Set via: Supabase Dashboard > Project Settings > Edge Functions > Secrets, or `supabase secrets set ANTHROPIC_API_KEY=sk-ant-...`
@@ -370,6 +409,6 @@ Chat routes call Claude API directly. Set via `vercel env add ANTHROPIC_API_KEY`
 - **Live URL:** https://askzev.ai
 - **Vercel Team:** steinmetz-real-estate-professionlas
 - **Deploy:** `vercel --prod`
-- **Edge Functions:** `supabase functions deploy tola-agent --no-verify-jwt` (also deploy pipeline-guardian, pipeline-visionary, pipeline-architect, pipeline-oracle, pipeline-proposal)
+- **Edge Functions:** `supabase functions deploy tola-agent --no-verify-jwt` (also deploy pipeline-guardian, pipeline-visionary, pipeline-architect, pipeline-oracle, pipeline-proposal, pipeline-gateway-delivery, and all agent-* functions)
 - **Migrations:** `supabase db push`
 - **Pipeline config:** After fresh migration, set `service_role_key` in `_pipeline_config` table via Supabase REST API or SQL editor

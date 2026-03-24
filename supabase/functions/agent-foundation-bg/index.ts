@@ -7,6 +7,7 @@
 import { getServiceClient } from '../_shared/supabase.ts';
 import { checkKillSwitch, logAction, updateHeartbeat, recordMetric } from '../_shared/agent-utils.ts';
 import { CORS_HEADERS } from '../_shared/pipeline-utils.ts';
+import { writeContext } from '../_shared/context-utils.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
@@ -84,13 +85,43 @@ ${Object.entries(counts).map(([t, c]) => `- **${t}:** ${c.toLocaleString()}`).jo
       }
     }
 
+    // ── Path 22: Foundation → Sentinel (infrastructure health) ──────────
+    // Also write to shared_context for Nexus to archive old context entries
+    const thirtyDaysAgoCtx = new Date(Date.now() - 30 * 86400000).toISOString();
+    const { count: archivedContext } = await supabase
+      .from('tola_shared_context')
+      .delete()
+      .lt('created_at', thirtyDaysAgoCtx)
+      .eq('status', 'acted_on')
+      .select('*', { count: 'exact', head: true });
+
+    const totalRows = Object.values(counts).reduce((a, b) => a + b, 0);
+    await writeContext(supabase, {
+      pipelineId: '00000000-0000-0000-0000-000000000000', // system pipeline
+      pipelineType: 'health_check',
+      fromAgent: 'foundation',
+      toAgent: 'nexus',
+      pathName: 'foundation_to_nexus_infra',
+      payload: {
+        total_rows: totalRows,
+        table_counts: counts,
+        archived: {
+          metrics: archivedMetrics ?? 0,
+          logs: archivedLogs ?? 0,
+          paths: archivedPaths ?? 0,
+          context: archivedContext ?? 0,
+        },
+        status: totalRows > 100000 ? 'warning' : 'healthy',
+      },
+    });
+
     await logAction(supabase, 'foundation', 'maintenance-run', {
       geometryPattern: 'seed_of_life',
-      output: { table_counts: counts, archived_metrics: archivedMetrics ?? 0, archived_logs: archivedLogs ?? 0, archived_paths: archivedPaths ?? 0 },
+      output: { table_counts: counts, archived_metrics: archivedMetrics ?? 0, archived_logs: archivedLogs ?? 0, archived_paths: archivedPaths ?? 0, archived_context: archivedContext ?? 0 },
       latencyMs: Date.now() - start,
     });
 
-    return new Response(JSON.stringify({ counts, archived: (archivedMetrics ?? 0) + (archivedLogs ?? 0) + (archivedPaths ?? 0) }), { status: 200 });
+    return new Response(JSON.stringify({ counts, archived: (archivedMetrics ?? 0) + (archivedLogs ?? 0) + (archivedPaths ?? 0) + (archivedContext ?? 0) }), { status: 200 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
     console.error('[agent-foundation-bg]', msg);

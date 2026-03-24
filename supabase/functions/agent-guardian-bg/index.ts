@@ -7,6 +7,7 @@
 import { getServiceClient } from '../_shared/supabase.ts';
 import { checkKillSwitch, logAction, updateHeartbeat, recordMetric } from '../_shared/agent-utils.ts';
 import { CORS_HEADERS } from '../_shared/pipeline-utils.ts';
+import { writeContext } from '../_shared/context-utils.ts';
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS_HEADERS });
@@ -77,6 +78,26 @@ Deno.serve(async (req) => {
     }
 
     await recordMetric(supabase, 'guardian', 'anomalies_5min', anomalies, { flags });
+
+    // ── Path 15: Write health alert to shared_context if anomalies found ──
+    if (anomalies > 0) {
+      const severity = flags.some(f => f.includes('CIRCUIT BREAKER')) ? 'critical' : 'degraded';
+      await writeContext(supabase, {
+        pipelineId: '00000000-0000-0000-0000-000000000000', // system pipeline
+        pipelineType: 'health_check',
+        fromAgent: 'guardian',
+        toAgent: 'nexus',
+        pathName: 'sentinel_to_nexus_health',
+        payload: {
+          status: severity,
+          anomalies,
+          flags,
+          errors_by_agent: errorsByAgent,
+          scanned: (recentLogs || []).length,
+        },
+        tierLevel: severity === 'critical' ? 3 : 2,
+      });
+    }
 
     await logAction(supabase, 'guardian', 'safety-scan', {
       geometryPattern: 'yin_yang',
