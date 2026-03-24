@@ -1,6 +1,10 @@
 // =============================================================================
-// Pipeline: Free Summary Email
-// Generates a personalized 5-section email via Claude, sends via Resend.
+// Pipeline: Free Summary (Email + Discovery Page)
+// 
+// 1. Generates 5-section personalized content via Claude (structured JSON)
+// 2. Stores it in free_summary_content JSONB on the discovery record
+// 3. Sends an email with the content + link to /discovery/[id] page
+//
 // Triggered by advance_pipeline() after pipeline_status = 'complete' &&
 // free_summary_sent_at IS NULL. Also invocable manually from admin UI.
 // =============================================================================
@@ -8,81 +12,6 @@
 import { getServiceClient } from '../_shared/supabase.ts';
 import { logAction, updateHeartbeat } from '../_shared/agent-utils.ts';
 import { callClaude, getAnthropicKey, jsonResponse, CORS_HEADERS } from '../_shared/pipeline-utils.ts';
-
-// ---------------------------------------------------------------------------
-// Fallback email — sent if Claude API fails. Still has value; doesn't leave
-// the prospect with nothing.
-// ---------------------------------------------------------------------------
-function buildFallbackEmail(name: string, firstName: string): string {
-  return `
-    <p>${firstName},</p>
-
-    <p>I just finished reviewing what you submitted and I wanted to reach out before we connect.</p>
-
-    <p>A few things stood out about your situation. I've got some specific thoughts on where AI could
-    actually move the needle for you — and equally importantly, where I'd tell you not to bother.</p>
-
-    <p>You've probably already experimented with a few AI tools. Maybe got something useful out of
-    ChatGPT for a week and then hit a wall. That's not a tool problem — that's a musician problem.
-    The tools can do extraordinary things. Getting them to do extraordinary things for YOUR business
-    is a different skill entirely.</p>
-
-    <p>For what it's worth: I've spent the last 18 months building production AI systems, not demos.
-    Real deployments, real results, real businesses. That's the difference between someone who uses
-    the guitar and someone who knows how to make it sing.</p>
-
-    <p>If you want to try this yourself, the <strong>$499 Insight Report</strong> lays out exactly what to build,
-    in what order, with the honest tradeoffs at each decision point — so you know what you're getting into.
-    If you'd rather skip that and have a real conversation about what this looks like for your specific
-    business, that's the <strong>Strategy Session</strong>. Either way, you now know what you're dealing with.</p>
-
-    <p>— Zev</p>
-  `.trim();
-}
-
-// ---------------------------------------------------------------------------
-// Wrap Claude-generated body in a clean HTML email template
-// ---------------------------------------------------------------------------
-function buildEmailHtml(firstName: string, bodyText: string): string {
-  // Convert plain paragraphs to HTML (Claude returns \n\n separated paragraphs)
-  const paragraphs = bodyText
-    .trim()
-    .split(/\n\n+/)
-    .map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`)
-    .join('\n    ');
-
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>From Zev</title>
-  <style>
-    body {
-      margin: 0; padding: 0;
-      font-family: Georgia, 'Times New Roman', serif;
-      font-size: 16px; line-height: 1.75;
-      color: #1a1a1a; background: #ffffff;
-    }
-    .wrap {
-      max-width: 600px; margin: 48px auto; padding: 0 24px;
-    }
-    p {
-      margin: 0 0 20px 0;
-    }
-    strong { font-weight: bold; }
-    a { color: #1a1a1a; }
-    .greeting { margin-bottom: 24px; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <p class="greeting">${firstName},</p>
-    ${paragraphs}
-  </div>
-</body>
-</html>`;
-}
 
 // ---------------------------------------------------------------------------
 // Main handler
@@ -113,14 +42,9 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Discovery not found' }, 404);
     }
 
-    // Guard: only send to complete discoveries
+    // Guard: only process complete discoveries
     if (discovery.pipeline_status !== 'complete') {
-      return jsonResponse({ error: 'Pipeline not complete — cannot send summary' }, 400);
-    }
-
-    // Guard: must have an email address
-    if (!discovery.email) {
-      return jsonResponse({ error: 'No email address on discovery — cannot send summary' }, 400);
+      return jsonResponse({ error: 'Pipeline not complete — cannot generate summary' }, 400);
     }
 
     // Guard: already sent? (unless forced)
@@ -134,36 +58,48 @@ Deno.serve(async (req) => {
     }
 
     const firstName = (discovery.name as string).trim().split(/\s+/)[0];
-    const resendKey = Deno.env.get('RESEND_API_KEY');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+    const pageUrl = supabaseUrl ? '' : ''; // filled below from env or config
+    
+    // Build the discovery page URL
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://askzev.ai';
+    const discoveryPageUrl = `${siteUrl}/discovery/${discoveryId}`;
 
-    if (!resendKey) {
-      return jsonResponse({ error: 'RESEND_API_KEY not configured' }, 500);
-    }
-
-    // ── Generate personalized body via Claude ────────────────────────────────
+    // ── Generate personalized content via Claude ─────────────────────────────
     const anthropicKey = getAnthropicKey();
-    let emailBody = '';
+    let summaryContent: Record<string, string> | null = null;
     let tokensUsed = 0;
     let claudeSucceeded = false;
 
     if (anthropicKey) {
       try {
-        const prompt = buildClaudePrompt(discovery);
+        const prompt = buildClaudePrompt(discovery, discoveryPageUrl);
 
         const claudeRes = await callClaude(anthropicKey, {
           model: 'claude-sonnet-4-6',
-          max_tokens: 1500,
+          max_tokens: 2000,
           messages: [{ role: 'user', content: prompt }],
         }, 90_000);
 
         if (claudeRes.ok) {
           const result = await claudeRes.json();
+          let rawText = '';
           for (const block of result.content ?? []) {
-            if (block.type === 'text') emailBody += block.text;
+            if (block.type === 'text') rawText += block.text;
           }
           tokensUsed = (result.usage?.input_tokens ?? 0) + (result.usage?.output_tokens ?? 0);
-          if (emailBody.trim().length > 200) {
-            claudeSucceeded = true;
+
+          // Parse JSON response
+          try {
+            // Claude might wrap in ```json ... ```
+            const cleaned = rawText.replace(/^```json\s*/i, '').replace(/\s*```$/, '').trim();
+            const parsed = JSON.parse(cleaned);
+            if (parsed.mirror && parsed.future && parsed.guitar_line) {
+              summaryContent = parsed;
+              claudeSucceeded = true;
+            }
+          } catch (parseErr) {
+            console.error('[free-summary] JSON parse failed:', parseErr, 'Raw:', rawText.substring(0, 200));
           }
         } else {
           const errText = await claudeRes.text();
@@ -174,39 +110,55 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Fall back to canned summary if Claude failed ─────────────────────────
-    const htmlBody = claudeSucceeded
-      ? buildEmailHtml(firstName, emailBody)
-      : buildEmailHtml(firstName, buildFallbackEmail(discovery.name as string, firstName));
+    // ── Store summary content in discovery record ────────────────────────────
+    const updateData: Record<string, unknown> = {};
+    if (summaryContent) {
+      updateData.free_summary_content = summaryContent;
+    }
+    updateData.discovery_page_url = discoveryPageUrl;
 
-    // ── Send via Resend ──────────────────────────────────────────────────────
-    const emailRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${resendKey}`,
-      },
-      body: JSON.stringify({
-        from: 'Zev Steinmetz <hello@askzev.ai>',
-        to: [discovery.email as string],
-        subject: `What I noticed about your situation`,
-        html: htmlBody,
-        // Plain-text fallback
-        text: claudeSucceeded
-          ? emailBody
-          : buildFallbackEmail(discovery.name as string, firstName),
-      }),
-    });
-
-    if (!emailRes.ok) {
-      const resendError = await emailRes.text();
-      throw new Error(`Resend error ${emailRes.status}: ${resendError}`);
+    if (Object.keys(updateData).length > 0) {
+      await supabase
+        .from('discoveries')
+        .update(updateData)
+        .eq('id', discoveryId);
     }
 
-    const resendData = await emailRes.json();
-    const emailId = resendData?.id ?? null;
+    // ── Send email if address available ──────────────────────────────────────
+    const resendKey = Deno.env.get('RESEND_API_KEY');
+    let emailId: string | null = null;
+    let emailSent = false;
 
-    // ── Update discovery record ──────────────────────────────────────────────
+    if (resendKey && discovery.email) {
+      const emailHtml = buildEmailHtml(firstName, summaryContent, discoveryPageUrl, discovery);
+      const emailText = buildEmailText(firstName, summaryContent, discoveryPageUrl);
+
+      const emailRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${resendKey}`,
+        },
+        body: JSON.stringify({
+          from: 'Zev Steinmetz <hello@askzev.ai>',
+          to: [discovery.email as string],
+          subject: `What I noticed about your situation`,
+          html: emailHtml,
+          text: emailText,
+        }),
+      });
+
+      if (emailRes.ok) {
+        const resendData = await emailRes.json();
+        emailId = resendData?.id ?? null;
+        emailSent = true;
+      } else {
+        const resendError = await emailRes.text();
+        console.error(`[free-summary] Resend error ${emailRes.status}: ${resendError}`);
+      }
+    }
+
+    // ── Mark as sent (even if email wasn't sent — page is still generated) ───
     await supabase
       .from('discoveries')
       .update({ free_summary_sent_at: new Date().toISOString() })
@@ -219,9 +171,10 @@ Deno.serve(async (req) => {
         input: { discovery_id: discoveryId, to: discovery.email },
         output: {
           email_id: emailId,
+          email_sent: emailSent,
+          page_url: discoveryPageUrl,
           claude_succeeded: claudeSucceeded,
           tokens_used: tokensUsed,
-          fallback_used: !claudeSucceeded,
           latency_ms: Date.now() - start,
         },
         tokensUsed,
@@ -232,9 +185,10 @@ Deno.serve(async (req) => {
     ]);
 
     return jsonResponse({
-      status: 'sent',
+      status: 'complete',
       email_id: emailId,
-      to: discovery.email,
+      email_sent: emailSent,
+      page_url: discoveryPageUrl,
       claude_succeeded: claudeSucceeded,
       tokens_used: tokensUsed,
     });
@@ -243,7 +197,6 @@ Deno.serve(async (req) => {
     const errorMsg = err instanceof Error ? err.message : 'Unknown error';
     console.error('[pipeline-free-summary] Fatal error:', errorMsg);
 
-    // Log failure
     if (discoveryId) {
       try {
         const supabase = getServiceClient();
@@ -261,9 +214,9 @@ Deno.serve(async (req) => {
 });
 
 // ---------------------------------------------------------------------------
-// Build the Claude prompt from discovery data
+// Claude prompt — returns structured JSON with 5 sections
 // ---------------------------------------------------------------------------
-function buildClaudePrompt(discovery: Record<string, unknown>): string {
+function buildClaudePrompt(discovery: Record<string, unknown>, pageUrl: string): string {
   const fields = [
     `Name: ${discovery.name || 'Not provided'}`,
     `Company: ${discovery.company || 'Not provided'}`,
@@ -279,41 +232,141 @@ function buildClaudePrompt(discovery: Record<string, unknown>): string {
     `Anything Else: ${discovery.anything_else || 'Nothing additional'}`,
   ].join('\n');
 
-  return `You're writing a personal email from Zev Steinmetz to a business owner who submitted a discovery form about AI implementation.
+  return `You're Zev Steinmetz, an AI consultant. Direct, human, never pitchy. Smart friend who knows AI deeply — not a salesperson. 18 months building production AI systems. Real deployments, real businesses, real results.
 
-Zev is an AI consultant. Direct, human, never pitchy. He sounds like a smart friend who happens to know AI deeply — not a salesperson, not a consultant with slides. He's been building production AI systems for 18 months: real deployments, real businesses, real results.
-
-Here's what the prospect submitted:
+Here's what a prospect submitted on your discovery form:
 
 ${fields}
 
 ---
 
-Write the complete email body — no subject line, no greeting (don't start with "Hi" or their name), no signature. Just the body text. Plain paragraphs, separated by blank lines.
+Return a JSON object with exactly these 5 keys. Each value is HTML (use <p> tags for paragraphs, <em> for emphasis, <strong> for key phrases). No markdown. No section labels or headers inside the content.
 
-The email has exactly 5 parts, written as natural paragraphs with no section labels:
+{
+  "mirror": "...",
+  "future": "...",
+  "guitar_line": "...",
+  "context": "...",
+  "cta": "..."
+}
 
-PART 1 — THE MIRROR
-Start with a labeling statement ("It sounds like..." or "It looks like..."). Reflect their exact pain back to them using their specific words from the form. Reference their actual situation — company type, the specific thing that's breaking down. Make them feel genuinely seen. 2-3 sentences. Do not be generic.
+MIRROR (2-3 <p> tags):
+Start with "It sounds like..." or "It looks like..." — a Voss labeling statement. Reflect their exact pain back using their specific words. Reference their actual company/industry/role. Make them feel genuinely seen. Use their specific language, not generic AI consultant language.
 
-PART 2 — THE SPECIFIC FUTURE  
-Paint what Monday morning looks like for them AFTER. Visceral and concrete. Name the specific painful thing they mentioned (from repetitive_work or pain_points) and contrast it with a specific, tangible outcome — not "AI will save you time" but the actual changed moment. 3-4 sentences. Ground it in their industry and role.
+FUTURE (3-4 <p> tags):
+Paint what Monday morning looks like for them AFTER the right AI setup. Visceral and concrete. Name the specific painful thing from repetitive_work or pain_points and contrast it with a specific tangible outcome. Not "AI will save you time" — the actual changed moment. Ground it in their industry/role.
 
-PART 3 — THE GUITAR LINE
-Honest, soft observation about the AI experimentation wall. If they mentioned specific tools, reference them. Something like: "You've probably already tried a few AI tools. Got something decent out of it and then hit a wall. That's not a tool problem — that's a musician problem. The tools can do extraordinary things. Getting them to do extraordinary things for YOUR business is a different skill entirely." Adapt the specific tools if they mentioned any. 3-4 sentences.
+GUITAR_LINE (2-3 <p> tags):
+Honest, soft observation about AI tool experimentation. If they mentioned specific tools (ChatGPT, etc), reference them by name. Something like: "You've probably already tried a few AI tools. Got something decent out of it and then hit a wall. That's not a tool problem — it's a musician problem. Having the tools isn't the same as knowing how to use them for your specific situation."
 
-PART 4 — CREDIBILITY CONTEXT
-Not a pitch. Just context about who Zev is. Keep it short. Something like: "For what it's worth: I've spent the last 18 months building production AI systems, not demos. [One specific example of a real outcome — vary this based on their industry if possible, e.g. ops, customer service, sales, content, data — but keep it real and specific, not inflated]. That's the difference between someone who uses the guitar and someone who knows how to make it sing." 3-4 sentences total.
+CONTEXT (2-3 <p> tags):
+Not a pitch. Just who Zev is. Short. "I've spent the last 18 months building production AI systems, not demos. [One specific real example — adapt to their industry: ops/customer service/sales/content/data but keep it real, not inflated. Can mention Steinmetz Real Estate as a specific example if relevant.] That's the difference between someone who uses the guitar and someone who knows how to make it sing."
 
-PART 5 — THE FORK
-Two clean paths, no pressure, no CTA button. "If you want to try this yourself, the $499 Insight Report lays out exactly what to build, in what order, with the honest tradeoffs at each decision point — so you know what you're getting into. If you'd rather skip that and have a real conversation about what this looks like for your specific business, that's the Strategy Session. Either way, you now have a clearer picture of what you're dealing with."
+CTA (1-2 <p> tags):
+Two clean paths, no pressure. Just text — no buttons (buttons are added separately by the page). "If you want to explore this yourself, the $499 Insight Report lays out exactly what to build, in what order, with honest tradeoffs at each decision point. If you'd rather talk through it, that's what the Strategy Session is for. Either way, you now have a clearer picture."
 
-Then end with:
-"— Zev"
+Voice rules: conversational but precise. Never: leverage, synergy, transform, revolutionize, game-changer, holistic, seamless, streamline. No exclamation points. No corporate language. Write like someone who's genuinely thought about their situation.
 
----
+Return ONLY the JSON object. No explanation before or after. No markdown code block.`;
+}
 
-Total: 600-900 words including the sign-off. 
+// ---------------------------------------------------------------------------
+// Build HTML email with page link
+// ---------------------------------------------------------------------------
+function buildEmailHtml(
+  firstName: string,
+  content: Record<string, string> | null,
+  pageUrl: string,
+  discovery: Record<string, unknown>
+): string {
+  const name = discovery.name as string;
 
-Voice rules: conversational but precise. Never use the words leverage, synergy, transform, revolutionize, game-changer, holistic, seamless, streamline (unless quoting them). Don't promise specific outcomes. Don't use exclamation points. No corporate language. Write like a person who's genuinely thought about their situation, not like someone running a content template.`;
+  // Build body from structured content or fallback
+  let bodyHtml = '';
+  if (content) {
+    bodyHtml = [
+      content.mirror || '',
+      content.future || '',
+      content.guitar_line || '',
+      content.context || '',
+      content.cta || '',
+    ].filter(Boolean).join('\n    ');
+  } else {
+    bodyHtml = buildFallbackEmailBody(firstName, discovery);
+  }
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>From Zev</title>
+  <style>
+    body { margin: 0; padding: 0; font-family: Georgia, 'Times New Roman', serif; font-size: 16px; line-height: 1.75; color: #1a1a1a; background: #ffffff; }
+    .wrap { max-width: 600px; margin: 48px auto; padding: 0 24px; }
+    p { margin: 0 0 20px 0; }
+    strong { font-weight: bold; }
+    a { color: #1a1a1a; }
+    .page-cta { margin: 32px 0; padding: 24px; background: #f8f8fb; border-radius: 12px; border-left: 3px solid #7c9bf5; }
+    .page-cta p { margin: 0 0 12px 0; font-size: 15px; }
+    .page-cta a.btn { display: inline-block; background: #7c9bf5; color: #ffffff; padding: 12px 24px; border-radius: 8px; font-family: -apple-system, sans-serif; font-size: 15px; font-weight: 600; text-decoration: none; }
+    .sig { margin-top: 32px; color: #555; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p>${firstName},</p>
+    ${bodyHtml}
+
+    <div class="page-cta">
+      <p>I put together a personal summary of what I see in your situation — and what I think is actually worth doing about it. It's on a page I built for you:</p>
+      <a href="${pageUrl}" class="btn">View your personal summary →</a>
+    </div>
+
+    <p class="sig">— Zev<br>
+    <a href="https://askzev.ai">askzev.ai</a> · <a href="mailto:hello@askzev.ai">hello@askzev.ai</a></p>
+  </div>
+</body>
+</html>`;
+}
+
+function buildEmailText(
+  firstName: string,
+  content: Record<string, string> | null,
+  pageUrl: string
+): string {
+  const sections = content
+    ? [content.mirror, content.future, content.guitar_line, content.context, content.cta]
+        .filter(Boolean)
+        .map(s => (s || '').replace(/<[^>]+>/g, '').replace(/\n\n+/g, '\n\n').trim())
+        .join('\n\n')
+    : '';
+
+  return `${firstName},
+
+${sections}
+
+I put together a personal summary of what I see in your situation:
+${pageUrl}
+
+— Zev
+askzev.ai | hello@askzev.ai`;
+}
+
+function buildFallbackEmailBody(firstName: string, discovery: Record<string, unknown>): string {
+  return `
+    <p>I just finished reviewing what you submitted and I wanted to reach out before we connect.</p>
+
+    <p>A few things stood out about your situation. I've got some specific thoughts on where AI could
+    actually move the needle for you — and equally importantly, where I'd tell you not to bother.</p>
+
+    <p>You've probably already experimented with a few AI tools. Maybe got something useful out of
+    ChatGPT for a week and then hit a wall. That's not a tool problem — that's a musician problem.
+    The tools can do extraordinary things. Getting them to do extraordinary things for YOUR business
+    is a different skill entirely.</p>
+
+    <p>For what it's worth: I've spent the last 18 months building production AI systems, not demos.
+    Real deployments, real results, real businesses. Steinmetz Real Estate runs on this same framework:
+    automated transaction management and lead qualification running 24/7.</p>
+  `.trim();
 }

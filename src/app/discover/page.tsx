@@ -11,6 +11,7 @@ const AI_LEVELS = ['Not yet', 'Dabbled a bit', 'Use them regularly', 'Tried and 
 interface FormData {
   name: string;
   email: string;
+  phone: string;
   company: string;
   role: string;
   business: string;
@@ -27,6 +28,7 @@ interface FormData {
 const INITIAL: FormData = {
   name: '',
   email: '',
+  phone: '',
   company: '',
   role: '',
   business: '',
@@ -71,6 +73,7 @@ function buildMailtoBody(data: FormData): string {
   const lines = [
     `Name: ${data.name}`,
     data.email ? `Email: ${data.email}` : '',
+    data.phone ? `Phone: ${data.phone}` : '',
     `Company: ${data.company}`,
     `Role: ${data.role}`,
     '',
@@ -153,6 +156,7 @@ export default function DiscoverPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [discoveryId, setDiscoveryId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
   const progress = step === 0 ? 0 : step >= THANK_YOU_STEP ? 100 : Math.round((step / REVIEW_STEP) * 100);
@@ -211,6 +215,8 @@ export default function DiscoverPage() {
       });
 
       if (!res.ok) throw new Error('Submission failed');
+      const responseData = await res.json();
+      if (responseData.discovery_id) setDiscoveryId(responseData.discovery_id);
       setSubmitted(true);
     } catch {
       // Fallback: mailto link if API fails
@@ -246,6 +252,7 @@ export default function DiscoverPage() {
   const reviewFields: { label: string; value: string; step: number }[] = [
     { label: 'Name', value: data.name, step: 1 },
     { label: 'Email', value: data.email, step: 2 },
+    { label: 'Phone', value: data.phone, step: 2 },
     { label: 'Company', value: data.company, step: 3 },
     { label: 'Role', value: data.role, step: 4 },
     { label: 'Business', value: data.business, step: 5 },
@@ -406,6 +413,14 @@ export default function DiscoverPage() {
                     autoComplete="email"
                   />
                   <p className="mt-3 text-sm text-muted">Optional — so I can send you a summary of our conversation.</p>
+                  <input
+                    type="tel"
+                    value={data.phone}
+                    onChange={(e) => update('phone', e.target.value)}
+                    placeholder="Phone (optional — for faster delivery)"
+                    className={`${inputClasses} mt-6`}
+                    autoComplete="tel"
+                  />
                 </Question>
               )}
 
@@ -673,6 +688,25 @@ export default function DiscoverPage() {
                     I&apos;ll review your responses and come prepared
                     for our conversation.
                   </motion.p>
+                  {discoveryId && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.8, delay: 0.65, ease: EASE }}
+                      className="mt-6 p-4 rounded-xl border border-accent/30 bg-accent/5 max-w-lg"
+                    >
+                      <p className="text-xs tracking-[0.15em] uppercase text-accent font-medium mb-2">Your personal summary</p>
+                      <p className="text-sm text-muted-light mb-3 leading-relaxed">
+                        Once your pipeline completes (usually a few minutes), you&rsquo;ll have a personalized page summarizing what I see in your situation.
+                      </p>
+                      <a
+                        href={`/discovery/${discoveryId}`}
+                        className="inline-flex items-center gap-2 text-sm font-medium text-accent hover:text-accent-hover transition-colors"
+                      >
+                        View your page →
+                      </a>
+                    </motion.div>
+                  )}
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

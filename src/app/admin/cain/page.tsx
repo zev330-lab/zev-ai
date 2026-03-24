@@ -418,9 +418,9 @@ export default function CainPage() {
   const totalPending = ACTION_ITEMS.length;
 
   return (
-    <div className="min-h-full">
+    <div className="h-full overflow-y-auto flex flex-col">
       {/* ── Page header ── */}
-      <div className="sticky top-0 z-10 bg-[var(--color-admin-bg)] border-b border-[var(--color-admin-border)] px-4 py-4">
+      <div className="sticky top-0 z-10 bg-[var(--color-admin-bg)]/95 backdrop-blur-sm border-b border-[var(--color-admin-border)] px-4 py-4">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="text-xl">🗡️</span>

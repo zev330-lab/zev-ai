@@ -15,6 +15,7 @@ export async function POST(request: Request) {
     const { data: inserted, error: dbError } = await supabase.from('discoveries').insert({
       name: body.name.trim(),
       email: body.email?.trim() || null,
+      phone: body.phone?.trim() || null,
       company: body.company?.trim() || null,
       role: body.role?.trim() || null,
       business_overview: body.business?.trim() || null,
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
         const fields = [
           `Name: ${body.name}`,
           body.email ? `Email: ${body.email}` : '',
+          body.phone ? `Phone: ${body.phone}` : '',
           `Company: ${body.company || '—'}`,
           `Role: ${body.role || '—'}`,
           '',
@@ -124,7 +126,11 @@ export async function POST(request: Request) {
         .catch((err) => console.error('Pipeline trigger failed (pg_cron will retry):', err));
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      discovery_id: inserted?.id ?? null,
+      page_url: inserted?.id ? `/discovery/${inserted.id}` : null,
+    });
   } catch {
     return NextResponse.json({ error: 'Something went wrong.' }, { status: 500 });
   }
