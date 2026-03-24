@@ -154,12 +154,12 @@ const ACTION_ITEMS: ActionCard[] = [
     id: 'supabase-migration',
     priority: 'today',
     title: 'Run Supabase migration (zev-ai)',
-    context: 'Adds missing lead columns to zev-ai DB. The API is working around these with metadata JSON right now — fix it.',
+    context: 'Adds 3 columns to the discoveries table: phone, free_summary_content, discovery_page_url. How to do it: (1) Click "Open Supabase" below. (2) You\'ll see a blank SQL editor. (3) Click "Copy SQL" and paste it in. (4) Click the green Run button top-right. (5) You should see "Success. No rows returned." — you\'re done.',
     actions: [
       {
         type: 'sql',
         sql: SUPABASE_ZEV_AI_SQL,
-        dashboardUrl: 'https://supabase.com/dashboard',
+        dashboardUrl: 'https://supabase.com/dashboard/project/ctrzkvdqkcqgejaedkbr/sql/new',
       },
     ],
   },
