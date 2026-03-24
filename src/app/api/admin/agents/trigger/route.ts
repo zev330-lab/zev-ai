@@ -4,7 +4,7 @@ import { isValidSession } from '@/lib/auth';
 const VALID_AGENTS = [
   'tola-agent',
   'pipeline-guardian', 'pipeline-visionary', 'pipeline-architect', 'pipeline-oracle', 'pipeline-proposal',
-  'pipeline-content-engine', 'pipeline-social-agent',
+  'pipeline-content-engine', 'pipeline-social-agent', 'pipeline-free-summary',
   'agent-nexus', 'agent-guardian-bg', 'agent-crown', 'agent-prism',
   'agent-catalyst-bg', 'agent-gateway', 'agent-foundation-bg',
 ];

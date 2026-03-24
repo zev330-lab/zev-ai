@@ -43,6 +43,7 @@ interface Discovery {
   progress_pct: number;
   proposal_data: ProposalData | null;
   include_pricing: boolean;
+  free_summary_sent_at: string | null;
 }
 
 const PIPELINE_BADGE: Record<string, { bg: string; text: string; label: string }> = {
@@ -102,6 +103,8 @@ export default function AdminDiscoveriesPage() {
   const [proposalError, setProposalError] = useState<string | null>(null);
   const [editingPrompt, setEditingPrompt] = useState(false);
   const [promptOverride, setPromptOverride] = useState('');
+  const [sendingSummary, setSendingSummary] = useState(false);
+  const [summaryMessage, setSummaryMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('created_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
 
@@ -160,6 +163,32 @@ export default function AdminDiscoveriesPage() {
     fetchDiscoveries();
     if (selected?.id === id) {
       setSelected((prev) => (prev ? { ...prev, ...updates } : prev));
+    }
+  };
+
+  const sendFreeSummary = async (id: string, force = false) => {
+    setSendingSummary(true);
+    setSummaryMessage(null);
+    try {
+      const res = await fetch('/api/admin/agents/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent: 'pipeline-free-summary', discovery_id: id, force }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSummaryMessage({ type: 'err', text: data.error || 'Failed to send summary' });
+      } else if (data.status === 'already_sent') {
+        setSummaryMessage({ type: 'ok', text: 'Already sent — use Resend to force a new one.' });
+      } else {
+        setSummaryMessage({ type: 'ok', text: `Summary sent! (Resend ID: ${data.email_id ?? 'unknown'})` });
+        await fetchDiscoveries();
+        setSelected((prev) => prev ? { ...prev, free_summary_sent_at: new Date().toISOString() } : prev);
+      }
+    } catch (err) {
+      setSummaryMessage({ type: 'err', text: err instanceof Error ? err.message : 'Failed' });
+    } finally {
+      setSendingSummary(false);
     }
   };
 
@@ -502,6 +531,25 @@ export default function AdminDiscoveriesPage() {
                     Generating...
                   </span>
                 )}
+                {selected.pipeline_status === 'complete' && selected.email && !sendingSummary && (
+                  <button
+                    onClick={() => sendFreeSummary(selected.id, !!selected.free_summary_sent_at)}
+                    title={selected.free_summary_sent_at ? `Already sent ${relativeDate(selected.free_summary_sent_at)} — click to resend` : 'Send free summary email to prospect'}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+                      selected.free_summary_sent_at
+                        ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20'
+                        : 'bg-amber-500/15 text-amber-400 hover:bg-amber-500/25'
+                    }`}
+                  >
+                    {selected.free_summary_sent_at ? '✓ Resend Summary' : 'Send Free Summary'}
+                  </button>
+                )}
+                {sendingSummary && (
+                  <span className="px-3 py-1.5 text-xs font-medium text-amber-400 flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin" />
+                    Sending...
+                  </span>
+                )}
                 <a
                   href={scheduleCalendarUrl(selected)}
                   target="_blank"
@@ -523,6 +571,15 @@ export default function AdminDiscoveriesPage() {
             {proposalError && (
               <div className="px-6 py-2 bg-red-500/10 border-b border-red-500/20">
                 <p className="text-xs text-red-400">Proposal error: {proposalError}</p>
+              </div>
+            )}
+
+            {/* Free summary send result */}
+            {summaryMessage && (
+              <div className={`px-6 py-2 border-b ${summaryMessage.type === 'ok' ? 'bg-emerald-500/8 border-emerald-500/20' : 'bg-red-500/10 border-red-500/20'}`}>
+                <p className={`text-xs ${summaryMessage.type === 'ok' ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {summaryMessage.text}
+                </p>
               </div>
             )}
 
@@ -561,6 +618,16 @@ export default function AdminDiscoveriesPage() {
                       {formatDate(selected.created_at)}
                     </p>
                   </div>
+                  {selected.free_summary_sent_at && (
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-[var(--color-muted)] mb-1">
+                        Free Summary Sent
+                      </p>
+                      <p className="text-sm text-emerald-400">
+                        {formatDate(selected.free_summary_sent_at)} · <span className="text-[var(--color-muted)]">{relativeDate(selected.free_summary_sent_at)}</span>
+                      </p>
+                    </div>
+                  )}
                   {detailFields.map(({ label, key }) => {
                     const val = selected[key];
                     if (!val) return null;
