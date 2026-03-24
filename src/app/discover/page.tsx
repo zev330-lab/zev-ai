@@ -319,7 +319,7 @@ export default function DiscoverPage() {
                     Free to submit. No commitment.
                   </motion.p>
                   <motion.div
-                    className="mt-8 space-y-4 text-lg text-muted-light max-w-xl leading-relaxed"
+                    className="mt-8 text-lg text-muted-light max-w-xl leading-relaxed"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
@@ -328,40 +328,6 @@ export default function DiscoverPage() {
                       Answer a few questions about your business — what&apos;s working, what&apos;s not, 
                       and what you wish you could fix. Takes about 8 minutes.
                     </p>
-                    <p>
-                      You&apos;ll get a free summary of what I see. If you want the full picture — 
-                      a detailed analysis of your market, your competitors, and exactly where AI 
-                      moves the needle — that&apos;s the Insight Report.
-                    </p>
-                  </motion.div>
-
-                  {/* What happens next + pricing clarity */}
-                  <motion.div
-                    className="mt-8 p-5 rounded-2xl border border-border/60 bg-border/10 max-w-xl"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.22, ease: EASE }}
-                  >
-                    <p className="text-xs tracking-[0.18em] uppercase text-accent font-medium mb-3">How it works</p>
-                    <ul className="space-y-3 text-base text-muted-light leading-relaxed">
-                      <li className="flex gap-2.5">
-                        <span className="text-accent mt-0.5 flex-shrink-0 font-bold">1</span>
-                        <span><strong className="text-foreground-strong">Free summary</strong> — You get a clear picture of how AI could change your business and your results. No cost, no commitment.</span>
-                      </li>
-                      <li className="flex gap-2.5">
-                        <span className="text-accent mt-0.5 flex-shrink-0 font-bold">2</span>
-                        <span><strong className="text-foreground-strong">Insight Report — $499</strong> — The full picture: exactly what to build, what each AI agent would do, and what it would take to make it real. Delivered in 48 hours. Credited toward Step 3.</span>
-                      </li>
-                      <li className="flex gap-2.5">
-                        <span className="text-accent mt-0.5 flex-shrink-0 font-bold">3</span>
-                        <span><strong className="text-foreground-strong">Strategy Session — $2,500</strong> — 60 minutes with me. I&apos;ve read your report and I have specific recommendations for how this applies to your business, your team, and your constraints. The $499 is credited — you pay $2,000 more. Credited toward your build.</span>
-                      </li>
-                      <li className="flex gap-2.5">
-                        <span className="text-accent mt-0.5 flex-shrink-0 font-bold">4</span>
-                        <span><strong className="text-foreground-strong">Build — $15,000</strong> — We build it. The $2,500 is credited. You pay the balance.</span>
-                      </li>
-                    </ul>
-                    <p className="mt-4 text-sm text-muted italic">Prefer to talk first? <a href="mailto:hello@askzev.ai" className="text-accent hover:underline">Email hello@askzev.ai</a></p>
                   </motion.div>
 
                   <motion.div
