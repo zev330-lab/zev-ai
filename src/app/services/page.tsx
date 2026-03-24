@@ -1,8 +1,13 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { HeroReveal } from '@/components/hero-reveal';
 import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
+
+export const metadata: Metadata = {
+  title: 'AI Consulting Services — Assessment, Implementation, Optimization',
+  description: 'AI consulting services from $2,500. Readiness assessments, multi-agent system builds, ongoing optimization, and enterprise scale. Production AI systems, not strategy decks.',
+  alternates: { canonical: 'https://askzev.ai/services' },
+};
 
 const SERVICES = [
   {
@@ -130,11 +135,7 @@ export default function ServicesPage() {
       {/* Hero */}
       <section className="pt-36 md:pt-44 pb-20">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
+          <HeroReveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
               Services
             </p>
@@ -145,7 +146,7 @@ export default function ServicesPage() {
               Start with a free summary. Go as far as makes sense for your business.
               Every engagement is designed to deliver something real — not a roadmap for later.
             </p>
-          </motion.div>
+          </HeroReveal>
         </div>
       </section>
 
@@ -282,8 +283,92 @@ export default function ServicesPage() {
         );
       })}
 
-      {/* CTA */}
+      {/* Comparison table */}
       <section className={SERVICES.length % 2 === 0 ? 'section-light' : ''}>
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+          <Reveal>
+            <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">Compare</p>
+            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.1] tracking-tight mb-12 max-w-xl">
+              Which engagement is right for you?
+            </h2>
+          </Reveal>
+          <Reveal>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border">
+                    <th className="text-left py-4 pr-6 text-muted-light font-medium text-xs uppercase tracking-wider">Feature</th>
+                    <th className="text-center py-4 px-4 text-foreground-strong font-semibold">Assess</th>
+                    <th className="text-center py-4 px-4 text-foreground-strong font-semibold">Build</th>
+                    <th className="text-center py-4 px-4 text-foreground-strong font-semibold">Optimize</th>
+                    <th className="text-center py-4 px-4 text-accent font-semibold">Scale</th>
+                  </tr>
+                </thead>
+                <tbody className="text-muted-light">
+                  {[
+                    { label: 'Timeline', vals: ['2-3 weeks', '4-12 weeks', 'Monthly', 'Custom'] },
+                    { label: 'Investment', vals: ['From $2,500', 'From $5,000', '$5,000/mo', 'Custom'] },
+                    { label: 'AI Opportunity Roadmap', vals: ['yes', 'yes', 'yes', 'yes'] },
+                    { label: 'Production AI System', vals: ['no', 'yes', 'yes', 'yes'] },
+                    { label: 'Multi-Agent Architecture', vals: ['no', 'yes', 'yes', 'yes'] },
+                    { label: 'Ongoing Optimization', vals: ['no', 'no', 'yes', 'yes'] },
+                    { label: 'Multi-Department Deployment', vals: ['no', 'no', 'no', 'yes'] },
+                    { label: 'Post-Launch Support', vals: ['no', '30 days', 'Continuous', 'Continuous'] },
+                    { label: 'Best For', vals: ['Exploring AI', 'First AI system', 'Scaling what works', 'Enterprise-wide AI'] },
+                  ].map((row) => (
+                    <tr key={row.label} className="border-b border-border/50">
+                      <td className="py-3.5 pr-6 text-foreground-strong text-xs font-medium">{row.label}</td>
+                      {row.vals.map((val, i) => (
+                        <td key={i} className="text-center py-3.5 px-4 text-xs">
+                          {val === 'yes' ? (
+                            <span className="text-accent font-bold">&#10003;</span>
+                          ) : val === 'no' ? (
+                            <span className="text-muted/40">—</span>
+                          ) : (
+                            <span>{val}</span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className={SERVICES.length % 2 === 1 ? 'section-light' : ''}>
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+          <Reveal>
+            <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">FAQ</p>
+            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.1] tracking-tight mb-12 max-w-xl">
+              Common questions about working together
+            </h2>
+          </Reveal>
+          <StaggerReveal className="max-w-3xl space-y-0 divide-y divide-border">
+            {[
+              { q: 'Can I start with just the assessment?', a: 'Absolutely. The assessment is designed to stand on its own. You get a complete AI Opportunity Roadmap with prioritized recommendations, whether you build with us or not. Many clients start here and decide to move to Build based on what they learn.' },
+              { q: 'What if my project is smaller than $5,000?', a: 'The assessment at $2,500 covers most early-stage needs. For smaller build projects, we can sometimes scope a focused implementation within the assessment budget. Start with a discovery conversation and we\'ll find the right fit.' },
+              { q: 'Do you work with companies outside the US?', a: 'Yes. All our work is remote-first. We\'ve worked with companies across the US and can accommodate international clients in compatible time zones.' },
+              { q: 'How do you handle data security and privacy?', a: 'We deploy on enterprise-grade infrastructure (Supabase, Vercel) with row-level security, encrypted connections, and role-based access. Your data stays in your infrastructure — we never train AI models on client data.' },
+              { q: 'What happens if the AI system doesn\'t perform?', a: 'Every Build engagement includes 30 days of post-launch support. If the system isn\'t meeting agreed-upon KPIs, we iterate until it does. Our case studies show measurable results because we don\'t ship and disappear.' },
+              { q: 'Can I pause or cancel the Optimize engagement?', a: 'Yes. Optimize is a monthly engagement with no long-term lock-in. You can pause or end the engagement with 30 days notice. We want you to stay because the results justify it, not because of a contract.' },
+            ].map((faq) => (
+              <StaggerChild key={faq.q}>
+                <div className="py-8">
+                  <h3 className="text-lg font-semibold text-foreground-strong mb-3">{faq.q}</h3>
+                  <p className="text-muted-light leading-relaxed">{faq.a}</p>
+                </div>
+              </StaggerChild>
+            ))}
+          </StaggerReveal>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section>
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-4 max-w-xl">
