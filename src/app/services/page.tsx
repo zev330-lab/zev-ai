@@ -7,107 +7,119 @@ import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
 const SERVICES = [
   {
     num: '01',
-    name: 'Insight Report',
-    problem: 'You want to understand exactly where AI can move the needle in your business — specific opportunities, real numbers, no fluff.',
+    name: 'Free Summary',
+    tag: 'No cost',
+    problem: 'You\'ve heard a lot about AI. You\'re not sure what\'s real, what\'s hype, and whether any of it actually applies to your business.',
     whatWeDo: [
-      'Map your workflows, tools, and the biggest friction points',
-      'Analyze your market for AI adoption opportunities',
-      'Score each opportunity by ROI potential and implementation complexity',
-      'Deliver a detailed assessment of your current digital footprint',
-      'Identify quick wins vs. longer-term infrastructure plays',
+      'You tell us about your business — takes about 8 minutes',
+      'We look at what you\'re dealing with and where you\'re going',
+      'We send back a clear picture of what AI could actually do for you',
     ],
-    whatYouGet: 'A detailed AI Insight Report — exactly what to build, what each AI agent would do, and what it would realistically take to change your results. Not a template. Specific to your business. Delivered within 48 hours.',
-    timeline: 'Delivered within 24 hours',
-    price: '$499',
-    note: 'Credited 100% toward your Strategy Session.',
-    cta: 'Get your insight report',
+    whatYouGet: 'A straightforward summary — specific to your situation, not a generic AI pitch. What could change, what would stay the same, and whether it\'s worth going further. No cost. No commitment.',
+    timeline: 'Within 24 hours',
+    price: 'Free',
+    note: '',
+    cta: 'Get your free summary',
   },
   {
     num: '02',
-    name: 'Strategy Session',
-    problem: 'You\'ve seen the report. Now you need a real conversation — someone who can look at your specific situation, answer hard questions, and tell you exactly what to build.',
+    name: 'Insight Report',
+    tag: '$499',
+    problem: 'You\'re serious about this. You want to know exactly what to build, what it would cost, and what it would realistically take — before you commit to anything.',
     whatWeDo: [
-      'One hour with Zev, prepared with your report and market research',
-      'Walk through your specific opportunities and constraints',
-      'Define the exact scope, timeline, and investment for your build',
-      'Answer every question before you commit to anything',
-      'Leave with a clear decision and a path forward',
+      'Deep analysis of your business, your market, and your competitive landscape',
+      'Specific AI opportunities ranked by ROI and implementation complexity',
+      'A detailed roadmap: what to build, in what order, with what tools',
+      'Honest tradeoffs at every major decision point',
     ],
-    whatYouGet: 'A 60-minute working session where I take what the report found and apply my judgment to your specific situation — your team, your constraints, what will actually work for you. You leave knowing exactly what to prioritize and why. The $499 report fee is credited — you pay $2,000 more.',
-    timeline: '1-hour meeting with Zev',
-    price: '$2,500',
-    note: 'Credited 100% toward your build if you move forward.',
-    cta: 'Book a strategy session',
+    whatYouGet: 'A detailed Insight Report — the full picture of what AI would look like in your business. Specific enough that you could attempt it yourself. Honest enough that you\'ll know exactly what you\'re getting into.',
+    timeline: 'Delivered within 24 hours of submission',
+    price: '$499',
+    note: '',
+    cta: 'Get the full report',
   },
   {
     num: '03',
-    name: 'Build',
-    problem: 'You\'re ready. You know what needs to be built. Now you need someone to design, build, and deploy a production AI system that actually works.',
+    name: 'Strategy Session',
+    tag: 'Starting from $2,500',
+    problem: 'You have a clear picture of the opportunity. Now you need to figure out what makes sense for your specific business — your team, your budget, your constraints.',
     whatWeDo: [
-      'Design a multi-agent AI architecture tailored to your needs',
-      'Build and test the complete system end-to-end',
-      'Integrate with your existing tools, databases, and workflows',
-      'Deploy to production with monitoring and health checks',
-      'Deliver your first working feature within 7 days of kickoff',
-      '30 days post-launch support included',
+      'One hour with Zev — prepared on your business before the call',
+      'Walk through your situation and figure out what actually fits',
+      'Identify which tools and approaches match your specific constraints',
+      'Define what a realistic path forward looks like for you',
+      'Leave with clarity — not a deck, not a proposal, just a clear direction',
     ],
-    whatYouGet: 'A production AI system — live, integrated, and running. Multi-agent workflows, real dashboards, and agents that work 24/7 without you.',
-    timeline: '4–8 weeks (often faster)',
-    price: '$15,000',
-    note: 'Payment in milestones: 50% on signing, 25% at Month 1, 25% at Month 2.',
-    cta: 'Start your build',
-    examples: [
-      'Lead generation and outreach pipelines',
-      'Content creation and distribution systems',
-      'Customer service automation',
-      'Business intelligence dashboards',
-      'Sales operations platforms',
-    ],
+    whatYouGet: 'A focused working session. An hour of real thinking about your business from someone who has built these systems in production. Worth it if you\'re serious. Not worth it if you\'re still just exploring.',
+    timeline: '1-hour session + follow-up notes',
+    price: 'Starting from $2,500',
+    note: '',
+    cta: 'Book a session',
   },
   {
     num: '04',
-    name: 'Growth',
-    featured: true,
-    problem: 'Your system is live. Now you need it to keep improving — new agents, better performance, and a partner who knows your business inside out.',
+    name: 'Build',
+    tag: 'Starting from $15,000',
+    problem: 'You know what needs to be built. You\'ve thought it through. Now you need someone who can actually build it — not a prototype, not a demo — a production system.',
     whatWeDo: [
-      'Weekly performance reports with what\'s working and what to improve',
-      'Continuous agent optimization and new capability development',
-      'Monthly strategy session to review progress and set priorities',
-      'Priority support for production issues',
-      'First access to new frameworks and techniques',
+      'Design and build a multi-agent AI system tailored to your operations',
+      'Integrate with your existing tools, data, and workflows',
+      'Deploy to production with monitoring, health checks, and documentation',
+      'First working deliverable within 7 days of kickoff',
+      '30 days of post-launch support included',
     ],
-    whatYouGet: 'A fractional AI operations partner — your system gets smarter every month, you stay ahead of what\'s coming, and you never have to worry about it falling behind.',
-    timeline: 'Month-to-month',
-    price: '$2,500/month',
-    note: 'No lock-in. Cancel anytime.',
-    cta: 'Start growth',
+    whatYouGet: 'A production AI system — live, integrated, and running. The kind that works on a Tuesday morning when nobody\'s watching.',
+    timeline: '4–8 weeks depending on scope',
+    price: 'Starting from $15,000',
+    note: '',
+    cta: 'Start a build',
+    examples: [
+      'Lead generation and outbound automation',
+      'Content creation and distribution pipelines',
+      'Customer service and support systems',
+      'Business intelligence and reporting dashboards',
+      'Custom sales and operations platforms',
+    ],
   },
   {
     num: '05',
-    name: 'Custom Apps',
-    problem: 'You need a specific tool built for your team, your clients, or yourself — something off-the-shelf doesn\'t cover and a full platform build is overkill.',
+    name: 'Ongoing Partnership',
+    tag: 'Starting from $2,500/mo',
+    featured: true,
+    problem: 'You have AI running. You want it to keep getting better — new capabilities, better performance, and a partner who knows your business and your system inside out.',
     whatWeDo: [
-      'Scope the app together in a 30-minute call',
-      'Design and build a focused, polished app for your exact use case',
-      'Deploy it to the web or package it for mobile',
-      'Built to be used — not a prototype, not an MVP with asterisks',
+      'Weekly performance reports: what\'s working, what needs attention',
+      'Continuous system improvements and new agent development',
+      'Monthly strategy session to review priorities and direction',
+      'Priority support when production issues arise',
+      'Early access to new techniques and frameworks as they mature',
     ],
-    whatYouGet: 'A working app, delivered. Simple as that.',
+    whatYouGet: 'A long-term AI partner embedded in your operations. Your system compounds over time instead of degrading. You stay ahead instead of catching up.',
+    timeline: 'Month-to-month',
+    price: 'Starting from $2,500/month',
+    note: '',
+    cta: 'Talk about a partnership',
+  },
+  {
+    num: '06',
+    name: 'Custom Apps',
+    tag: 'Starting from $1,000',
+    problem: 'You need a specific tool built — something focused, something polished, something that solves one real problem well.',
+    whatWeDo: [
+      'Scope the app in a short call',
+      'Design and build it for your exact use case',
+      'Deploy to web or package for mobile',
+      'Built to actually be used, not to sit in a backlog',
+    ],
+    whatYouGet: 'A working app, delivered. Not a template with your name on it.',
     timeline: '1–4 weeks depending on complexity',
-    price: 'From $1,000',
+    price: 'Starting from $1,000',
     note: '',
     cta: 'Tell us what you need',
-    examples: [
-      'Custody log and co-parenting documentation tool ($1,000)',
-      'Daily habit or accountability tracker ($1,000)',
-      'Client intake and onboarding workflow ($2,500)',
-      'Internal reporting dashboard for a small team ($2,500)',
-      'Multi-user platform with logins and data persistence ($5,000)',
-    ],
     tiers: [
-      { label: 'Simple Utility', price: '$1,000', desc: 'Single-purpose tool, one user or shared. Examples: daily tracker, log tool, simple calculator or calculator.' },
-      { label: 'Standard', price: '$2,500', desc: 'Multi-screen app with data storage, forms, or workflows. Examples: client onboarding, internal dashboard, reporting tool.' },
-      { label: 'Complex', price: '$5,000', desc: 'Multi-user, custom logic, integrations. Examples: team platform, client-facing tool with accounts, automated workflows.' },
+      { label: 'Simple Utility', price: '$1,000', desc: 'Single-purpose tool. One user or shared. Examples: tracking log, daily habit app, simple calculator.' },
+      { label: 'Standard App', price: '$2,500', desc: 'Multi-screen with data storage, forms, or workflows. Examples: client intake, internal dashboard, reporting tool.' },
+      { label: 'Complex Platform', price: '$5,000', desc: 'Multi-user, custom logic, third-party integrations. Examples: client-facing tools with accounts, automated workflows.' },
     ],
   },
 ];
@@ -127,11 +139,11 @@ export default function ServicesPage() {
               Services
             </p>
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight max-w-3xl">
-              From discovery to deployment.
+              From first look to full deployment.
             </h1>
             <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
-              From a quick insight report to a full AI operations platform — and custom apps 
-              for anything in between. Every engagement delivers real, working software.
+              Start with a free summary. Go as far as makes sense for your business.
+              Every engagement is designed to deliver something real — not a roadmap for later.
             </p>
           </motion.div>
         </div>
@@ -150,23 +162,24 @@ export default function ServicesPage() {
                 {isFeatured && (
                   <div className="mb-8">
                     <span className="inline-block text-[11px] tracking-[0.2em] uppercase font-medium text-accent border border-accent/30 rounded-full px-4 py-1.5">
-                      Enterprise
+                      Most popular
                     </span>
                   </div>
                 )}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-                  {/* Left — title, problem, price */}
+                  {/* Left */}
                   <div className="lg:col-span-5">
                     <span className="text-[4rem] font-[family-name:var(--font-serif)] font-light text-border leading-none select-none">
                       {svc.num}
                     </span>
-                    <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mt-4 mb-6">
+                    <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mt-4 mb-2">
                       {svc.name}
                     </h2>
+                    <p className="text-accent font-medium text-sm mb-6">{svc.tag}</p>
 
                     <div className="mb-8">
                       <p className="text-xs tracking-[0.15em] uppercase text-muted-light font-medium mb-3">
-                        The problem
+                        The situation
                       </p>
                       <p className="font-[family-name:var(--font-serif)] text-lg italic text-muted-light leading-relaxed">
                         {svc.problem}
@@ -185,10 +198,10 @@ export default function ServicesPage() {
                     </div>
                   </div>
 
-                  {/* Right — what we do, what you get */}
+                  {/* Right */}
                   <div className="lg:col-span-7">
                     <h3 className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">
-                      What we do
+                      What's involved
                     </h3>
                     <StaggerReveal className="space-y-4 mb-10">
                       {svc.whatWeDo.map((item) => (
@@ -218,7 +231,7 @@ export default function ServicesPage() {
                         <div className="space-y-3">
                           {(svc.tiers as {label: string; price: string; desc: string}[]).map((tier) => (
                             <div key={tier.label} className="flex gap-4 p-4 rounded-xl border border-border/60 bg-border/5">
-                              <div className="min-w-[100px]">
+                              <div className="min-w-[110px]">
                                 <p className="text-sm font-medium text-foreground-strong">{tier.label}</p>
                                 <p className="text-accent font-medium text-sm">{tier.price}</p>
                               </div>
@@ -235,7 +248,7 @@ export default function ServicesPage() {
                           Common projects
                         </h3>
                         <div className="flex flex-wrap gap-3">
-                          {svc.examples.map((ex: string) => (
+                          {(svc.examples as string[]).map((ex) => (
                             <span
                               key={ex}
                               className="text-sm px-4 py-2 rounded-full border border-border text-muted-light"
@@ -274,17 +287,16 @@ export default function ServicesPage() {
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-4 max-w-xl">
-              Not sure which engagement fits?
+              Not sure where to start?
             </h2>
-            <p className="text-muted-light text-lg leading-relaxed mb-8 max-w-xl">
-              Start with the assessment. It gives you a clear picture of your opportunities
-              and the best path forward — whether that&apos;s working with us or not.
+            <p className="text-muted-light text-lg max-w-xl leading-relaxed mb-10">
+              The free summary costs nothing and takes 8 minutes. It&apos;s the clearest way to find out whether any of this makes sense for your business.
             </p>
             <Link
               href="/discover"
               className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
             >
-              Start Your Discovery
+              Get your free summary
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
               </svg>
