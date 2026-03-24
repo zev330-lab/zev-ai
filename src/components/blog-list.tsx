@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
+import { EmailCapture } from '@/components/email-capture';
 
 interface BlogPost {
   id: string;
@@ -140,30 +141,41 @@ export function BlogList({ posts }: { posts: BlogPost[] }) {
         </div>
       </section>
 
-      {/* CTA */}
-      {posts.length > 0 && (
-        <section className="section-light">
-          <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-20 md:py-28">
-            <Reveal>
-              <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,2.5rem)] leading-[1.15] tracking-tight mb-4">
-                Ready to put AI to work?
-              </h2>
-              <p className="text-muted-light mb-8 max-w-xl">
-                Reading is good. Building is better. Start your discovery to find where AI creates the highest leverage in your business.
-              </p>
-              <Link
-                href="/discover"
-                className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Start Your Discovery
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-                </svg>
-              </Link>
-            </Reveal>
+      {/* Email capture */}
+      <section className="section-light">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-16 md:py-20">
+          <div className="max-w-xl mx-auto">
+            <EmailCapture
+              source="blog"
+              heading="Get AI implementation insights delivered"
+              description="Practical strategies for deploying production AI systems. Published bi-weekly. No spam, unsubscribe anytime."
+            />
           </div>
-        </section>
-      )}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section>
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-20 md:py-28">
+          <Reveal>
+            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,2.5rem)] leading-[1.15] tracking-tight mb-4">
+              Ready to put AI to work?
+            </h2>
+            <p className="text-muted-light mb-8 max-w-xl">
+              Reading is good. Building is better. Start your discovery to find where AI creates the highest leverage in your business.
+            </p>
+            <Link
+              href="/discover"
+              className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Start Your Discovery
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
+              </svg>
+            </Link>
+          </Reveal>
+        </div>
+      </section>
     </>
   );
 }

@@ -1,9 +1,14 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { HeroReveal } from '@/components/hero-reveal';
 import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
 import { AnimatedNumber } from '@/components/animated-number';
+
+export const metadata: Metadata = {
+  title: 'Case Studies — AI Systems That Drive Real Results',
+  description: 'See how we\'ve deployed AI systems for ButcherBox (73% automation), Blank Industries (unified BI), Rosen Media (2.5x content), and more. Real systems, measurable outcomes.',
+  alternates: { canonical: 'https://askzev.ai/work' },
+};
 
 const CASE_STUDIES = [
   {
@@ -75,11 +80,7 @@ export default function WorkPage() {
       {/* Hero */}
       <section className="pt-36 md:pt-44 pb-20">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
+          <HeroReveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">Work</p>
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight max-w-3xl">
               Real systems.
@@ -90,7 +91,7 @@ export default function WorkPage() {
               Every project follows the same pattern: understand the problem, build
               the system, prove it works. Here&apos;s what that looks like in practice.
             </p>
-          </motion.div>
+          </HeroReveal>
         </div>
       </section>
 

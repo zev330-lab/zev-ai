@@ -1,102 +1,22 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { useRef } from 'react';
 import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
-import { HeroGradient } from '@/components/hero-gradient';
+import { HomeHero } from '@/components/home-hero';
+import { HomeFaqSchema } from '@/components/json-ld';
+
+export const metadata: Metadata = {
+  title: 'zev.ai — AI Consulting & Multi-Agent Systems for Business',
+  description: 'Production AI systems built for businesses. From AI readiness assessments to multi-agent implementation. 30+ agents deployed across D2C, manufacturing, and media. Starting from $2,500.',
+  alternates: { canonical: 'https://askzev.ai' },
+};
 
 export default function Home() {
-  const heroRef = useRef<HTMLElement>(null);
-  const { scrollYProgress: heroScroll } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start'],
-  });
-  const heroOpacity = useTransform(heroScroll, [0, 0.8], [1, 0]);
-  const heroY = useTransform(heroScroll, [0, 0.8], [0, -60]);
-
   return (
     <>
-      {/* ═══ SECTION 1 — HERO ═══ */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center overflow-hidden">
-        <HeroGradient />
+      <HomeFaqSchema />
 
-        <motion.div
-          style={{ opacity: heroOpacity, y: heroY }}
-          className="relative z-10 mx-auto max-w-[1280px] px-6 md:px-12 w-full"
-        >
-          <div className="max-w-3xl">
-            <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.05] tracking-tight font-light">
-                AI is everywhere.
-                <br />
-                <span className="italic text-accent">That doesn&apos;t mean</span>
-                <br />
-                it has to be confusing.
-              </h1>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <p className="mt-8 text-lg text-muted-light max-w-xl leading-relaxed">
-                Most people have tried the tools. Hit a wall. Decided it wasn&apos;t for them.
-                That&apos;s not an AI problem — it&apos;s a &ldquo;nobody showed me how to use this
-                for my actual life&rdquo; problem. I help people cut through the noise and find
-                what AI actually changes. No jargon. No hype.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
-              className="mt-12 flex flex-wrap items-center gap-6"
-            >
-              <Link
-                href="/discover"
-                className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Start a free discovery
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-                </svg>
-              </Link>
-              <Link
-                href="/approach"
-                className="inline-flex items-center gap-2 text-sm text-muted-light hover:text-foreground-strong transition-colors duration-300"
-              >
-                See how it works
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
-                </svg>
-              </Link>
-            </motion.div>
-          </div>
-        </motion.div>
-
-        {/* Scroll hint */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 2, duration: 1 }}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2"
-        >
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            className="w-5 h-9 rounded-full border border-muted/30 flex justify-center pt-2"
-          >
-            <div className="w-[2px] h-2.5 bg-muted/50 rounded-full" />
-          </motion.div>
-        </motion.div>
-      </section>
+      {/* ═══ SECTION 1 — HERO (client component for scroll parallax) ═══ */}
+      <HomeHero />
 
       {/* ═══ SECTION 2 — THE PROBLEM ═══ */}
       <section className="section-light">
@@ -358,8 +278,64 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ SECTION 6 — CTA ═══ */}
+      {/* ═══ SECTION 6 — FAQ (AEO: targets common AI consulting search queries) ═══ */}
       <section className="section-light">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
+          <Reveal>
+            <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">
+              Frequently asked questions
+            </p>
+            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3rem)] leading-[1.1] tracking-tight max-w-2xl mb-16">
+              Questions we hear from
+              <br />
+              <span className="italic text-accent">every new client.</span>
+            </h2>
+          </Reveal>
+
+          <StaggerReveal className="max-w-3xl space-y-0 divide-y divide-border">
+            {[
+              {
+                q: 'How much does AI consulting cost?',
+                a: 'Our engagements start at $2,500 for a 2-3 week AI readiness assessment. Build projects typically range from $5,000-$25,000 depending on scope. Ongoing optimization starts at $5,000/month. Every engagement begins with a free discovery conversation so you know exactly what you\'re investing in before committing.',
+              },
+              {
+                q: 'What does an AI consultant actually do?',
+                a: 'We build and deploy production AI systems — not strategy decks. That means identifying high-leverage automation opportunities, designing multi-agent architectures, building the software, integrating it into your operations, and ensuring it delivers measurable ROI. You get working software, not a PowerPoint.',
+              },
+              {
+                q: 'How long does AI implementation take?',
+                a: 'An AI readiness assessment takes 2-3 weeks. Building and deploying a production AI system typically takes 4-12 weeks depending on complexity. Most clients see their first measurable results within 6 weeks of starting a build engagement.',
+              },
+              {
+                q: 'Do I need a technical team to work with you?',
+                a: 'No. We handle the entire technical build — architecture, development, deployment, and monitoring. Your team provides business context and feedback. We deploy on managed infrastructure (Supabase, Vercel) so there\'s nothing for your IT team to maintain.',
+              },
+              {
+                q: 'What industries do you work with?',
+                a: 'We\'ve built AI systems for D2C brands, manufacturing, media companies, real estate, and professional services. The multi-agent architecture adapts to any domain — the coordination patterns are universal, while the agents are specialized for your industry.',
+              },
+              {
+                q: 'How is this different from hiring a big consulting firm?',
+                a: 'Big firms hand you a roadmap and bill $250K+ for it. Then you need to hire someone else to build the system. We design it, build it, deploy it, and prove it works — all in one engagement. You work directly with the person building your system, not a junior associate.',
+              },
+            ].map((faq) => (
+              <StaggerChild key={faq.q}>
+                <div className="py-8">
+                  <h3 className="text-lg font-semibold text-foreground-strong mb-3">
+                    {faq.q}
+                  </h3>
+                  <p className="text-muted-light leading-relaxed">
+                    {faq.a}
+                  </p>
+                </div>
+              </StaggerChild>
+            ))}
+          </StaggerReveal>
+        </div>
+      </section>
+
+      {/* ═══ SECTION 7 — CTA ═══ */}
+      <section>
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <div className="max-w-3xl">

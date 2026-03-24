@@ -1,9 +1,13 @@
-'use client';
-
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { HeroReveal } from '@/components/hero-reveal';
 import { Reveal } from '@/components/reveal';
+
+export const metadata: Metadata = {
+  title: 'About Zev Steinmetz — AI Builder, Not Theorist',
+  description: 'Zev Steinmetz builds production AI systems for businesses. From real estate technology to multi-agent frameworks, he delivers working software — not strategy decks.',
+  alternates: { canonical: 'https://askzev.ai/about' },
+};
 
 const STACK = [
   'Claude API', 'Next.js', 'React', 'TypeScript',
@@ -17,11 +21,7 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="pt-36 md:pt-44 pb-20">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          >
+          <HeroReveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">
               About
             </p>
@@ -32,20 +32,7 @@ export default function AboutPage() {
               I build production AI systems for businesses. Hands-on. End to end.
               The kind of systems that run 24/7 and pay for themselves.
             </p>
-
-            {/* Headshot */}
-            <div className="mt-10">
-              <Image
-                src="/zev-headshot.jpg"
-                alt="Zev Steinmetz"
-                width={160}
-                height={160}
-                className="rounded-2xl object-cover"
-                priority
-              />
-              <p className="mt-3 text-sm text-muted">Zev Steinmetz — Newton, MA</p>
-            </div>
-          </motion.div>
+          </HeroReveal>
         </div>
       </section>
 

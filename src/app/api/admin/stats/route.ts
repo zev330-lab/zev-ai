@@ -79,6 +79,56 @@ export async function GET(req: NextRequest) {
     avgPipelineSeconds = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
   }
 
+  // --- Next actions: prioritized actionable items across modules ---
+  const [
+    newContactsRes, recentDiscoveriesRes, activeProjectsRes, overdueInvoiceDetailsRes,
+  ] = await Promise.all([
+    supabase.from('contacts').select('id, name, company, email, status, created_at').eq('status', 'new').order('created_at', { ascending: false }).limit(5),
+    supabase.from('discoveries').select('id, name, company, pipeline_status, progress_pct, updated_at').in('pipeline_status', ['complete', 'failed']).order('updated_at', { ascending: false }).limit(5),
+    supabase.from('projects').select('id, name, status').eq('status', 'active').limit(10),
+    supabase.from('invoices').select('id, client_name, amount, status, due_date').in('status', ['sent', 'overdue']).order('due_date').limit(5),
+  ]);
+
+  type NextAction = { priority: number; type: string; label: string; detail: string; href: string };
+  const next_actions: NextAction[] = [];
+
+  // Overdue invoices = revenue-blocking
+  for (const inv of (overdueInvoiceDetailsRes.data || []) as { id: string; client_name: string; amount: number; status: string; due_date: string }[]) {
+    if (inv.status === 'overdue' || (inv.due_date && inv.due_date < new Date().toISOString().slice(0, 10))) {
+      next_actions.push({ priority: 1, type: 'revenue', label: `Follow up on overdue invoice`, detail: `${inv.client_name} — $${Number(inv.amount).toLocaleString()}`, href: '/admin/finance' });
+    }
+  }
+
+  // Completed discoveries without follow-up
+  for (const disc of (recentDiscoveriesRes.data || []) as { id: string; name: string; company: string; pipeline_status: string }[]) {
+    if (disc.pipeline_status === 'complete') {
+      next_actions.push({ priority: 2, type: 'pipeline', label: `Review completed assessment`, detail: `${disc.company || disc.name} — ready for proposal`, href: '/admin/discoveries' });
+    } else if (disc.pipeline_status === 'failed') {
+      next_actions.push({ priority: 1, type: 'pipeline', label: `Fix failed pipeline`, detail: `${disc.company || disc.name}`, href: '/admin/discoveries' });
+    }
+  }
+
+  // New contacts to research
+  for (const contact of (newContactsRes.data || []) as { id: string; name: string; company: string; email: string; created_at: string }[]) {
+    const age = (Date.now() - new Date(contact.created_at).getTime()) / (1000 * 60 * 60 * 24);
+    if (age > 2) {
+      next_actions.push({ priority: 3, type: 'lead', label: `Research new contact`, detail: `${contact.name}${contact.company ? ` (${contact.company})` : ''} — ${Math.floor(age)}d old`, href: '/admin/contacts' });
+    }
+  }
+
+  // Blog posts pending review
+  if ((blogReviewRes.count ?? 0) > 0) {
+    next_actions.push({ priority: 3, type: 'content', label: `Review blog post${(blogReviewRes.count ?? 0) > 1 ? 's' : ''}`, detail: `${blogReviewRes.count} pending approval`, href: '/admin/content' });
+  }
+
+  // Overdue family tasks
+  if ((overdueTasksRes.count ?? 0) > 0) {
+    next_actions.push({ priority: 2, type: 'task', label: `Clear overdue tasks`, detail: `${overdueTasksRes.count} task${(overdueTasksRes.count ?? 0) > 1 ? 's' : ''} past due`, href: '/admin/family' });
+  }
+
+  // Sort by priority (1 = highest)
+  next_actions.sort((a, b) => a.priority - b.priority);
+
   // Build alerts array
   const alerts: { type: string; severity: string; message: string; id?: string; timestamp?: string }[] = [];
 
@@ -178,6 +228,11 @@ export async function GET(req: NextRequest) {
     unpaid_invoices: unpaidInvoicesRes.count ?? 0,
     // Alerts
     alerts,
+    // Next actions
+    next_actions: next_actions.slice(0, 8),
+    // Cross-module counts
+    new_contacts_count: newContactsRes.data?.length ?? 0,
+    active_projects_count: activeProjectsRes.data?.length ?? 0,
     // Cost & trend analytics
     daily_trend,
     agent_costs,

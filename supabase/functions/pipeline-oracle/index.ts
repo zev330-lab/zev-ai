@@ -75,8 +75,12 @@ async function synthesize(
   // Progress: Oracle started
   await supabase.from('discoveries').update({ progress_pct: 70 }).eq('id', discoveryId);
 
-  // ── Step 1: Generate Meeting Prep (internal) ───────────────────────────
-  const meetingPrompt = `You are the Oracle agent — a synthesis engine. Synthesize the Visionary's research and the Architect's assessment into meeting preparation for Zev (the consultant).
+  // ── Step 1: Generate Meeting Prep (internal) — SKIP IF ALREADY EXISTS ──
+  let meetingPrepDoc = (discovery.meeting_prep_doc as string) || '';
+  let meetingTokens = 0;
+
+  if (!meetingPrepDoc) {
+    const meetingPrompt = `You are the Oracle agent — a synthesis engine. Synthesize the Visionary's research and the Architect's assessment into meeting preparation for Zev (the consultant).
 
 **Prospect:**
 - Name: ${discovery.name}
@@ -116,34 +120,51 @@ ${discovery.assessment_doc}
 
 Where research has [LIMITED DATA], convert gaps into priority discovery questions.`;
 
-  await supabase.from('discoveries').update({ progress_pct: 75 }).eq('id', discoveryId);
+    await supabase.from('discoveries').update({ progress_pct: 75 }).eq('id', discoveryId);
 
-  const meetingResponse = await callClaude(anthropicKey, {
-    model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
-    messages: [{ role: 'user', content: meetingPrompt }],
-  }, 120_000);
+    const meetingResponse = await callClaude(anthropicKey, {
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4096,
+      messages: [{ role: 'user', content: meetingPrompt }],
+    }, 120_000);
 
-  if (!meetingResponse.ok) {
-    const errText = await meetingResponse.text();
-    throw new Error(`Claude API error ${meetingResponse.status}: ${errText}`);
+    if (!meetingResponse.ok) {
+      const errText = await meetingResponse.text();
+      throw new Error(`Claude API error ${meetingResponse.status}: ${errText}`);
+    }
+
+    const meetingResult = await meetingResponse.json();
+    for (const block of meetingResult.content ?? []) {
+      if (block.type === 'text') meetingPrepDoc += block.text;
+    }
+
+    meetingTokens = (meetingResult.usage?.input_tokens ?? 0) + (meetingResult.usage?.output_tokens ?? 0);
+
+    // Save meeting prep and return — next cron cycle will call us again for report
+    await supabase.from('discoveries').update({
+      meeting_prep_doc: meetingPrepDoc,
+      pipeline_step_completed_at: new Date().toISOString(),
+      pipeline_started_at: null,
+      progress_pct: 82,
+    }).eq('id', discoveryId);
+
+    await Promise.all([
+      recordMetric(supabase, 'oracle', 'meeting_prep_tokens', meetingTokens, { discovery_id: discoveryId }),
+      logAction(supabase, 'oracle', 'meeting-prep', {
+        geometryPattern: 'torus',
+        output: { status: 'meeting_prep_complete', tokens_used: meetingTokens, doc_length: meetingPrepDoc.length },
+        tokensUsed: meetingTokens,
+        latencyMs: Date.now() - start,
+      }),
+      updateHeartbeat(supabase, 'oracle'),
+    ]);
+
+    // Return early — advance_pipeline() will dispatch us again for report generation
+    return jsonResponse({ status: 'meeting_prep_complete', tokens_used: meetingTokens, next: 'self (report generation)' });
   }
-
-  const meetingResult = await meetingResponse.json();
-  let meetingPrepDoc = '';
-  for (const block of meetingResult.content ?? []) {
-    if (block.type === 'text') meetingPrepDoc += block.text;
-  }
-
-  const meetingTokens = (meetingResult.usage?.input_tokens ?? 0) + (meetingResult.usage?.output_tokens ?? 0);
-
-  // Save meeting prep
-  await supabase.from('discoveries').update({
-    meeting_prep_doc: meetingPrepDoc,
-    progress_pct: 82,
-  }).eq('id', discoveryId);
 
   // ── Step 2: Generate Client Insight Report (deliverable) ───────────────
+  // Meeting prep already exists, now generate the report
   const reportPrompt = `You are the Oracle agent generating a CLIENT-FACING Insight Report. This report may be delivered to a paying client ($499). It must be specific, honest, and worth the money.
 
 **Context:**
@@ -207,7 +228,7 @@ ${discovery.assessment_doc}
     model: 'claude-sonnet-4-6',
     max_tokens: 6144,
     messages: [{ role: 'user', content: reportPrompt }],
-  }, 120_000);
+  }, 240_000); // 4 min — report generation is the core deliverable
 
   if (!reportResponse.ok) {
     const errText = await reportResponse.text();
@@ -349,7 +370,7 @@ ${issues.map(i => `- [${i.severity}] ${i.location}: ${i.issue} → ${i.suggested
     model: 'claude-sonnet-4-6',
     max_tokens: 6144,
     messages: [{ role: 'user', content: prompt }],
-  }, 120_000);
+  }, 240_000); // 4 min for revision
 
   if (!response.ok) {
     const errText = await response.text();

@@ -34,6 +34,14 @@ interface Alert {
   timestamp?: string;
 }
 
+interface NextAction {
+  priority: number;
+  type: string;
+  label: string;
+  detail: string;
+  href: string;
+}
+
 interface DashboardStats {
   total_discoveries: number;
   pipeline_success_rate: number;
@@ -48,6 +56,9 @@ interface DashboardStats {
   overdue_family_tasks: number;
   unpaid_invoices: number;
   alerts: Alert[];
+  next_actions?: NextAction[];
+  new_contacts_count?: number;
+  active_projects_count?: number;
   total_cost_today?: number;
   total_cost_7d?: number;
   system_uptime_hours?: number;
@@ -156,6 +167,37 @@ export default function AdminDashboardPage() {
                 (stats.overdue_family_tasks ?? 0) > 0 && `${stats.overdue_family_tasks} overdue task${stats.overdue_family_tasks > 1 ? 's' : ''}`,
               ].filter(Boolean).join(' · ') || 'All clear — nothing urgent.'}
             </p>
+          </div>
+        )}
+
+        {/* Next Actions */}
+        {(stats?.next_actions?.length ?? 0) > 0 && (
+          <div className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl p-5">
+            <h2 className="text-sm font-medium text-[var(--color-foreground-strong)] mb-3">What Needs Your Attention</h2>
+            <div className="space-y-2">
+              {(stats?.next_actions || []).slice(0, 5).map((action, i) => {
+                const typeConfig: Record<string, { icon: string; color: string }> = {
+                  revenue: { icon: '$', color: '#f87171' },
+                  pipeline: { icon: '>', color: '#60a5fa' },
+                  lead: { icon: '@', color: '#4ade80' },
+                  content: { icon: '#', color: '#e879f9' },
+                  task: { icon: '!', color: '#facc15' },
+                };
+                const cfg = typeConfig[action.type] || { icon: '*', color: '#9ca3af' };
+                return (
+                  <Link key={i} href={action.href} className="flex items-center gap-3 p-3 rounded-lg bg-[var(--color-admin-bg)] hover:bg-[var(--color-admin-border)] transition-colors group">
+                    <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0" style={{ backgroundColor: `${cfg.color}20`, color: cfg.color }}>
+                      {cfg.icon}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-[var(--color-foreground-strong)] group-hover:text-[var(--color-accent)] transition-colors">{action.label}</p>
+                      <p className="text-[10px] text-[var(--color-muted)] truncate">{action.detail}</p>
+                    </div>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-muted)" strokeWidth="2" className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"><polyline points="9 18 15 12 9 6" /></svg>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -274,16 +316,21 @@ export default function AdminDashboardPage() {
         )}
 
         {/* Quick links */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {[
-            { href: '/admin/tola', label: 'TOLA System', desc: 'Agent visualization' },
-            { href: '/admin/content', label: 'Content Engine', desc: `${stats?.blog_pending_review ?? 0} pending review` },
-            { href: '/admin/discoveries', label: 'Discoveries', desc: `${stats?.total_discoveries ?? 0} total` },
-            { href: '/admin/family', label: 'Family Hub', desc: `${stats?.overdue_family_tasks ?? 0} overdue` },
+            { href: '/admin/tola', label: 'TOLA System', desc: 'Agent visualization', count: `${stats?.active_agents ?? 0}/11` },
+            { href: '/admin/discoveries', label: 'Discoveries', desc: 'Pipeline overview', count: String(stats?.total_discoveries ?? 0) },
+            { href: '/admin/content', label: 'Content', desc: 'Blog & social', count: (stats?.blog_pending_review ?? 0) > 0 ? `${stats?.blog_pending_review} pending` : 'up to date' },
+            { href: '/admin/projects', label: 'Projects', desc: 'Time & milestones', count: `${stats?.active_projects_count ?? 0} active` },
+            { href: '/admin/contacts', label: 'Contacts', desc: 'CRM pipeline', count: (stats?.new_contacts_count ?? 0) > 0 ? `${stats?.new_contacts_count} new` : '0 new' },
+            { href: '/admin/finance', label: 'Finance', desc: 'Invoices & revenue', count: (stats?.unpaid_invoices ?? 0) > 0 ? `${stats?.unpaid_invoices} unpaid` : 'all clear' },
           ].map((link) => (
             <Link key={link.href} href={link.href} className="bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-lg px-4 py-3 hover:border-[var(--color-accent)]/30 transition-colors group">
               <span className="text-xs font-medium text-[var(--color-foreground-strong)] group-hover:text-[var(--color-accent)] transition-colors">{link.label}</span>
-              <p className="text-[10px] text-[var(--color-muted)] mt-0.5">{link.desc}</p>
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-[10px] text-[var(--color-muted)]">{link.desc}</p>
+                <span className="text-[10px] font-medium text-[var(--color-accent)]">{link.count}</span>
+              </div>
             </Link>
           ))}
         </div>
