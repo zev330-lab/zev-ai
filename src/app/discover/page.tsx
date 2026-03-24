@@ -23,6 +23,7 @@ interface FormData {
   magicWand: string;
   success: string;
   anythingElse: string;
+  promoCode: string;
 }
 
 const INITIAL: FormData = {
@@ -40,7 +41,10 @@ const INITIAL: FormData = {
   magicWand: '',
   success: '',
   anythingElse: '',
+  promoCode: '',
 };
+
+const FRIENDS_FAMILY_CODE = 'ZevGT3';
 
 // Total steps: 0=welcome, 1=name, 2=email, 3=company, 4=role, 5=business, 6=team,
 // 7=pain, 8=repetitive, 9=ai, 10=wand, 11=success, 12=anything, 13=review, 14=thanks
@@ -70,6 +74,7 @@ function canAdvance(step: number, data: FormData): boolean {
 }
 
 function buildMailtoBody(data: FormData): string {
+  const isFriendsFamily = data.promoCode.toUpperCase() === FRIENDS_FAMILY_CODE;
   const lines = [
     `Name: ${data.name}`,
     data.email ? `Email: ${data.email}` : '',
@@ -93,6 +98,8 @@ function buildMailtoBody(data: FormData): string {
     `Success in 12 Months:\n${data.success}`,
     '',
     data.anythingElse ? `Anything Else:\n${data.anythingElse}` : '',
+    '',
+    data.promoCode ? `Promo Code: ${data.promoCode}${isFriendsFamily ? ' [FRIENDS & FAMILY — Free Insight Report]' : ''}` : '',
   ].filter(Boolean);
   return lines.join('\n');
 }
@@ -381,6 +388,30 @@ export default function DiscoverPage() {
                         Email hello@askzev.ai
                       </a>
                     </p>
+                  </motion.div>
+
+                  {/* Promo code — subtle, optional */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.8, delay: 0.45, ease: EASE }}
+                    className="mt-6 max-w-xs"
+                  >
+                    <input
+                      type="text"
+                      value={data.promoCode}
+                      onChange={(e) => update('promoCode', e.target.value)}
+                      placeholder="Have a code? (optional)"
+                      className="w-full bg-transparent border-b border-border/40 px-0 py-2 text-sm text-muted placeholder:text-muted/50 focus:outline-none focus:border-accent/60 transition-colors duration-300"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      spellCheck={false}
+                    />
+                    {data.promoCode.toUpperCase() === FRIENDS_FAMILY_CODE && (
+                      <p className="mt-1.5 text-xs text-accent">
+                        ✓ Friends &amp; family — Insight Report included, on us.
+                      </p>
+                    )}
                   </motion.div>
                 </div>
               )}
