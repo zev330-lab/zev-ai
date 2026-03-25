@@ -4,6 +4,8 @@
 // component for all interactive UI + Realtime subscription.
 // ─────────────────────────────────────────────────────────────────────────────
 
+export const dynamic = 'force-dynamic';
+
 import { getSupabaseAdmin } from '@/lib/supabase';
 import CainDashboard from './CainDashboard';
 import type { DBTask, DBLog, TaskAction, InfoAction } from './CainDashboard';

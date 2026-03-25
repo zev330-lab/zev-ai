@@ -12,6 +12,7 @@ interface NavBadges {
   finance: number;
   family: number;
   contacts: number;
+  cain: number;
 }
 
 function ShortcutHelp({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -52,7 +53,7 @@ function ShortcutHelp({ open, onClose }: { open: boolean; onClose: () => void })
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [badges, setBadges] = useState<NavBadges>({ discoveries: 0, content: 0, finance: 0, family: 0, contacts: 0 });
+  const [badges, setBadges] = useState<NavBadges>({ discoveries: 0, content: 0, finance: 0, family: 0, contacts: 0, cain: 0 });
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [pendingG, setPendingG] = useState(false);
 
@@ -78,19 +79,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }, [pathname, pendingG, router]);
 
   const fetchBadges = useCallback(() => {
-    fetch('/api/admin/stats')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (!data) return;
-        setBadges({
-          discoveries: (data.by_stage?.failed || 0) + (data.alerts?.filter((a: { type: string }) => a.type === 'pipeline_stalled').length || 0),
-          content: (data.blog_pending_review || 0) + (data.social_pending || 0),
-          finance: data.unpaid_invoices || 0,
-          family: data.overdue_family_tasks || 0,
-          contacts: 0, // new contacts not tracked in stats yet
-        });
-      })
-      .catch(() => {});
+    Promise.all([
+      fetch('/api/admin/stats').then(r => r.ok ? r.json() : null).catch(() => null),
+      fetch('/api/admin/cain').then(r => r.ok ? r.json() : []).catch(() => []),
+    ]).then(([stats, cainTasks]) => {
+      const openCain = Array.isArray(cainTasks)
+        ? cainTasks.filter((t: { status: string }) => t.status === 'open' || t.status === 'in_progress').length
+        : 0;
+      setBadges({
+        discoveries: stats ? (stats.by_stage?.failed || 0) + (stats.alerts?.filter((a: { type: string }) => a.type === 'pipeline_stalled').length || 0) : 0,
+        content: stats ? (stats.blog_pending_review || 0) + (stats.social_pending || 0) : 0,
+        finance: stats ? stats.unpaid_invoices || 0 : 0,
+        family: stats ? stats.overdue_family_tasks || 0 : 0,
+        contacts: 0,
+        cain: openCain,
+      });
+    });
   }, []);
 
   useEffect(() => {
@@ -105,7 +109,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const nav = [
     { href: '/admin/tola', label: 'TOLA', icon: <TolaIcon />, badge: 0 },
     { href: '/admin', label: 'Dashboard', icon: <DashboardIcon />, badge: 0 },
-    { href: '/admin/cain', label: 'Cain', icon: <CainNavIcon />, badge: 3 },
+    { href: '/admin/cain', label: 'Cain', icon: <CainNavIcon />, badge: badges.cain },
     { href: '/admin/discoveries', label: 'Discoveries', icon: <DiscoveryIcon />, badge: badges.discoveries },
     { href: '/admin/content', label: 'Content', icon: <ContentIcon />, badge: badges.content },
     { href: '/admin/projects', label: 'Projects', icon: <ProjectIcon />, badge: 0 },
