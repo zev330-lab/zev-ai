@@ -29,9 +29,9 @@ export function HomeHero() {
             transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
             <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.05] tracking-tight font-light">
-              AI that
+              AI systems that
               <br />
-              <span className="italic text-accent">actually works.</span>
+              <span className="italic text-accent">actually work.</span>
             </h1>
           </motion.div>
 
@@ -66,7 +66,7 @@ export function HomeHero() {
               href="/approach"
               className="inline-flex items-center gap-2 text-sm text-muted-light hover:text-foreground-strong transition-colors duration-300"
             >
-              See our approach
+              See the approach
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
               </svg>
