@@ -97,11 +97,11 @@ export default function ApproachPage() {
               <span className="italic text-accent">Production-proven results.</span>
             </h1>
             <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
-              Our agent architecture applies geometric coordination patterns found in
+              The agent architecture applies coordination patterns found in
               nature — the same fractal branching, spiral optimization, and self-similar
-              scaling observed in biological neural networks, ecosystem dynamics, and
-              crystal formation. These aren&apos;t metaphors. They&apos;re mathematically
-              verified design principles optimized over billions of years of evolution.
+              scaling observed in biological systems, ecosystem dynamics, and
+              crystal formation. These aren&apos;t metaphors. They&apos;re design
+              principles optimized over billions of years of evolution.
             </p>
           </motion.div>
         </div>
@@ -126,7 +126,7 @@ export default function ApproachPage() {
                   how they communicate, when they escalate to a human, and how they recover when something breaks.
                 </p>
                 <p>
-                  That&apos;s what we build. Production AI systems — the kind that run 24/7, degrade gracefully
+                  That&apos;s what I build. Production AI systems — the kind that run 24/7, degrade gracefully
                   under load, and get smarter over time instead of just accumulating bugs.
                 </p>
                 <p>
@@ -159,14 +159,14 @@ export default function ApproachPage() {
                 </h2>
                 <div className="space-y-6 text-muted-light text-lg leading-relaxed">
                   <p>
-                    Every AI system we build uses the Tree of Life as its organizational
+                    Every AI system I build uses the Tree of Life as its organizational
                     pattern — a natural network structure that balances specialization
                     with coordination. 11 agents, each with a defined role, connected
                     through exactly 22 structured communication pathways.
                   </p>
                   <p>
                     This isn&apos;t arbitrary. In a system of 11 agents, a fully connected
-                    network would require 55 pathways — that&apos;s chaos. Our 22 pathways
+                    network would require 55 pathways — that&apos;s chaos. 22 pathways
                     are the minimum set that ensures every agent can reach every other while
                     preserving clear routing hierarchy. Like neurons in a brain, structure
                     creates intelligence.
@@ -220,7 +220,7 @@ export default function ApproachPage() {
               <span className="italic text-accent">Each one battle-tested by evolution.</span>
             </h2>
             <p className="text-muted-light text-lg max-w-[640px] leading-relaxed mb-16 md:mb-20">
-              Each agent in our system runs a specific coordination pattern — a
+              Each agent runs a specific coordination pattern — a
               mathematical structure drawn from natural systems. These patterns define
               how agents process information, communicate with each other, and arrive
               at decisions.
@@ -260,7 +260,7 @@ export default function ApproachPage() {
               <span className="italic text-accent">Without becoming a bottleneck.</span>
             </h2>
             <p className="text-muted-light text-lg max-w-[640px] leading-relaxed mb-16">
-              Not every decision needs a human. Our 3-tier model defines exactly when
+              Not every decision needs a human. The 3-tier model defines exactly when
               agents act autonomously, when they notify you, and when they stop and ask.
               You maintain authority over the decisions that matter — without slowing down
               the ones that don&apos;t.
@@ -303,7 +303,7 @@ export default function ApproachPage() {
               <span className="italic text-accent">are the agents that run it.</span>
             </h2>
             <p className="text-muted-light text-lg max-w-[640px] leading-relaxed mb-16">
-              Most AI consultancies deliver a system and walk away. Our agents persist
+              Most AI projects get delivered and abandoned. These agents persist
               after deployment — monitoring, optimizing, and evolving your system 24/7.
               The same agents that designed and built your system are the ones that keep
               it running.
@@ -320,7 +320,7 @@ export default function ApproachPage() {
                   synthesize, build, test, deploy.
                 </p>
                 <div className="space-y-2 text-sm text-muted-light">
-                  <p>Research agents analyze your business and competitive landscape</p>
+                  <p>Research agents analyze your situation and competitive landscape</p>
                   <p>Planning agents architect the solution within real-world constraints</p>
                   <p>Quality agents review and test every component before deployment</p>
                 </div>
@@ -353,8 +353,8 @@ export default function ApproachPage() {
               Want to see it in action?
             </h2>
             <p className="text-muted-light text-lg leading-relaxed mb-8 max-w-xl">
-              Book a call and we&apos;ll show you the live system — 11 agents running
-              in production, real-time dashboards, and the architecture behind it all.
+              Start a discovery and I&apos;ll walk you through the live system — 11 agents
+              running in production, real-time dashboards, and the architecture behind it.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link

@@ -7,7 +7,7 @@ export function JsonLd() {
         '@id': 'https://askzev.ai/#organization',
         name: 'zev.ai',
         url: 'https://askzev.ai',
-        description: 'AI implementation consulting — production multi-agent AI systems built for businesses.',
+        description: 'Custom AI systems for businesses, freelancers, and individuals. Real implementation, real results.',
         founder: { '@id': 'https://askzev.ai/#person' },
         sameAs: [
           'https://github.com/zev330-lab',
@@ -53,7 +53,7 @@ export function JsonLd() {
         '@id': 'https://askzev.ai/#business',
         name: 'zev.ai — AI Implementation Consulting',
         provider: { '@id': 'https://askzev.ai/#organization' },
-        description: 'Custom multi-agent AI systems built and deployed for businesses. From AI readiness assessments to full implementation and ongoing optimization.',
+        description: 'Custom AI systems built and deployed for businesses and individuals. From free discovery through full implementation and ongoing support.',
         url: 'https://askzev.ai',
         email: 'hello@askzev.ai',
         address: {
@@ -69,7 +69,7 @@ export function JsonLd() {
         },
         areaServed: { '@type': 'Country', name: 'United States' },
         priceRange: '$$$',
-        image: 'https://askzev.ai/api/og/social?text=AI%20systems%20that%20drive%20revenue&pillar=zev.ai&format=landscape&style=blog',
+        image: 'https://askzev.ai/api/og/social?text=Custom%20AI%20systems%20that%20actually%20work&pillar=zev.ai&format=landscape&style=blog',
         sameAs: [
           'https://github.com/zev330-lab',
           'https://www.linkedin.com/in/zevsteinmetz',
@@ -82,8 +82,8 @@ export function JsonLd() {
               '@type': 'Offer',
               itemOffered: {
                 '@type': 'Service',
-                name: 'AI Readiness Assessment',
-                description: 'Structured deep-dive into your business to identify where AI creates real value. Includes competitive analysis, workflow mapping, and prioritized AI opportunity roadmap. Starting from $2,500.',
+                name: 'Free AI Summary',
+                description: 'Tell us about your situation and get a clear picture of where AI could actually help. Free, no commitment.',
                 url: 'https://askzev.ai/services',
               },
             },
@@ -91,8 +91,8 @@ export function JsonLd() {
               '@type': 'Offer',
               itemOffered: {
                 '@type': 'Service',
-                name: 'AI Implementation & Build',
-                description: 'Design, build, and deploy production multi-agent AI systems integrated into your operations. Automated workflows, real-time dashboards, and 24/7 agent monitoring. Starting from $5,000.',
+                name: 'AI System Build',
+                description: 'Design, build, and deploy custom AI systems integrated into your operations. Automated workflows, real-time monitoring, and 30 days post-launch support. Starting from $15,000.',
                 url: 'https://askzev.ai/services',
               },
             },
@@ -100,8 +100,8 @@ export function JsonLd() {
               '@type': 'Offer',
               itemOffered: {
                 '@type': 'Service',
-                name: 'Ongoing AI Optimization',
-                description: 'Fractional AI leadership embedded in your team. Performance monitoring, iteration, capability expansion, and continuous improvement. Starting from $5,000/month.',
+                name: 'Ongoing Partnership',
+                description: 'Continuous system improvements, performance monitoring, and new capabilities. Month-to-month, no lock-in. Starting from $2,500/month.',
                 url: 'https://askzev.ai/services',
               },
             },
@@ -109,8 +109,8 @@ export function JsonLd() {
               '@type': 'Offer',
               itemOffered: {
                 '@type': 'Service',
-                name: 'AI Scale & Enterprise Deployment',
-                description: 'Multi-system deployment across your organization. Shared intelligence between departments, unified oversight, and cross-product automation. Custom pricing.',
+                name: 'Custom Apps',
+                description: 'Focused tools built for your exact use case — personal, professional, or business. Web or mobile. Starting from $1,000.',
                 url: 'https://askzev.ai/services',
               },
             },
@@ -135,50 +135,50 @@ export function HomeFaqSchema() {
     mainEntity: [
       {
         '@type': 'Question',
-        name: 'How much does AI consulting cost?',
+        name: 'I\'m not a business. Can this help me?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'AI consulting engagements start at $2,500 for a 2-3 week readiness assessment. Build projects typically range from $5,000-$25,000 depending on scope. Ongoing optimization starts at $5,000/month.',
+          text: 'Yes. Zev works with individuals, families, freelancers, students — anyone who has something in their life that repeats itself and shouldn\'t have to. Personal projects welcome.',
         },
       },
       {
         '@type': 'Question',
-        name: 'What does an AI consultant actually do?',
+        name: 'What kind of things can you build?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'We build and deploy production AI systems — not strategy decks. That means identifying high-leverage automation opportunities, designing multi-agent architectures, building the software, integrating it into your operations, and ensuring it delivers measurable ROI.',
+          text: 'Custom apps, automated workflows, dashboards, research tools, content systems, personal assistants — anything where AI can do real work. Custom apps start at $1,000, full system builds start at $15,000.',
         },
       },
       {
         '@type': 'Question',
-        name: 'How long does AI implementation take?',
+        name: 'What makes this different from just using ChatGPT?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'An AI readiness assessment takes 2-3 weeks. Building and deploying a production AI system typically takes 4-12 weeks depending on complexity. Most clients see first measurable results within 6 weeks.',
+          text: 'ChatGPT is a general tool. What Zev builds are systems designed for your specific situation — they connect to your data, run on their own schedule, and do actual work without you having to prompt them every time.',
         },
       },
       {
         '@type': 'Question',
-        name: 'Do I need a technical team to work with you?',
+        name: 'How much does this cost?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'No. We handle the entire technical build — architecture, development, deployment, and monitoring. Your team provides business context and feedback. We deploy on managed infrastructure so there is nothing for your IT team to maintain.',
+          text: 'The initial discovery conversation is free. Custom apps start at $1,000. Full AI system builds start at $15,000. Ongoing support starts at $2,500/month. Everything starts with a conversation so you know exactly what you are getting into.',
         },
       },
       {
         '@type': 'Question',
-        name: 'What industries do you work with?',
+        name: 'Do I need to be technical?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'We have built AI systems for D2C brands, manufacturing, media companies, real estate, and professional services. The multi-agent architecture adapts to any domain — the coordination patterns are universal while agents are specialized for your industry.',
+          text: 'Not at all. Zev handles the entire technical side — design, build, deployment, and maintenance. You provide context about your situation and feedback on what is working. No coding, no jargon, no IT team required.',
         },
       },
       {
         '@type': 'Question',
-        name: 'How is this different from hiring a big consulting firm?',
+        name: 'How long does it take?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Big firms hand you a roadmap and bill $250K+ for it. Then you need to hire someone else to build the system. We design it, build it, deploy it, and prove it works — all in one engagement. You work directly with the person building your system, not a junior associate.',
+          text: 'A simple custom app can be done in 1-2 weeks. A full AI system build typically takes 4-8 weeks depending on scope. You will see the first working version within the first week of a build engagement.',
         },
       },
     ],

@@ -1,7 +1,7 @@
 export const SITE = {
   name: 'zev.ai',
-  title: 'zev.ai — AI systems that drive revenue, not slide decks',
-  description: 'We build and deploy production AI agent systems for businesses. From assessment to ongoing optimization — real implementation, real results.',
+  title: 'zev.ai — Custom AI systems that actually work',
+  description: 'Custom AI systems for businesses, freelancers, and anyone with a problem that keeps repeating. Real implementation, real results.',
   url: 'https://askzev.ai',
   email: 'hello@askzev.ai',
 } as const;

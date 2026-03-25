@@ -162,7 +162,7 @@ export function BlogList({ posts }: { posts: BlogPost[] }) {
               Ready to put AI to work?
             </h2>
             <p className="text-muted-light mb-8 max-w-xl">
-              Reading is good. Building is better. Start your discovery to find where AI creates the highest leverage in your business.
+              Reading is good. Building is better. Start a discovery to find out where AI could actually help your situation.
             </p>
             <Link
               href="/discover"

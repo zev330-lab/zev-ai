@@ -35,17 +35,17 @@ export const metadata: Metadata = {
     title: SITE.title,
     description: SITE.description,
     images: [{
-      url: 'https://askzev.ai/api/og/social?text=AI%20systems%20that%20drive%20revenue&pillar=zev.ai&format=landscape&style=blog',
+      url: 'https://askzev.ai/api/og/social?text=Custom%20AI%20systems%20that%20actually%20work&pillar=zev.ai&format=landscape&style=blog',
       width: 1200,
       height: 630,
-      alt: 'zev.ai — AI systems that drive revenue',
+      alt: 'zev.ai — Custom AI systems that actually work',
     }],
   },
   twitter: {
     card: 'summary_large_image',
     title: SITE.title,
     description: SITE.description,
-    images: ['https://askzev.ai/api/og/social?text=AI%20systems%20that%20drive%20revenue&pillar=zev.ai&format=landscape&style=blog'],
+    images: ['https://askzev.ai/api/og/social?text=Custom%20AI%20systems%20that%20actually%20work&pillar=zev.ai&format=landscape&style=blog'],
   },
   robots: {
     index: true,

@@ -4,7 +4,7 @@ import { BlogList } from '@/components/blog-list';
 
 export const metadata: Metadata = {
   title: 'Blog — AI Implementation Insights',
-  description: 'Practical strategies for deploying AI systems that drive real business outcomes. No hype, no theory — just what works.',
+  description: 'Practical strategies for using AI in real situations. No hype, no theory — just what works.',
 };
 
 interface BlogPost {

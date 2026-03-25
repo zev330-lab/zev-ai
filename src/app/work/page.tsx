@@ -2,11 +2,10 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { HeroReveal } from '@/components/hero-reveal';
 import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
-import { AnimatedNumber } from '@/components/animated-number';
 
 export const metadata: Metadata = {
-  title: 'Case Studies — AI Systems That Drive Real Results',
-  description: 'See how we\'ve deployed AI systems for ButcherBox (73% automation), Blank Industries (unified BI), Rosen Media (2.5x content), and more. Real systems, measurable outcomes.',
+  title: 'Work — Real AI Systems in Production',
+  description: 'Real AI systems running in production. From a full real estate operation to an adaptive learning platform — see what these systems actually look like.',
   alternates: { canonical: 'https://askzev.ai/work' },
 };
 
@@ -33,26 +32,6 @@ const CASE_STUDIES = [
   },
   {
     num: '02',
-    company: 'Blank Industries',
-    industry: 'Manufacturing / Business Intelligence',
-    headline: 'Unified intelligence from 6 disconnected systems.',
-    problem: 'Critical business data trapped in 6 disconnected systems — ERP, CRM, inventory, shipping, accounting, and HR. Leadership making decisions on gut feel instead of data. Monthly reporting took a full-time analyst 2 weeks to compile.',
-    process: [
-      'Assessed all 6 data sources, mapped dependencies, and identified the highest-value integration points',
-      'Built AI agents that pull, normalize, and cross-reference data from all systems in real time',
-      'Deployed an executive dashboard with AI-generated weekly insights and anomaly detection',
-      'Created automated alerts for inventory thresholds, cash flow projections, and operational KPIs',
-    ],
-    results: [
-      { metric: '6→1', label: 'unified data source' },
-      { metric: '90%', label: 'faster reporting' },
-      { metric: 'Weekly', label: 'AI-generated insights' },
-      { metric: 'Real-time', label: 'anomaly detection' },
-    ],
-    payoff: 'Leadership went from monthly gut-feel decisions to weekly data-driven strategy. The analyst who used to compile reports now focuses on strategic analysis.',
-  },
-  {
-    num: '03',
     company: 'KabbalahQ.ai',
     industry: 'Education / AI Learning Platform',
     headline: 'An AI-powered learning platform that adapts to each student.',
@@ -92,29 +71,6 @@ export default function WorkPage() {
               the system, prove it works. Here&apos;s what that looks like in practice.
             </p>
           </HeroReveal>
-        </div>
-      </section>
-
-      {/* Aggregate stats */}
-      <section className="section-light">
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-20 md:py-28">
-          <Reveal>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
-              {[
-                { value: 30, suffix: '+', label: 'AI agents deployed' },
-                { value: 3, suffix: '+', label: 'industries served' },
-                { value: 5000, suffix: '+', label: 'pages of content generated' },
-                { value: 99.9, suffix: '%', label: 'system uptime' },
-              ].map((stat) => (
-                <div key={stat.label}>
-                  <div className="text-[clamp(2rem,5vw,3.5rem)] font-[family-name:var(--font-serif)] font-light text-accent leading-none">
-                    <AnimatedNumber value={stat.value} suffix={stat.suffix} />
-                  </div>
-                  <p className="mt-3 text-sm text-muted-light">{stat.label}</p>
-                </div>
-              ))}
-            </div>
-          </Reveal>
         </div>
       </section>
 
@@ -202,13 +158,11 @@ export default function WorkPage() {
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-4 max-w-xl">
-              Your business could be
-              <br />
-              the next case study.
+              Interested in something similar?
             </h2>
             <p className="text-muted-light text-lg leading-relaxed mb-8 max-w-xl">
-              Every project starts with a discovery — a clear-eyed look at your biggest
-              opportunities and the fastest path to results.
+              Every project starts with a conversation — tell me what you&apos;re
+              dealing with and I&apos;ll give you an honest take on what&apos;s possible.
             </p>
             <Link
               href="/discover"

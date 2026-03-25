@@ -208,7 +208,7 @@ export function ReportView({ discovery }: { discovery: Discovery }) {
             Ready to Move Forward?
           </h2>
           <p className="mb-6" style={{ color: '#888' }}>
-            {"Let's discuss these findings and build a plan tailored to your business."}
+            {"Let's discuss these findings and figure out what makes sense for your situation."}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link

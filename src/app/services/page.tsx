@@ -4,8 +4,8 @@ import { HeroReveal } from '@/components/hero-reveal';
 import { Reveal, StaggerReveal, StaggerChild } from '@/components/reveal';
 
 export const metadata: Metadata = {
-  title: 'AI Consulting Services — Assessment, Implementation, Optimization',
-  description: 'AI consulting services from $2,500. Readiness assessments, multi-agent system builds, ongoing optimization, and enterprise scale. Production AI systems, not strategy decks.',
+  title: 'Services — From First Look to Working System',
+  description: 'AI services for businesses and individuals. Free discovery, $499 Insight Report, custom apps from $1,000, full system builds. Real implementation, not strategy decks.',
   alternates: { canonical: 'https://askzev.ai/services' },
 };
 
@@ -14,13 +14,13 @@ const SERVICES = [
     num: '01',
     name: 'Free Summary',
     tag: 'No cost',
-    problem: 'You\'ve heard a lot about AI. You\'re not sure what\'s real, what\'s hype, and whether any of it actually applies to your business.',
+    problem: 'You\'ve heard a lot about AI. You\'re not sure what\'s real, what\'s hype, and whether any of it actually applies to your situation.',
     whatWeDo: [
-      'You tell us about your business — takes about 8 minutes',
-      'We look at what you\'re dealing with and where you\'re going',
-      'We send back a clear picture of what AI could actually do for you',
+      'You tell me what\'s going on — takes about 5 minutes',
+      'I look at what you\'re dealing with and where you\'re trying to go',
+      'I send back a clear picture of what AI could actually do for you',
     ],
-    whatYouGet: 'A straightforward summary — specific to your situation, not a generic AI pitch. What could change, what would stay the same, and whether it\'s worth going further. No cost. No commitment.',
+    whatYouGet: 'A straightforward summary — specific to your situation, not a generic AI pitch. What could help, what probably won\'t, and whether it\'s worth going further. No cost. No commitment.',
     timeline: 'Within 24 hours',
     price: 'Free',
     note: '',
@@ -32,12 +32,12 @@ const SERVICES = [
     tag: '$499',
     problem: 'You\'re serious about this. You want to know exactly what to build, what it would cost, and what it would realistically take — before you commit to anything.',
     whatWeDo: [
-      'Deep analysis of your business, your market, and your competitive landscape',
-      'Specific AI opportunities ranked by ROI and implementation complexity',
+      'Deep analysis of your situation, your goals, and what\'s realistic',
+      'Specific AI opportunities ranked by impact and implementation complexity',
       'A detailed roadmap: what to build, in what order, with what tools',
       'Honest tradeoffs at every major decision point',
     ],
-    whatYouGet: 'A detailed Insight Report — the full picture of what AI would look like in your business. Specific enough that you could attempt it yourself. Honest enough that you\'ll know exactly what you\'re getting into.',
+    whatYouGet: 'A detailed Insight Report — the full picture of what AI would look like for your specific situation. Specific enough that you could attempt it yourself. Honest enough that you\'ll know exactly what you\'re getting into.',
     timeline: 'Delivered within 24 hours of submission',
     price: '$499',
     note: '',
@@ -47,15 +47,15 @@ const SERVICES = [
     num: '03',
     name: 'Strategy Session',
     tag: 'Starting from $2,500',
-    problem: 'You have a clear picture of the opportunity. Now you need to figure out what makes sense for your specific business — your team, your budget, your constraints.',
+    problem: 'You have a clear picture of the opportunity. Now you need to figure out what makes sense for your specific situation — your constraints, your budget, your goals.',
     whatWeDo: [
-      'One hour with Zev — prepared on your business before the call',
-      'Walk through your situation and figure out what actually fits',
+      'One hour with Zev — prepared on your situation before the call',
+      'Walk through what you\'re dealing with and figure out what actually fits',
       'Identify which tools and approaches match your specific constraints',
       'Define what a realistic path forward looks like for you',
       'Leave with clarity — not a deck, not a proposal, just a clear direction',
     ],
-    whatYouGet: 'A focused working session. An hour of real thinking about your business from someone who has built these systems in production. Worth it if you\'re serious. Not worth it if you\'re still just exploring.',
+    whatYouGet: 'A focused working session. An hour of real thinking about your situation from someone who has built these systems in production. Worth it if you\'re serious. Not worth it if you\'re still just exploring.',
     timeline: '1-hour session + follow-up notes',
     price: 'Starting from $2,500',
     note: '',
@@ -91,7 +91,7 @@ const SERVICES = [
     name: 'Ongoing Partnership',
     tag: 'Starting from $2,500/mo',
     featured: true,
-    problem: 'You have AI running. You want it to keep getting better — new capabilities, better performance, and a partner who knows your business and your system inside out.',
+    problem: 'You have AI running. You want it to keep getting better — new capabilities, better performance, and a partner who knows your situation and your system inside out.',
     whatWeDo: [
       'Weekly performance reports: what\'s working, what needs attention',
       'Continuous system improvements and new agent development',
@@ -109,22 +109,22 @@ const SERVICES = [
     num: '06',
     name: 'Custom Apps',
     tag: 'Starting from $1,000',
-    problem: 'You need a specific tool built — something focused, something polished, something that solves one real problem well.',
+    problem: 'You need a specific tool built — something focused, something polished, something that solves one real problem well. For yourself, your family, or your work.',
     whatWeDo: [
-      'Scope the app in a short call',
+      'Scope the app in a short call or message',
       'Design and build it for your exact use case',
       'Deploy to web or package for mobile',
       'Built to actually be used, not to sit in a backlog',
     ],
-    whatYouGet: 'A working app, delivered. Not a template with your name on it.',
+    whatYouGet: 'A working app, delivered. Not a template with your name on it. Personal projects welcome — you don\'t need to be a business to have a good idea for a tool.',
     timeline: '1–4 weeks depending on complexity',
     price: 'Starting from $1,000',
     note: '',
-    cta: 'Tell us what you need',
+    cta: 'Tell me what you need',
     tiers: [
-      { label: 'Simple Utility', price: '$1,000', desc: 'Single-purpose tool. One user or shared. Examples: tracking log, daily habit app, simple calculator.' },
-      { label: 'Standard App', price: '$2,500', desc: 'Multi-screen with data storage, forms, or workflows. Examples: client intake, internal dashboard, reporting tool.' },
-      { label: 'Complex Platform', price: '$5,000', desc: 'Multi-user, custom logic, third-party integrations. Examples: client-facing tools with accounts, automated workflows.' },
+      { label: 'Simple Utility', price: '$1,000', desc: 'Single-purpose tool. One user or shared. Examples: tracking log, daily habit app, family organizer, simple calculator.' },
+      { label: 'Standard App', price: '$2,500', desc: 'Multi-screen with data storage, forms, or workflows. Examples: personal dashboard, intake form, reporting tool, learning tracker.' },
+      { label: 'Complex Platform', price: '$5,000', desc: 'Multi-user, custom logic, third-party integrations. Examples: client-facing tools, automated workflows, community platforms.' },
     ],
   },
 ];
@@ -143,7 +143,7 @@ export default function ServicesPage() {
               From first look to full deployment.
             </h1>
             <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
-              Start with a free summary. Go as far as makes sense for your business.
+              Start with a free summary. Go as far as makes sense for your situation.
               Every engagement is designed to deliver something real — not a roadmap for later.
             </p>
           </HeroReveal>
@@ -283,63 +283,8 @@ export default function ServicesPage() {
         );
       })}
 
-      {/* Comparison table */}
-      <section className={SERVICES.length % 2 === 0 ? 'section-light' : ''}>
-        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
-          <Reveal>
-            <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">Compare</p>
-            <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.1] tracking-tight mb-12 max-w-xl">
-              Which engagement is right for you?
-            </h2>
-          </Reveal>
-          <Reveal>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-4 pr-6 text-muted-light font-medium text-xs uppercase tracking-wider">Feature</th>
-                    <th className="text-center py-4 px-4 text-foreground-strong font-semibold">Assess</th>
-                    <th className="text-center py-4 px-4 text-foreground-strong font-semibold">Build</th>
-                    <th className="text-center py-4 px-4 text-foreground-strong font-semibold">Optimize</th>
-                    <th className="text-center py-4 px-4 text-accent font-semibold">Scale</th>
-                  </tr>
-                </thead>
-                <tbody className="text-muted-light">
-                  {[
-                    { label: 'Timeline', vals: ['2-3 weeks', '4-12 weeks', 'Monthly', 'Custom'] },
-                    { label: 'Investment', vals: ['From $2,500', 'From $5,000', '$5,000/mo', 'Custom'] },
-                    { label: 'AI Opportunity Roadmap', vals: ['yes', 'yes', 'yes', 'yes'] },
-                    { label: 'Production AI System', vals: ['no', 'yes', 'yes', 'yes'] },
-                    { label: 'Multi-Agent Architecture', vals: ['no', 'yes', 'yes', 'yes'] },
-                    { label: 'Ongoing Optimization', vals: ['no', 'no', 'yes', 'yes'] },
-                    { label: 'Multi-Department Deployment', vals: ['no', 'no', 'no', 'yes'] },
-                    { label: 'Post-Launch Support', vals: ['no', '30 days', 'Continuous', 'Continuous'] },
-                    { label: 'Best For', vals: ['Exploring AI', 'First AI system', 'Scaling what works', 'Enterprise-wide AI'] },
-                  ].map((row) => (
-                    <tr key={row.label} className="border-b border-border/50">
-                      <td className="py-3.5 pr-6 text-foreground-strong text-xs font-medium">{row.label}</td>
-                      {row.vals.map((val, i) => (
-                        <td key={i} className="text-center py-3.5 px-4 text-xs">
-                          {val === 'yes' ? (
-                            <span className="text-accent font-bold">&#10003;</span>
-                          ) : val === 'no' ? (
-                            <span className="text-muted/40">—</span>
-                          ) : (
-                            <span>{val}</span>
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
       {/* FAQ */}
-      <section className={SERVICES.length % 2 === 1 ? 'section-light' : ''}>
+      <section className={SERVICES.length % 2 === 0 ? 'section-light' : ''}>
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-24 md:py-32">
           <Reveal>
             <p className="text-xs tracking-[0.2em] uppercase text-muted mb-6">FAQ</p>
@@ -349,12 +294,13 @@ export default function ServicesPage() {
           </Reveal>
           <StaggerReveal className="max-w-3xl space-y-0 divide-y divide-border">
             {[
-              { q: 'Can I start with just the assessment?', a: 'Absolutely. The assessment is designed to stand on its own. You get a complete AI Opportunity Roadmap with prioritized recommendations, whether you build with us or not. Many clients start here and decide to move to Build based on what they learn.' },
-              { q: 'What if my project is smaller than $5,000?', a: 'The assessment at $2,500 covers most early-stage needs. For smaller build projects, we can sometimes scope a focused implementation within the assessment budget. Start with a discovery conversation and we\'ll find the right fit.' },
-              { q: 'Do you work with companies outside the US?', a: 'Yes. All our work is remote-first. We\'ve worked with companies across the US and can accommodate international clients in compatible time zones.' },
-              { q: 'How do you handle data security and privacy?', a: 'We deploy on enterprise-grade infrastructure (Supabase, Vercel) with row-level security, encrypted connections, and role-based access. Your data stays in your infrastructure — we never train AI models on client data.' },
-              { q: 'What happens if the AI system doesn\'t perform?', a: 'Every Build engagement includes 30 days of post-launch support. If the system isn\'t meeting agreed-upon KPIs, we iterate until it does. Our case studies show measurable results because we don\'t ship and disappear.' },
-              { q: 'Can I pause or cancel the Optimize engagement?', a: 'Yes. Optimize is a monthly engagement with no long-term lock-in. You can pause or end the engagement with 30 days notice. We want you to stay because the results justify it, not because of a contract.' },
+              { q: 'Can I just get the free summary and stop there?', a: 'Absolutely. The free summary is designed to stand on its own. You get an honest take on where AI could help, whether you work with me or not. No follow-up pressure.' },
+              { q: 'I\'m not a business — just a person with an idea for an app. Is that okay?', a: 'More than okay. Custom Apps start at $1,000 and are designed for exactly this — personal tools, family organizers, hobby projects, learning aids. You don\'t need a company to have a good use case.' },
+              { q: 'What if my project is really small?', a: 'Custom Apps start at $1,000 for simple utilities. If you just want to talk through whether AI could help your situation, the discovery conversation is free. Start there and we\'ll figure out the right scope together.' },
+              { q: 'Do you work with people outside the US?', a: 'Yes. All work is remote-first. I can accommodate anyone in compatible time zones.' },
+              { q: 'How do you handle data security?', a: 'I deploy on enterprise-grade infrastructure (Supabase, Vercel) with row-level security and encrypted connections. Your data stays in your infrastructure — I never train AI models on client data.' },
+              { q: 'What happens if it doesn\'t work?', a: 'Every Build engagement includes 30 days of post-launch support. If the system isn\'t doing what we agreed it would, I iterate until it does. I don\'t ship and disappear.' },
+              { q: 'Can I pause or cancel ongoing work?', a: 'Yes. The ongoing partnership is month-to-month with no lock-in. You can pause or end with 30 days notice. I want you to stay because it\'s working, not because of a contract.' },
             ].map((faq) => (
               <StaggerChild key={faq.q}>
                 <div className="py-8">
@@ -375,7 +321,7 @@ export default function ServicesPage() {
               Not sure where to start?
             </h2>
             <p className="text-muted-light text-lg max-w-xl leading-relaxed mb-10">
-              The free summary costs nothing and takes 8 minutes. It&apos;s the clearest way to find out whether any of this makes sense for your business.
+              The free summary costs nothing and takes 5 minutes. It&apos;s the clearest way to find out whether any of this makes sense for your situation.
             </p>
             <Link
               href="/discover"

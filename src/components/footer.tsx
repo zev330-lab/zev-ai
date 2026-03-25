@@ -2,10 +2,10 @@ import Link from 'next/link';
 import { SITE } from '@/lib/constants';
 
 const SERVICES_LINKS = [
-  { label: 'Assess', href: '/services' },
+  { label: 'Free Summary', href: '/services' },
+  { label: 'Insight Report', href: '/services' },
   { label: 'Build', href: '/services' },
-  { label: 'Optimize', href: '/services' },
-  { label: 'Scale', href: '/services' },
+  { label: 'Custom Apps', href: '/services' },
 ];
 
 const COMPANY_LINKS = [
@@ -32,7 +32,7 @@ export function Footer() {
               <span className="text-accent">.ai</span>
             </Link>
             <p className="mt-4 text-sm text-muted leading-relaxed max-w-[220px]">
-              AI systems that drive revenue.
+              Custom AI systems that actually work.
               Real implementation, not strategy decks.
             </p>
           </div>

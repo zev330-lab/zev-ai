@@ -4,7 +4,7 @@ export const runtime = 'edge';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const text = searchParams.get('text') || 'AI systems that drive revenue';
+  const text = searchParams.get('text') || 'Custom AI systems that actually work';
   const pillar = searchParams.get('pillar') || '';
   const format = searchParams.get('format') || 'landscape'; // landscape, square, portrait
   const style = searchParams.get('style') || 'quote'; // quote, stat, tip, blog

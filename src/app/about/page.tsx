@@ -5,7 +5,7 @@ import { Reveal } from '@/components/reveal';
 
 export const metadata: Metadata = {
   title: 'About Zev Steinmetz — AI Builder, Not Theorist',
-  description: 'Zev Steinmetz builds production AI systems for businesses. From real estate technology to multi-agent frameworks, he delivers working software — not strategy decks.',
+  description: 'Zev Steinmetz builds custom AI systems for people and businesses. From real estate technology to multi-agent frameworks — working software, not strategy decks.',
   alternates: { canonical: 'https://askzev.ai/about' },
 };
 
@@ -29,8 +29,8 @@ export default function AboutPage() {
               Builder, not theorist.
             </h1>
             <p className="mt-8 text-lg text-muted-light max-w-2xl leading-relaxed">
-              I build production AI systems for businesses. Hands-on. End to end.
-              The kind of systems that run 24/7 and pay for themselves.
+              I build custom AI systems. Hands-on. End to end.
+              The kind that run on their own and actually make your day easier.
             </p>
           </HeroReveal>
         </div>
@@ -80,10 +80,10 @@ export default function AboutPage() {
 
             <Reveal>
               <p className="text-muted-light text-lg leading-[1.8]">
-                Now I help other businesses do what I did for mine: deploy AI systems
-                that actually work. Not chatbots. Not copilots. Multi-agent systems
-                that automate real workflows, integrate with existing tools, and deliver
-                measurable results from day one.
+                Now I help other people do what I did for myself: build AI systems
+                that actually work. Not chatbots. Not copilots. Systems
+                that automate real workflows, integrate with existing tools, and
+                deliver real results from day one.
               </p>
             </Reveal>
           </div>
@@ -114,12 +114,12 @@ export default function AboutPage() {
             <Reveal delay={0.2}>
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold tracking-tight">
-                  Business-first thinking
+                  Problem-first thinking
                 </h3>
                 <p className="text-muted-light leading-relaxed">
-                  I built AI to solve my own business problems before I built it for
-                  anyone else. Every recommendation is grounded in what actually moves
-                  the needle — not what looks impressive in a pitch.
+                  I built AI to solve my own problems before I built it for
+                  anyone else. Every recommendation is grounded in what actually
+                  helps — not what looks impressive in a pitch.
                 </p>
               </div>
             </Reveal>
@@ -160,12 +160,12 @@ export default function AboutPage() {
                     Built a 2,000+ page real estate platform running 18 AI agents across
                     market analysis, property research, client communication, and business
                     operations. Developed the multi-agent coordination framework now used
-                    to build AI systems for other businesses.
+                    to build AI systems for others.
                   </p>
                   <p>
                     Background in real estate operations, business intelligence, and
                     full-stack engineering. Focused on practical AI implementation that
-                    delivers measurable business outcomes.
+                    delivers real results.
                   </p>
                 </div>
               </div>
@@ -212,10 +212,10 @@ export default function AboutPage() {
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(1.75rem,4vw,3rem)] leading-[1.15] tracking-tight mb-4 max-w-xl">
               Let&apos;s talk about what
               <br />
-              AI can do for your business.
+              AI can do for you.
             </h2>
             <p className="text-muted-light text-lg leading-relaxed mb-8 max-w-xl">
-              No pitch, no pressure. Just a conversation about your biggest opportunities.
+              No pitch, no pressure. Just a conversation about your situation.
             </p>
             <Link
               href="/discover"

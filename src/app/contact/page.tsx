@@ -3,8 +3,8 @@ import { HeroReveal } from '@/components/hero-reveal';
 import { ContactForm } from './contact-form';
 
 export const metadata: Metadata = {
-  title: 'Contact — Let\'s Talk About AI for Your Business',
-  description: 'Get in touch to discuss how AI can drive results for your business. Based in Newton, MA. Response within 24 hours.',
+  title: 'Contact — Get in Touch',
+  description: 'Get in touch to talk about what AI could do for your situation. Based in Newton, MA. Response within 24 hours.',
   alternates: { canonical: 'https://askzev.ai/contact' },
 };
 
@@ -22,7 +22,7 @@ export default function ContactPage() {
               Let&apos;s talk.
             </h1>
             <p className="mt-6 text-lg text-muted-light max-w-xl leading-relaxed">
-              Tell me about your business and what you&apos;re looking to improve.
+              Tell me what you&apos;re working on or what you&apos;re trying to fix.
               I&apos;ll get back to you within 24 hours.
             </p>
           </HeroReveal>

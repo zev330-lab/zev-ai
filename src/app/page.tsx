@@ -5,8 +5,8 @@ import { HomeHero } from '@/components/home-hero';
 import { HomeFaqSchema } from '@/components/json-ld';
 
 export const metadata: Metadata = {
-  title: 'zev.ai — AI Consulting & Multi-Agent Systems for Business',
-  description: 'Production AI systems built for businesses. From AI readiness assessments to multi-agent implementation. 30+ agents deployed across D2C, manufacturing, and media. Starting from $2,500.',
+  title: 'zev.ai — Custom AI Systems That Actually Work',
+  description: 'Custom AI systems for businesses, freelancers, and anyone with a problem that keeps repeating. From first conversation to working system. Real implementation, real results.',
   alternates: { canonical: 'https://askzev.ai' },
 };
 
@@ -120,7 +120,7 @@ export default function Home() {
               {
                 num: '01',
                 title: 'Discover',
-                body: 'You tell me what\'s going on — your business, your frustrations, what\'s taking too long. I do the research. You get a clear picture of where AI would actually move the needle for your specific situation.',
+                body: 'You tell me what\'s going on — your frustrations, what\'s taking too long, what keeps falling through the cracks. I do the research. You get a clear picture of where AI could actually help your specific situation.',
                 outcome: 'Free personalized summary',
               },
               {
@@ -177,66 +177,51 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══ SECTION 4 — SOCIAL PROOF ═══ */}
+      {/* ═══ SECTION 4 — WHAT I USE ═══ */}
       <section className="section-light">
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-28 md:py-36">
           <Reveal>
-            <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">What we&apos;ve built</p>
+            <p className="text-xs tracking-[0.2em] uppercase text-muted-light mb-6">What I use every day</p>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3.5rem)] leading-[1.1] tracking-tight max-w-2xl mb-4">
-              Real problems.
-              <br />
-              Real outcomes.
+              Built for myself first.
             </h2>
-            <p className="text-sm text-muted-light mb-16 md:mb-20">
-              Built for actual businesses — including my own real estate practice, which still runs on the same system I build for clients.
+            <p className="text-muted-light text-lg max-w-2xl leading-relaxed mb-12">
+              The AI system that runs this practice — from the moment you submit
+              a discovery form through research, analysis, and delivery — is the
+              same framework I build for others. I don&apos;t sell anything I don&apos;t
+              use myself.
             </p>
           </Reveal>
 
-          <StaggerReveal className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-
-              {
-                company: 'Blank Industries',
-                industry: 'Manufacturing / Business Intelligence',
-                problem: 'Critical business data trapped in 6 disconnected systems. Leadership making decisions on gut feel instead of data.',
-                result: 'Unified intelligence dashboard pulling from all systems. AI agents generate weekly insights and flag anomalies before they become problems.',
-                metric: '6→1',
-                metricLabel: 'unified data source',
-              },
-
-            ].map((study) => (
-              <StaggerChild key={study.company}>
-                <div className="border border-border rounded-2xl p-8 h-full flex flex-col">
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold tracking-tight text-foreground-strong">{study.company}</h3>
-                    <p className="text-xs text-accent font-medium mt-1">{study.industry}</p>
-                  </div>
-
-                  <div className="mb-4">
-                    <p className="text-xs tracking-[0.15em] uppercase text-muted-light font-medium mb-2">Challenge</p>
-                    <p className="text-sm text-muted-light leading-relaxed">{study.problem}</p>
-                  </div>
-
-                  <div className="mb-6 flex-1">
-                    <p className="text-xs tracking-[0.15em] uppercase text-muted-light font-medium mb-2">Result</p>
-                    <p className="text-sm text-muted-light leading-relaxed">{study.result}</p>
-                  </div>
-
-                  <div className="pt-6 border-t border-border">
-                    <p className="text-[clamp(2rem,4vw,2.5rem)] font-[family-name:var(--font-serif)] font-light text-accent leading-none">
-                      {study.metric}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-light">{study.metricLabel}</p>
-                  </div>
-                </div>
-              </StaggerChild>
-            ))}
-          </StaggerReveal>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Reveal>
+              <div className="border border-border rounded-2xl p-8 h-full">
+                <h3 className="text-lg font-semibold tracking-tight text-foreground-strong mb-2">My real estate business</h3>
+                <p className="text-xs text-accent font-medium mb-4">William Raveis &middot; Boston area</p>
+                <p className="text-sm text-muted-light leading-relaxed">
+                  18 AI agents managing market analysis, property research, client
+                  communication, and daily operations across 30+ neighborhoods.
+                  Built it because I needed it. Still runs every day.
+                </p>
+              </div>
+            </Reveal>
+            <Reveal delay={0.1}>
+              <div className="border border-border rounded-2xl p-8 h-full">
+                <h3 className="text-lg font-semibold tracking-tight text-foreground-strong mb-2">This website</h3>
+                <p className="text-xs text-accent font-medium mb-4">askzev.ai &middot; live right now</p>
+                <p className="text-sm text-muted-light leading-relaxed">
+                  The discovery pipeline, content engine, and operations dashboard
+                  all run on the same multi-agent framework. 11 agents, 22
+                  communication paths, running in production right now.
+                </p>
+              </div>
+            </Reveal>
+          </div>
 
           <Reveal>
             <div className="mt-12">
               <Link href="/work" className="inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover transition-colors duration-300">
-                See all case studies
+                See the full story
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                 </svg>
@@ -286,37 +271,35 @@ export default function Home() {
               Frequently asked questions
             </p>
             <h2 className="font-[family-name:var(--font-serif)] text-[clamp(2rem,5vw,3rem)] leading-[1.1] tracking-tight max-w-2xl mb-16">
-              Questions we hear from
-              <br />
-              <span className="italic text-accent">every new client.</span>
+              Questions I hear most.
             </h2>
           </Reveal>
 
           <StaggerReveal className="max-w-3xl space-y-0 divide-y divide-border">
             {[
               {
-                q: 'How much does AI consulting cost?',
-                a: 'Our engagements start at $2,500 for a 2-3 week AI readiness assessment. Build projects typically range from $5,000-$25,000 depending on scope. Ongoing optimization starts at $5,000/month. Every engagement begins with a free discovery conversation so you know exactly what you\'re investing in before committing.',
+                q: 'I\'m not a business. Can this help me?',
+                a: 'Yes. I work with individuals, families, freelancers, students — anyone who has something in their life that repeats itself and shouldn\'t have to. Organizing a household, managing a side project, learning something faster, automating the tedious parts of a hobby. If it\'s a pattern, there\'s probably a system for it.',
               },
               {
-                q: 'What does an AI consultant actually do?',
-                a: 'We build and deploy production AI systems — not strategy decks. That means identifying high-leverage automation opportunities, designing multi-agent architectures, building the software, integrating it into your operations, and ensuring it delivers measurable ROI. You get working software, not a PowerPoint.',
+                q: 'What kind of things can you build?',
+                a: 'Custom apps, automated workflows, dashboards, research tools, content systems, personal assistants — anything where AI can do real work instead of just generating text. The range goes from a simple tracking tool ($1,000) to a full multi-agent system for a business ($15K+). It depends on what you need.',
               },
               {
-                q: 'How long does AI implementation take?',
-                a: 'An AI readiness assessment takes 2-3 weeks. Building and deploying a production AI system typically takes 4-12 weeks depending on complexity. Most clients see their first measurable results within 6 weeks of starting a build engagement.',
+                q: 'What makes this different from just using ChatGPT?',
+                a: 'ChatGPT is a general tool. What I build are systems designed for your specific situation — they connect to your data, run on their own schedule, and do actual work without you having to prompt them every time. The difference is between a search engine and an assistant who already knows your situation.',
               },
               {
-                q: 'Do I need a technical team to work with you?',
-                a: 'No. We handle the entire technical build — architecture, development, deployment, and monitoring. Your team provides business context and feedback. We deploy on managed infrastructure (Supabase, Vercel) so there\'s nothing for your IT team to maintain.',
+                q: 'How much does this cost?',
+                a: 'The initial discovery conversation is free. Custom apps start at $1,000. Full AI system builds start at $15,000. Ongoing support starts at $2,500/month. Everything starts with a conversation so you know exactly what you\'re getting into before committing.',
               },
               {
-                q: 'What industries do you work with?',
-                a: 'We\'ve built AI systems for D2C brands, manufacturing, media companies, real estate, and professional services. The multi-agent architecture adapts to any domain — the coordination patterns are universal, while the agents are specialized for your industry.',
+                q: 'Do I need to be technical?',
+                a: 'Not at all. I handle the entire technical side — design, build, deployment, and maintenance. You provide context about your situation and feedback on what\'s working. No coding, no jargon, no IT team required.',
               },
               {
-                q: 'How is this different from hiring a big consulting firm?',
-                a: 'Big firms hand you a roadmap and bill $250K+ for it. Then you need to hire someone else to build the system. We design it, build it, deploy it, and prove it works — all in one engagement. You work directly with the person building your system, not a junior associate.',
+                q: 'How long does it take?',
+                a: 'A simple custom app can be done in 1-2 weeks. A full AI system build typically takes 4-8 weeks depending on scope. You\'ll see the first working version within the first week of a build engagement — not a mockup, working software.',
               },
             ].map((faq) => (
               <StaggerChild key={faq.q}>
