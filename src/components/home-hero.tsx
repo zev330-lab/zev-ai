@@ -28,9 +28,8 @@ export function HomeHero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
           >
-            <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.5rem,6vw,5.5rem)] leading-[1.05] tracking-tight font-light">
-              AI systems that
-              <br />
+            <h1 className="font-[family-name:var(--font-serif)] text-[clamp(2.75rem,7vw,5.5rem)] leading-[1.05] tracking-tight font-light">
+              AI systems that{' '}
               <span className="italic text-accent">actually work.</span>
             </h1>
           </motion.div>
