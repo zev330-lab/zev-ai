@@ -3,8 +3,8 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 import { isValidSession } from '@/lib/auth';
 
 // POST /api/cain/push-task
-// Inserts a new task into cain_tasks. Authenticated via:
-//   - x-api-key header matching CAIN_API_KEY env var (for programmatic use by Cain)
+// Cain or Abel can push tasks to each other. Authenticated via:
+//   - x-api-key header matching CAIN_API_KEY env var (for programmatic use)
 //   - admin session cookie (for manual testing)
 
 function isValidApiKey(req: NextRequest): boolean {
@@ -30,11 +30,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { title, context, priority, actions } = body as {
+  const { title, context, priority, actions, created_by, assigned_to } = body as {
     title?: string;
     context?: string;
     priority?: string;
     actions?: unknown[];
+    created_by?: string;
+    assigned_to?: string;
   };
 
   if (!title || typeof title !== 'string') {
@@ -43,6 +45,10 @@ export async function POST(req: NextRequest) {
 
   const validPriorities = ['urgent', 'today', 'week', 'backlog'];
   const taskPriority = priority && validPriorities.includes(priority) ? priority : 'today';
+
+  const validAgents = ['cain', 'abel', 'zev'];
+  const creator = created_by && validAgents.includes(created_by) ? created_by : 'cain';
+  const assignee = assigned_to && validAgents.includes(assigned_to) ? assigned_to : 'zev';
 
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
@@ -53,6 +59,8 @@ export async function POST(req: NextRequest) {
       priority: taskPriority,
       actions: Array.isArray(actions) ? actions : [],
       status: 'open',
+      created_by: creator,
+      assigned_to: assignee,
     })
     .select()
     .single();
@@ -60,6 +68,12 @@ export async function POST(req: NextRequest) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  // Log the task creation
+  await supabase.from('cain_log').insert({
+    entry: `${creator} pushed task to ${assignee}: ${title.trim()}`,
+    created_by: creator,
+  });
 
   return NextResponse.json(data, { status: 201 });
 }

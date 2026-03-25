@@ -3,13 +3,16 @@
 // ─── Cain Dashboard (client component) ────────────────────────────────────────
 // Receives server-fetched tasks + log. Handles optimistic mark-done via
 // PATCH /api/cain/tasks which persists to Supabase (survives refresh).
+// Supabase Realtime subscription for live updates when agents push tasks.
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { createClient, RealtimeChannel } from '@supabase/supabase-js';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type Priority = 'urgent' | 'today' | 'week' | 'backlog';
+export type TaskStatus = 'open' | 'in_progress' | 'done' | 'failed';
 
 export interface EmailAction  { type: 'email';  to: string; subject: string; body: string }
 export interface SMSAction    { type: 'sms';    body: string; phoneNumber?: string }
@@ -26,17 +29,27 @@ export interface DBTask {
   title: string;
   context: string | null;
   priority: Priority;
-  status: 'open' | 'done';
+  status: TaskStatus;
+  assigned_to: string;
+  created_by: string;
   actions: TaskAction[];
   created_at: string;
   completed_at: string | null;
+  completion_notes: string | null;
 }
 
 export interface DBLog {
   id: string;
   entry: string;
+  created_by: string;
   created_at: string;
 }
+
+// ─── Supabase client for Realtime ────────────────────────────────────────────
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // ─── Priority config ──────────────────────────────────────────────────────────
 
@@ -45,6 +58,12 @@ const PRIORITY_CONFIG = {
   today:   { emoji: '🟡', label: 'Today',     color: 'text-amber-400', border: 'border-amber-500/30',  bg: 'bg-amber-500/5' },
   week:    { emoji: '🔵', label: 'This Week', color: 'text-blue-400',  border: 'border-blue-500/30',   bg: 'bg-blue-500/5' },
   backlog: { emoji: '⚪', label: 'Backlog',   color: 'text-zinc-400',  border: 'border-[var(--color-admin-border)]', bg: 'bg-[var(--color-admin-surface)]' },
+};
+
+const AGENT_COLORS: Record<string, string> = {
+  cain: 'text-orange-400',
+  abel: 'text-blue-400',
+  zev: 'text-purple-400',
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -56,6 +75,12 @@ function timeAgo(iso: string): string {
   if (sec < 86400) return `${Math.floor(sec / 3600)}h ago`;
   const d = Math.floor(sec / 86400);
   return d === 1 ? '1 day ago' : `${d} days ago`;
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+  });
 }
 
 // ─── Copy Button ──────────────────────────────────────────────────────────────
@@ -87,7 +112,7 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
           : 'bg-[var(--color-admin-surface)] text-[var(--color-foreground-strong)] border border-[var(--color-admin-border)] hover:border-[var(--color-accent)]/40'
       }`}
     >
-      {copied ? '✓ Copied!' : `📋 ${label}`}
+      {copied ? '✓ Copied!' : label ? `📋 ${label}` : '📋'}
     </button>
   );
 }
@@ -262,13 +287,27 @@ function TaskCard({
             <span className={`text-[10px] font-bold uppercase tracking-widest ${cfg.color}`}>
               {cfg.emoji} {cfg.label}
             </span>
-            <span className="text-[10px] text-[var(--color-muted)]">· {timeAgo(task.created_at)}</span>
+            <span className={`text-[10px] ${AGENT_COLORS[task.created_by] || 'text-zinc-400'}`}>
+              by {task.created_by}
+            </span>
+            <span className="text-[10px] text-[var(--color-muted)]">
+              → {task.assigned_to}
+            </span>
+            <span className="text-[10px] text-[var(--color-muted)]">
+              {timeAgo(task.created_at)}
+            </span>
           </div>
           <h3 className={`text-sm font-semibold leading-snug ${done ? 'line-through text-[var(--color-muted)]' : 'text-[var(--color-foreground-strong)]'}`}>
             {task.title}
           </h3>
           {task.context && (
             <p className="text-xs text-[var(--color-muted)] mt-1 leading-relaxed">{task.context}</p>
+          )}
+          {done && task.completed_at && (
+            <p className="text-[10px] text-emerald-400/70 mt-1">
+              Completed {formatDate(task.completed_at)}
+              {task.completion_notes && ` — ${task.completion_notes}`}
+            </p>
           )}
         </div>
         <button
@@ -307,17 +346,74 @@ function SectionHeader({ emoji, label, count, color }: { emoji: string; label: s
   );
 }
 
+// ─── Filter Tabs ─────────────────────────────────────────────────────────────
+
+function FilterTabs({ active, onChange }: { active: string; onChange: (v: string) => void }) {
+  const tabs = [
+    { value: 'open', label: 'Open' },
+    { value: 'done', label: 'Done' },
+    { value: 'all', label: 'All' },
+  ];
+  return (
+    <div className="flex gap-1 bg-[var(--color-admin-surface)] rounded-lg p-0.5 border border-[var(--color-admin-border)]">
+      {tabs.map(t => (
+        <button
+          key={t.value}
+          onClick={() => onChange(t.value)}
+          className={`px-3 py-1.5 text-[11px] font-semibold rounded-md transition-colors cursor-pointer ${
+            active === t.value
+              ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)]'
+              : 'text-[var(--color-muted)] hover:text-[var(--color-foreground-strong)]'
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
-export default function CainDashboard({ tasks, log }: { tasks: DBTask[]; log: DBLog[] }) {
-  // Initialize status map from DB — this makes mark-done persist across refresh
-  const [statuses, setStatuses] = useState<Record<string, 'open' | 'done'>>(
-    () => Object.fromEntries(tasks.map(t => [t.id, t.status]))
+export default function CainDashboard({ tasks: initialTasks, log: initialLog }: { tasks: DBTask[]; log: DBLog[] }) {
+  const [tasks, setTasks] = useState(initialTasks);
+  const [log, setLog] = useState(initialLog);
+  const [statuses, setStatuses] = useState<Record<string, TaskStatus>>(
+    () => Object.fromEntries(initialTasks.map(t => [t.id, t.status]))
   );
+  const [filter, setFilter] = useState('open');
+  const channelRef = useRef<RealtimeChannel | null>(null);
+
+  // Realtime subscription — refetch on any change from agents
+  useEffect(() => {
+    const channel = supabase
+      .channel('cain-dashboard')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cain_tasks' }, async () => {
+        const res = await fetch('/api/admin/cain?status=all');
+        if (res.ok) {
+          const data = await res.json();
+          setTasks(data);
+          setStatuses(Object.fromEntries(data.map((t: DBTask) => [t.id, t.status])));
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cain_log' }, async () => {
+        const res = await fetch('/api/admin/cain?view=log');
+        if (res.ok) setLog(await res.json());
+      })
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
+  }, []);
 
   const handleToggle = useCallback(async (id: string) => {
     const current = statuses[id] ?? 'open';
-    const next: 'open' | 'done' = current === 'done' ? 'open' : 'done';
+    const next: TaskStatus = current === 'done' ? 'open' : 'done';
 
     // Optimistic update
     setStatuses(prev => ({ ...prev, [id]: next }));
@@ -335,13 +431,22 @@ export default function CainDashboard({ tasks, log }: { tasks: DBTask[]; log: DB
     }
   }, [statuses]);
 
-  const byPriority = (p: Priority) => tasks.filter(t => t.priority === p);
+  // Filter tasks
+  const filtered = tasks.filter(t => {
+    const s = statuses[t.id] ?? t.status;
+    if (filter === 'open') return s === 'open' || s === 'in_progress';
+    if (filter === 'done') return s === 'done';
+    return true;
+  });
+
+  const byPriority = (p: Priority) => filtered.filter(t => t.priority === p);
   const urgent  = byPriority('urgent');
   const today   = byPriority('today');
   const week    = byPriority('week');
   const backlog = byPriority('backlog');
 
-  const openCount = tasks.filter(t => (statuses[t.id] ?? t.status) === 'open').length;
+  const openCount = tasks.filter(t => (statuses[t.id] ?? t.status) === 'open' || (statuses[t.id] ?? t.status) === 'in_progress').length;
+  const doneCount = tasks.filter(t => (statuses[t.id] ?? t.status) === 'done').length;
 
   return (
     <div className="h-full overflow-y-auto flex flex-col">
@@ -352,43 +457,43 @@ export default function CainDashboard({ tasks, log }: { tasks: DBTask[]; log: DB
           <div className="flex items-center gap-2.5">
             <span className="text-xl">🗡️</span>
             <div>
-              <h1 className="text-sm font-bold text-[var(--color-foreground-strong)]">Cain</h1>
+              <h1 className="text-sm font-bold text-[var(--color-foreground-strong)]">Cain + Abel</h1>
               <p className="text-[11px] text-[var(--color-muted)]">
                 {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-[11px] flex-wrap justify-end">
-            <span className="text-red-400 font-semibold">{urgent.filter(t => statuses[t.id] === 'open').length} urgent</span>
-            <span className="text-[var(--color-muted)]">·</span>
-            <span className="text-amber-400 font-semibold">{today.filter(t => statuses[t.id] === 'open').length} today</span>
-            <span className="text-[var(--color-muted)]">·</span>
-            <span className="text-blue-400 font-semibold">{week.filter(t => statuses[t.id] === 'open').length} this week</span>
-            <span className="text-[var(--color-muted)]">·</span>
-            <span className="text-zinc-400">{backlog.filter(t => statuses[t.id] === 'open').length} backlog</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-[11px]">
+              <span className="text-emerald-400 font-semibold">{doneCount} done</span>
+              <span className="text-[var(--color-muted)]">·</span>
+              <span className="text-amber-400 font-semibold">{openCount} open</span>
+            </div>
+            <FilterTabs active={filter} onChange={setFilter} />
           </div>
         </div>
       </div>
 
-      <div className="px-4 py-6 max-w-2xl mx-auto space-y-10 pb-16">
+      <div className="px-4 py-6 max-w-2xl mx-auto w-full space-y-10 pb-16">
 
-        {/* ── FOR YOU ── */}
+        {/* ── TASKS ── */}
         <section>
           <h2 className="text-[11px] font-bold uppercase tracking-widest text-[var(--color-muted)] mb-5">
-            For You · {openCount} open
+            Tasks · {filtered.length} items
           </h2>
+
+          {filtered.length === 0 && (
+            <p className="text-sm text-[var(--color-muted)] text-center py-12">
+              {filter === 'done' ? 'Nothing completed yet.' : 'All clear.'}
+            </p>
+          )}
 
           {urgent.length > 0 && (
             <div className="mb-6">
-              <SectionHeader emoji="🔴" label="Urgent" count={urgent.filter(t => statuses[t.id] === 'open').length} color="text-red-400" />
+              <SectionHeader emoji="🔴" label="Urgent" count={urgent.length} color="text-red-400" />
               <div className="space-y-3">
                 {urgent.map(task => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    done={statuses[task.id] === 'done'}
-                    onToggle={handleToggle}
-                  />
+                  <TaskCard key={task.id} task={task} done={statuses[task.id] === 'done'} onToggle={handleToggle} />
                 ))}
               </div>
             </div>
@@ -396,15 +501,10 @@ export default function CainDashboard({ tasks, log }: { tasks: DBTask[]; log: DB
 
           {today.length > 0 && (
             <div className="mb-6">
-              <SectionHeader emoji="🟡" label="Today" count={today.filter(t => statuses[t.id] === 'open').length} color="text-amber-400" />
+              <SectionHeader emoji="🟡" label="Today" count={today.length} color="text-amber-400" />
               <div className="space-y-3">
                 {today.map(task => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    done={statuses[task.id] === 'done'}
-                    onToggle={handleToggle}
-                  />
+                  <TaskCard key={task.id} task={task} done={statuses[task.id] === 'done'} onToggle={handleToggle} />
                 ))}
               </div>
             </div>
@@ -412,15 +512,10 @@ export default function CainDashboard({ tasks, log }: { tasks: DBTask[]; log: DB
 
           {week.length > 0 && (
             <div className="mb-6">
-              <SectionHeader emoji="🔵" label="This Week" count={week.filter(t => statuses[t.id] === 'open').length} color="text-blue-400" />
+              <SectionHeader emoji="🔵" label="This Week" count={week.length} color="text-blue-400" />
               <div className="space-y-3">
                 {week.map(task => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    done={statuses[task.id] === 'done'}
-                    onToggle={handleToggle}
-                  />
+                  <TaskCard key={task.id} task={task} done={statuses[task.id] === 'done'} onToggle={handleToggle} />
                 ))}
               </div>
             </div>
@@ -428,39 +523,36 @@ export default function CainDashboard({ tasks, log }: { tasks: DBTask[]; log: DB
 
           {backlog.length > 0 && (
             <div>
-              <SectionHeader emoji="⚪" label="Backlog / Discuss" count={backlog.filter(t => statuses[t.id] === 'open').length} color="text-zinc-400" />
+              <SectionHeader emoji="⚪" label="Backlog / Discuss" count={backlog.length} color="text-zinc-400" />
               <div className="space-y-3">
                 {backlog.map(task => (
-                  <TaskCard
-                    key={task.id}
-                    task={task}
-                    done={statuses[task.id] === 'done'}
-                    onToggle={handleToggle}
-                  />
+                  <TaskCard key={task.id} task={task} done={statuses[task.id] === 'done'} onToggle={handleToggle} />
                 ))}
               </div>
             </div>
           )}
-
-          {tasks.length === 0 && (
-            <p className="text-sm text-[var(--color-muted)] text-center py-12">No tasks yet. Push one via POST /api/cain/push-task.</p>
-          )}
         </section>
 
-        {/* ── WHAT CAIN DID ── */}
+        {/* ── ACTIVITY LOG ── */}
         {log.length > 0 && (
           <section>
             <h2 className="text-[11px] font-bold uppercase tracking-widest text-[var(--color-muted)] mb-4">
-              What Cain Built · {log.length} shipped
+              Activity Log · {log.length} entries
             </h2>
             <div className="border border-[var(--color-admin-border)] rounded-xl overflow-hidden">
-              {log.map((item) => (
+              {log.map((entry) => (
                 <div
-                  key={item.id}
+                  key={entry.id}
                   className="flex items-center gap-3 px-4 py-3 border-b border-[var(--color-admin-border)] last:border-b-0 hover:bg-[var(--color-admin-surface)] transition-colors"
                 >
                   <span className="text-emerald-400 text-sm shrink-0">✓</span>
-                  <span className="text-sm text-[var(--color-foreground-strong)]">{item.entry}</span>
+                  <span className="text-sm text-[var(--color-foreground-strong)] flex-1">{entry.entry}</span>
+                  <span className={`text-[10px] ${AGENT_COLORS[entry.created_by] || 'text-zinc-400'} shrink-0`}>
+                    {entry.created_by}
+                  </span>
+                  <span className="text-[10px] text-[var(--color-muted)] shrink-0">
+                    {timeAgo(entry.created_at)}
+                  </span>
                 </div>
               ))}
             </div>

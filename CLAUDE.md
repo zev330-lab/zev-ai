@@ -119,7 +119,7 @@ Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CT
 - `/tola` — Redirects to /approach
 
 ### Admin (11) — not in nav, noindex, dark theme operations center
-Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Family > Knowledge > Agents > Contacts
+Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Family > Knowledge > Agents > Contacts > Cain
 
 - `/admin/tola` — TOLA Operating System: 3 tabs (System/Workflows/Costs). System tab: React Flow 11-node graph with 22 paths, real-time agent health, MiniMap, Controls, agent panels with triads + communication directions, fullscreen/kiosk mode (F11). Workflows tab: 4 visual pipeline flows (Assessment, Content, Social, Health) with agent chains, triads, and pipeline replay animation (select a completed discovery, watch it animate step-by-step). Costs tab: per-agent token usage table, live + estimated cost breakdown.
 - `/admin` — Operations Center: morning briefing card, 5 clickable stat cards (discoveries, agents, pipeline time, system cost, alerts), cross-module stats with links, cost control toggle with actual spend, pipeline stage breakdown, cost breakdown pie chart (Recharts), system health score ring (0-100), activity feed, quick navigation links.
@@ -131,6 +131,7 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `/admin/knowledge` — Knowledge Base (Oracle sub-agent): prominent search bar, source-categorized entries (Meeting/Voice Memo/Article/Insight/Lesson/Discovery), quick capture, "Sync from Discoveries" + "Sync from Blog" auto-ingestion, pgvector similarity search
 - `/admin/agents` — Agent leaderboard ("Most Active Today" MVP + ranked 7-day activity), agent card grid with stats, Tree of Life diagram, activity feed
 - `/admin/contacts` — Contact list with status badges, search, detail slide-out with Gmail deep links, Google company search, linked discovery indicator, "Prep for Meeting" AI briefing generator, "Compose Email" and "Schedule Meeting" quick action buttons
+- `/admin/cain` — Cain/Abel shared task system: tasks from Supabase `cain_tasks` table, persistent mark-done, filter tabs (Open/Done/All), created_by/assigned_to attribution, timestamps, activity log from `cain_log`, Supabase Realtime subscription for live updates when agents push tasks
 - `/admin/login` — Password auth
 
 ### Admin Shell Features
@@ -175,6 +176,9 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `GET|POST|PATCH /api/admin/finance` — Finance metrics, invoice CRUD, monthly metrics (_type validated: monthly_metric)
 - `GET|POST|PATCH|DELETE /api/admin/family` — Family tasks/events/notes CRUD (_type validated: task|event|note|member)
 - `GET|POST|PATCH|DELETE /api/admin/knowledge` — Knowledge entries CRUD, sync_discoveries, sync_blog actions
+- `GET|POST|PATCH /api/admin/cain` — Cain/Abel task dashboard: GET tasks/log, POST create task/log, PATCH update task status
+- `POST /api/cain/push-task` — Agent-to-agent task creation (Cain/Abel push tasks to each other, auth: Bearer service_role_key)
+- `POST /api/cain/complete-task` — Agent-to-agent task completion (auth: Bearer service_role_key)
 
 ## Database (Supabase)
 
@@ -201,6 +205,8 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - **family_events** — id, title, description, date, time_start, time_end, family_member_ids (uuid[]), location, reminder_sent
 - **family_notes** — id, content, context, tags (text[])
 - **knowledge_entries** — id, title, content, source (meeting/voice_memo/article/insight/lesson/discovery), source_ref, tags (text[]), embedding (vector(1536) via pgvector), created_at, updated_at
+- **cain_tasks** — id (UUID), title, context, priority (urgent/today/week/backlog), status (open/in_progress/done/failed), assigned_to (cain/abel/zev), created_by (cain/abel/zev), actions (JSONB), created_at, completed_at, completion_notes. Shared task system between Cain and Abel agents. Realtime enabled.
+- **cain_log** — id (UUID), entry, created_by, created_at. Activity log for Cain/Abel work. Realtime enabled.
 
 ### Migrations
 - `001_tola_runtime.sql` — Agent tables, seed data, RLS, Realtime
@@ -221,6 +227,7 @@ Nav order: TOLA > Dashboard > Discoveries > Content > Projects > Finance > Famil
 - `016_social_distribution.sql` — Publishing columns on social_queue, credentials on social_accounts, tola_config table, content_analytics table, distributor pg_cron
 - `017_reduce_cron_frequency.sql` — Scale back all agent cron schedules for cost optimization (Nexus/Guardian 30min, Crown 2h, Prism 6h, Catalyst 4h, Gateway 6h, Foundation 12h, pipeline pollers 5min)
 - `022_shared_context_pipeline.sql` — tola_shared_context table (22-path agent communication backbone), pipeline_track/report_data/quality columns on discoveries, nexus_route() SQL function for shared_context routing, updated advance_pipeline() with new statuses (reporting, revising, delivering)
+- `024_cain_abel_tasks.sql` — cain_tasks + cain_log tables for Cain/Abel shared task system, RLS (service_role full, anon read for Realtime), Realtime enabled, seeded with existing action items and work log
 
 ### Operations SOP
 Full Standard Operating Procedures document at `src/docs/OPERATIONS-SOP.md` covering: daily ops checklist, content workflow, social media, discovery pipeline, proposal workflow, family hub, knowledge base, project management, invoicing, troubleshooting, and monthly review.

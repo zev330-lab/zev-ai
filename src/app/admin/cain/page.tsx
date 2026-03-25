@@ -1,7 +1,7 @@
 // ─── /admin/cain ─────────────────────────────────────────────────────────────
 // Server component: fetches tasks + log from Supabase, injects secrets from
 // env vars (Buffer password), then hands off to the CainDashboard client
-// component for all interactive UI.
+// component for all interactive UI + Realtime subscription.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { getSupabaseAdmin } from '@/lib/supabase';
