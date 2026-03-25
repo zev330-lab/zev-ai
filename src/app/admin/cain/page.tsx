@@ -46,15 +46,11 @@ With your laser cleaning launch coming up, timing matters. Happy to jump on a qu
 — Zev
 askzev.ai | hello@askzev.ai`;
 
-const ZION_TEXT = `Hey Zion — been heads down on some new work and wanted to circle back. Rebuilt your proposal with updated pricing and also put together something I think you're going to like.
+const ZION_TEXT = `Put together something I think you're going to want to see. Laid out the full vision for what we talked about — the platform, the configurator, all of it.
 
-Two links for you:
+https://bay-state-platform.vercel.app
 
-Updated proposal: https://zion-v2-deploy.vercel.app
-
-And a working prototype of that customer decision tool we talked about: https://bay-state-decision-tool.vercel.app
-
-Take a look and let me know what you think. Happy to jump on a call this week.`;
+Take a look and let me know when you're free to connect.`;
 
 const LISA_TEXT = `Hey Lisa — just wanted to check in and see if you'd had a chance to look at the proposal. No rush at all, I know you're managing a lot right now.
 
@@ -119,7 +115,7 @@ const ACTION_ITEMS: ActionCard[] = [
     id: 'zion-text',
     priority: 'urgent',
     title: 'Text Zion',
-    context: "Bay State — rebuilt proposal + decision tool prototype are ready. He's been waiting. Include both links.",
+    context: "Bay State — full digital platform presentation is ready. This is the new pitch: configurator, lead gen, full platform. New link replaces the old proposal.",
     actions: [
       {
         type: 'sms',
@@ -128,8 +124,7 @@ const ACTION_ITEMS: ActionCard[] = [
       {
         type: 'links',
         links: [
-          { url: 'https://zion-v2-deploy.vercel.app', label: 'Proposal →' },
-          { url: 'https://bay-state-decision-tool.vercel.app', label: 'Decision Tool →' },
+          { url: 'https://bay-state-platform.vercel.app', label: 'Platform Presentation →' },
         ],
       },
     ],
