@@ -328,7 +328,7 @@ export default function Home() {
                 <span className="italic text-accent">That&apos;s exactly who it&apos;s for.</span>
               </h2>
               <p className="text-muted-light text-lg leading-relaxed mb-10 max-w-xl">
-                Start with a free discovery — tell me what&apos;s going on, and I&apos;ll give
+                Start with a discovery — tell me what&apos;s going on, and I&apos;ll give
                 you an honest read on where AI could actually help. No commitment,
                 no pitch. If there&apos;s nothing to build, I&apos;ll tell you that too.
               </p>
@@ -337,7 +337,7 @@ export default function Home() {
                   href="/discover"
                   className="inline-flex items-center gap-3 bg-accent text-background px-7 py-3.5 rounded-full text-sm font-medium tracking-wide transition-all duration-300 hover:bg-accent-hover hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  Start a free discovery
+                  Start a discovery
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3" />
                   </svg>

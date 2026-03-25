@@ -296,7 +296,7 @@ export default function ServicesPage() {
             {[
               { q: 'Can I just get the free summary and stop there?', a: 'Absolutely. The free summary is designed to stand on its own. You get an honest take on where AI could help, whether you work with me or not. No follow-up pressure.' },
               { q: 'I\'m not a business — just a person with an idea for an app. Is that okay?', a: 'More than okay. Custom Apps start at $1,000 and are designed for exactly this — personal tools, family organizers, hobby projects, learning aids. You don\'t need a company to have a good use case.' },
-              { q: 'What if my project is really small?', a: 'Custom Apps start at $1,000 for simple utilities. If you just want to talk through whether AI could help your situation, the discovery conversation is free. Start there and we\'ll figure out the right scope together.' },
+              { q: 'What if my project is really small?', a: 'Custom Apps start at $1,000 for simple utilities. Send me a message and we\'ll figure out the right scope together.' },
               { q: 'Do you work with people outside the US?', a: 'Yes. All work is remote-first. I can accommodate anyone in compatible time zones.' },
               { q: 'How do you handle data security?', a: 'I deploy on enterprise-grade infrastructure (Supabase, Vercel) with row-level security and encrypted connections. Your data stays in your infrastructure — I never train AI models on client data.' },
               { q: 'What happens if it doesn\'t work?', a: 'Every Build engagement includes 30 days of post-launch support. If the system isn\'t doing what we agreed it would, I iterate until it does. I don\'t ship and disappear.' },

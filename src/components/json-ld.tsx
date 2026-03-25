@@ -53,7 +53,7 @@ export function JsonLd() {
         '@id': 'https://askzev.ai/#business',
         name: 'zev.ai — AI Implementation Consulting',
         provider: { '@id': 'https://askzev.ai/#organization' },
-        description: 'Custom AI systems built and deployed for businesses and individuals. From free discovery through full implementation and ongoing support.',
+        description: 'Custom AI systems built and deployed for businesses and individuals. From first conversation through full implementation and ongoing support.',
         url: 'https://askzev.ai',
         email: 'hello@askzev.ai',
         address: {
