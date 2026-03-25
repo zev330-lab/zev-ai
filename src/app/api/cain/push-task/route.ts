@@ -4,13 +4,21 @@ import { isValidSession } from '@/lib/auth';
 
 // POST /api/cain/push-task
 // Cain or Abel can push tasks to each other. Authenticated via:
-//   - x-api-key header matching CAIN_API_KEY env var (for programmatic use)
-//   - admin session cookie (for manual testing)
+//   - Authorization: Bearer <SUPABASE_SERVICE_ROLE_KEY> (agent-to-agent)
+//   - x-api-key: <CAIN_API_KEY> (convenience key)
+//   - admin session cookie (manual testing in browser)
 
 function isValidApiKey(req: NextRequest): boolean {
-  const apiKey = process.env.CAIN_API_KEY;
-  if (!apiKey) return false;
-  return req.headers.get('x-api-key') === apiKey;
+  // Bearer service_role_key
+  const auth = req.headers.get('authorization') ?? '';
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (serviceKey && auth === `Bearer ${serviceKey}`) return true;
+
+  // x-api-key
+  const cainKey = process.env.CAIN_API_KEY;
+  if (cainKey && req.headers.get('x-api-key') === cainKey) return true;
+
+  return false;
 }
 
 async function isAuthed(req: NextRequest): Promise<boolean> {

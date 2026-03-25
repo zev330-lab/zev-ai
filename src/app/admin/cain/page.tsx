@@ -22,7 +22,7 @@ export default async function CainPage() {
       .order('created_at', { ascending: false }),
   ]);
 
-  // Inject Buffer password from env var — keeps it out of source code + DB seed.
+  // Inject Buffer password from env var — keeps it out of source code + DB.
   // Set BUFFER_PASSWORD in Vercel environment variables.
   const bufferPassword = process.env.BUFFER_PASSWORD ?? '[set BUFFER_PASSWORD in Vercel env]';
 
@@ -31,12 +31,24 @@ export default async function CainPage() {
     actions: ((task.actions ?? []) as TaskAction[]).map(action => {
       if (action.type !== 'info') return action;
       const info = action as InfoAction;
-      return {
-        ...info,
-        rows: info.rows.map(row =>
-          row.value === '[BUFFER_PASSWORD]' ? { ...row, value: bufferPassword } : row
-        ),
-      };
+
+      // Replace [BUFFER_PASSWORD] placeholder if present
+      let rows = info.rows.map(row =>
+        row.value === '[BUFFER_PASSWORD]' ? { ...row, value: bufferPassword } : row
+      );
+
+      // Or inject password row after Login if it's absent (migration 024 omitted it)
+      const hasPassword = rows.some(r => r.label === 'Password');
+      const loginIdx = rows.findIndex(r => r.label === 'Login' && r.value === 'zev330@gmail.com');
+      if (!hasPassword && loginIdx !== -1) {
+        rows = [
+          ...rows.slice(0, loginIdx + 1),
+          { label: 'Password', value: bufferPassword, secret: true },
+          ...rows.slice(loginIdx + 1),
+        ];
+      }
+
+      return { ...info, rows };
     }),
   }));
 
