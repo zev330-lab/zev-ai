@@ -15,7 +15,7 @@ function isValidApiKey(req: NextRequest): boolean {
   if (serviceKey && auth === `Bearer ${serviceKey}`) return true;
 
   // x-api-key
-  const cainKey = process.env.CAIN_API_KEY;
+  const cainKey = process.env.CAIN_API_KEY?.trim();
   if (cainKey && req.headers.get('x-api-key') === cainKey) return true;
 
   return false;
