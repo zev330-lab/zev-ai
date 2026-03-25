@@ -162,7 +162,7 @@ export function HomeFaqSchema() {
         name: 'How much does this cost?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'The initial discovery conversation is free. Custom apps start at $1,000. Full AI system builds start at $15,000. Ongoing support starts at $2,500/month. Everything starts with a conversation so you know exactly what you are getting into.',
+          text: 'Custom apps start at $1,000. The Insight Report is $499 and gives you a full picture of what to build — that $499 gets credited if you move forward. Full AI system builds start at $15,000. Ongoing support starts at $2,500/month.',
         },
       },
       {
