@@ -1,7 +1,7 @@
 # zev.ai — AI Consulting Website + TOLA v3.0 Agent Framework
 
 ## Overview
-Flagship website for Zev Steinmetz's AI consulting practice + personal operating system. Outcome-forward public site (leads with client results, not architecture). TOLA framework powers the backend — 11 specialized agents, 9 coordination patterns, 22 structured communication paths. Architecture is discoverable via /approach but not the headline.
+Flagship website for Zev Steinmetz's AI consulting practice + personal operating system. Inclusive, honest public site — welcoming to businesses, freelancers, families, individuals. TOLA framework powers the backend — 11 specialized agents, 9 coordination patterns, 22 structured communication paths. Architecture is discoverable via /approach but not the headline.
 
 **Layout architecture:** Root layout uses `LayoutWrapper` client component that conditionally renders public Navbar/Footer only for non-admin routes. Admin routes get only AdminShell sidebar — no public nav/footer overlap.
 
@@ -105,16 +105,16 @@ Each stage updates `progress_pct` as it works:
 Home | Services | Our Approach | Work | About | Blog | [Start Your Discovery] CTA button
 
 ### Public (9)
-- `/` — Outcome-focused hero, pain point agitation (4 problems), services journey (Assess→Build→Optimize→Scale), social proof (ButcherBox/Blank Industries/Rosen Media Group examples), principles, CTA
-- `/services` — 4 tiers: each with Problem → What we do → What you get → Timeline → Price. No agent names. "Starting from" pricing.
+- `/` — "AI that actually works" hero, pain point agitation (4 problems), services journey (Discover→Plan→Build→Improve), "built for myself first" proof (own RE business + this website), principles, FAQ (inclusive — individuals welcome), CTA
+- `/services` — 6 tiers: Free Summary, Insight Report ($499), Strategy Session ($2,500), Build ($15K+), Ongoing Partnership ($2,500/mo), Custom Apps ($1K+). Each with Problem → What's involved → What you get → Timeline → Price. No agent names. Custom Apps elevated as personal/individual track.
 - `/approach` — Nature-inspired architecture: philosophy, Tree of Life diagram, 9 coordination patterns modeled on nature, 3-tier human oversight, build+runtime duality
-- `/work` — Case studies (Problem → Process → Payoff): Steinmetz RE (18 agents, 2000+ pages), Blank Industries (unified BI), KabbalahQ.ai (adaptive learning)
+- `/work` — Case studies (Problem → Process → Payoff): Steinmetz RE (18 agents, 2000+ pages), KabbalahQ.ai (adaptive learning). Only real projects — no fake client names.
 - `/about` — Zev's story: real estate → AI builder, William Raveis background, hands-on builder emphasis
 - `/blog` — Blog listing with category filtering (6 content pillars), card grid, dynamic from blog_posts table
 - `/blog/[slug]` — Dynamic post pages: ToC sidebar, author bio, related posts, JSON-LD BlogPosting + FAQPage schemas
 - `/blog/rss.xml` — RSS feed of published posts
 - `/contact` — Form → Supabase contacts
-- `/discover` — 12-step intake form → assessment pipeline (supports pipeline_track param)
+- `/discover` — Simple 4-field form (name, email, what's going on, promo code) → assessment pipeline (supports pipeline_track param)
 - `/discovery/[id]` — Personalized AI Insight Report page (public, noindex). Shows executive summary, key findings, opportunities with honest assessments, decision forks, next steps, CTA. Tracks views for engagement signals (Path 21). JSON-LD Report schema.
 - `/tola` — Redirects to /approach
 
@@ -402,6 +402,10 @@ Chat routes call Claude API directly. Set via `vercel env add ANTHROPIC_API_KEY`
 - **Easing:** [0.16, 1, 0.3, 1] throughout
 - **CRITICAL:** No Kabbalah/Hebrew references in public-facing code. Agents use secular names (Crown, Visionary, etc.)
 - **CRITICAL:** Public pages are outcome-forward. No agent names, geometry engine names, or technical architecture on homepage or services. Architecture details live on /approach only.
+- **CRITICAL:** No fake client names anywhere public-facing. Only reference real projects (Steinmetz RE, KabbalahQ.ai, askzev.ai itself).
+- **CRITICAL:** Use "your situation" not "your business" in public copy. Site is inclusive — individuals, families, freelancers welcome, not just businesses.
+- **CRITICAL:** Use "I" not "we" in public copy. This is one person's practice, not a firm.
+- **Copy tone:** Confident but understated. No puffery, no inflated stats, no claims that can't be backed up. Let the work speak.
 
 ## Deployment
 - **Repo:** github.com/zev330-lab/zev-ai
