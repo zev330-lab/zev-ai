@@ -193,7 +193,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Mobile bottom nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--color-admin-bg)] border-t border-[var(--color-admin-border)] flex justify-around py-2 px-1">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--color-admin-bg)] border-t border-[var(--color-admin-border)] flex overflow-x-auto py-2 px-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {nav.map((item) => {
           const active =
             item.href === '/admin'
@@ -203,7 +203,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-1 px-3 py-1 text-[10px] transition-colors ${
+              className={`flex flex-col items-center gap-1 px-3 py-1 text-[10px] transition-colors shrink-0 ${
                 active ? 'text-[var(--color-accent)]' : 'text-[var(--color-muted)]'
               }`}
             >

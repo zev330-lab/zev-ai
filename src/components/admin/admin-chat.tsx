@@ -138,7 +138,7 @@ export function AdminChat() {
       {/* Toggle button */}
       <button
         onClick={() => setOpen(!open)}
-        className={`fixed bottom-4 right-4 z-50 w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-200 ${
+        className={`fixed bottom-[68px] md:bottom-4 right-4 z-50 w-11 h-11 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-200 ${
           open
             ? 'bg-[var(--color-accent)] text-white'
             : 'bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] text-[var(--color-muted-light)] hover:text-[var(--color-accent)] hover:border-[var(--color-accent)]/30'
@@ -152,7 +152,7 @@ export function AdminChat() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-18 right-4 z-50 w-[440px] max-w-[calc(100vw-32px)] bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl shadow-2xl shadow-black/60 flex flex-col overflow-hidden" style={{ height: '600px', maxHeight: 'calc(100vh - 100px)' }}>
+        <div className="fixed bottom-[132px] md:bottom-18 right-4 z-50 w-[440px] max-w-[calc(100vw-32px)] bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)] rounded-xl shadow-2xl shadow-black/60 flex flex-col overflow-hidden" style={{ height: '600px', maxHeight: 'calc(100vh - 160px)' }}>
           {/* Header */}
           <div className="px-4 py-3 border-b border-[var(--color-admin-border)] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
