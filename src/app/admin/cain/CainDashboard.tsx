@@ -266,7 +266,7 @@ function ActionRenderer({ action }: { action: TaskAction }) {
   return null;
 }
 
-// ─── Task Card ────────────────────────────────────────────────────────────────
+// ─── Task Card (collapsible) ──────────────────────────────────────────────────
 
 function TaskCard({
   task,
@@ -277,12 +277,18 @@ function TaskCard({
   done: boolean;
   onToggle: (id: string) => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const cfg = PRIORITY_CONFIG[task.priority];
+  const hasContent = !done && (task.context || task.actions.length > 0);
 
   return (
-    <div className={`rounded-xl border p-4 transition-opacity ${cfg.border} ${cfg.bg} ${done ? 'opacity-40' : ''}`}>
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex-1">
+    <div className={`rounded-xl border transition-opacity ${cfg.border} ${cfg.bg} ${done ? 'opacity-40' : ''}`}>
+      {/* ── Header row — always visible, tappable to expand ── */}
+      <div
+        className={`flex items-start gap-3 p-4 ${hasContent ? 'cursor-pointer select-none' : ''}`}
+        onClick={() => hasContent && setExpanded(v => !v)}
+      >
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1 flex-wrap">
             <span className={`text-[10px] font-bold uppercase tracking-widest ${cfg.color}`}>
               {cfg.emoji} {cfg.label}
@@ -300,9 +306,6 @@ function TaskCard({
           <h3 className={`text-sm font-semibold leading-snug ${done ? 'line-through text-[var(--color-muted)]' : 'text-[var(--color-foreground-strong)]'}`}>
             {task.title}
           </h3>
-          {task.context && (
-            <p className="text-xs text-[var(--color-muted)] mt-1 leading-relaxed">{task.context}</p>
-          )}
           {done && task.completed_at && (
             <p className="text-[10px] text-emerald-400/70 mt-1">
               Completed {formatDate(task.completed_at)}
@@ -310,21 +313,35 @@ function TaskCard({
             </p>
           )}
         </div>
-        <button
-          onClick={() => onToggle(task.id)}
-          title={done ? 'Undo' : 'Mark done'}
-          className={`shrink-0 w-7 h-7 rounded-full border flex items-center justify-center text-xs transition-colors cursor-pointer ${
-            done
-              ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
-              : 'border-[var(--color-admin-border)] text-[var(--color-muted)] hover:border-emerald-500/40 hover:text-emerald-400'
-          }`}
-        >
-          {done ? '✓' : '○'}
-        </button>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Expand/collapse chevron */}
+          {hasContent && (
+            <span className={`text-[var(--color-muted)] text-xs transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          )}
+          {/* Mark done button — stop propagation so it doesn't toggle expand */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggle(task.id); }}
+            title={done ? 'Undo' : 'Mark done'}
+            className={`w-7 h-7 rounded-full border flex items-center justify-center text-xs transition-colors cursor-pointer ${
+              done
+                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+                : 'border-[var(--color-admin-border)] text-[var(--color-muted)] hover:border-emerald-500/40 hover:text-emerald-400'
+            }`}
+          >
+            {done ? '✓' : '○'}
+          </button>
+        </div>
       </div>
 
-      {!done && (
-        <div className="space-y-3">
+      {/* ── Expandable content ── */}
+      {expanded && hasContent && (
+        <div className="px-4 pb-4 border-t border-[var(--color-admin-border)]/50 pt-3 space-y-3">
+          {task.context && (
+            <p className="text-xs text-[var(--color-muted)] leading-relaxed">{task.context}</p>
+          )}
           {task.actions.map((action, i) => (
             <ActionRenderer key={i} action={action} />
           ))}
@@ -373,6 +390,33 @@ function FilterTabs({ active, onChange }: { active: string; onChange: (v: string
   );
 }
 
+// ─── Assignee Filter ──────────────────────────────────────────────────────────
+
+function AssigneeTabs({ active, onChange }: { active: string; onChange: (v: string) => void }) {
+  const tabs = [
+    { value: 'zev',  label: '👑 Mine' },
+    { value: 'abel', label: '⚡ Abel' },
+    { value: 'all',  label: 'All' },
+  ];
+  return (
+    <div className="flex gap-1 overflow-x-auto bg-[var(--color-admin-surface)] rounded-lg p-0.5 border border-[var(--color-admin-border)]" style={{ scrollbarWidth: 'none' }}>
+      {tabs.map(t => (
+        <button
+          key={t.value}
+          onClick={() => onChange(t.value)}
+          className={`px-3 py-1.5 text-[11px] font-semibold rounded-md transition-colors cursor-pointer whitespace-nowrap ${
+            active === t.value
+              ? 'bg-[var(--color-accent)]/20 text-[var(--color-accent)]'
+              : 'text-[var(--color-muted)] hover:text-[var(--color-foreground-strong)]'
+          }`}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
 export default function CainDashboard({ tasks: initialTasks, log: initialLog }: { tasks: DBTask[]; log: DBLog[] }) {
@@ -381,8 +425,29 @@ export default function CainDashboard({ tasks: initialTasks, log: initialLog }: 
   const [statuses, setStatuses] = useState<Record<string, TaskStatus>>(
     () => Object.fromEntries(initialTasks.map(t => [t.id, t.status]))
   );
-  const [filter, setFilter] = useState('open');
+  const [filter, setFilter]         = useState('open');
+  const [assignee, setAssignee]     = useState('zev');   // default: show Zev's tasks
+  const [refreshing, setRefreshing] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
+
+  // Manual refresh
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const [tasksRes, logRes] = await Promise.all([
+        fetch('/api/admin/cain?status=all'),
+        fetch('/api/admin/cain?view=log'),
+      ]);
+      if (tasksRes.ok) {
+        const data = await tasksRes.json();
+        setTasks(data);
+        setStatuses(Object.fromEntries(data.map((t: DBTask) => [t.id, t.status])));
+      }
+      if (logRes.ok) setLog(await logRes.json());
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
 
   // Realtime subscription — refetch on any change from agents
   useEffect(() => {
@@ -431,12 +496,14 @@ export default function CainDashboard({ tasks: initialTasks, log: initialLog }: 
     }
   }, [statuses]);
 
-  // Filter tasks
+  // Filter tasks by status + assignee
   const filtered = tasks.filter(t => {
     const s = statuses[t.id] ?? t.status;
-    if (filter === 'open') return s === 'open' || s === 'in_progress';
-    if (filter === 'done') return s === 'done';
-    return true;
+    const statusMatch = filter === 'open' ? (s === 'open' || s === 'in_progress')
+                      : filter === 'done' ? s === 'done'
+                      : true;
+    const assigneeMatch = assignee === 'all' ? true : t.assigned_to === assignee;
+    return statusMatch && assigneeMatch;
   });
 
   const byPriority = (p: Priority) => filtered.filter(t => t.priority === p);
@@ -445,30 +512,54 @@ export default function CainDashboard({ tasks: initialTasks, log: initialLog }: 
   const week    = byPriority('week');
   const backlog = byPriority('backlog');
 
-  const openCount = tasks.filter(t => (statuses[t.id] ?? t.status) === 'open' || (statuses[t.id] ?? t.status) === 'in_progress').length;
-  const doneCount = tasks.filter(t => (statuses[t.id] ?? t.status) === 'done').length;
+  const openCount = tasks.filter(t => {
+    const s = statuses[t.id] ?? t.status;
+    const assigneeMatch = assignee === 'all' ? true : t.assigned_to === assignee;
+    return (s === 'open' || s === 'in_progress') && assigneeMatch;
+  }).length;
+  const doneCount = tasks.filter(t => {
+    const s = statuses[t.id] ?? t.status;
+    const assigneeMatch = assignee === 'all' ? true : t.assigned_to === assignee;
+    return s === 'done' && assigneeMatch;
+  }).length;
 
   return (
     <div className="h-full overflow-y-auto flex flex-col">
 
       {/* ── Page header ── */}
-      <div className="sticky top-0 z-10 bg-[var(--color-admin-bg)]/95 backdrop-blur-sm border-b border-[var(--color-admin-border)] px-4 py-4">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-xl">🗡️</span>
-            <div>
-              <h1 className="text-sm font-bold text-[var(--color-foreground-strong)]">Cain + Abel</h1>
-              <p className="text-[11px] text-[var(--color-muted)]">
-                {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' })}
-              </p>
+      <div className="sticky top-0 z-10 bg-[var(--color-admin-bg)]/95 backdrop-blur-sm border-b border-[var(--color-admin-border)] px-4 py-3">
+        <div className="max-w-2xl mx-auto">
+          {/* Top row: title + counts + refresh */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xl">🗡️</span>
+              <div>
+                <h1 className="text-sm font-bold text-[var(--color-foreground-strong)]">Cain + Abel</h1>
+                <p className="text-[11px] text-[var(--color-muted)]">
+                  {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' })}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 text-[11px]">
+                <span className="text-emerald-400 font-semibold">{doneCount} done</span>
+                <span className="text-[var(--color-muted)]">·</span>
+                <span className="text-amber-400 font-semibold">{openCount} open</span>
+              </div>
+              {/* Refresh button */}
+              <button
+                onClick={handleRefresh}
+                disabled={refreshing}
+                title="Refresh tasks"
+                className="w-7 h-7 rounded-lg border border-[var(--color-admin-border)] flex items-center justify-center text-xs text-[var(--color-muted)] hover:text-[var(--color-foreground-strong)] hover:border-[var(--color-accent)]/40 transition-colors cursor-pointer disabled:opacity-40"
+              >
+                {refreshing ? '⟳' : '↺'}
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-[11px]">
-              <span className="text-emerald-400 font-semibold">{doneCount} done</span>
-              <span className="text-[var(--color-muted)]">·</span>
-              <span className="text-amber-400 font-semibold">{openCount} open</span>
-            </div>
+          {/* Bottom row: assignee + status filters */}
+          <div className="flex items-center gap-2">
+            <AssigneeTabs active={assignee} onChange={setAssignee} />
             <FilterTabs active={filter} onChange={setFilter} />
           </div>
         </div>
@@ -479,12 +570,12 @@ export default function CainDashboard({ tasks: initialTasks, log: initialLog }: 
         {/* ── TASKS ── */}
         <section>
           <h2 className="text-[11px] font-bold uppercase tracking-widest text-[var(--color-muted)] mb-5">
-            Tasks · {filtered.length} items
+            Tasks · {filtered.length} {assignee !== 'all' ? `(${assignee})` : ''}
           </h2>
 
           {filtered.length === 0 && (
             <p className="text-sm text-[var(--color-muted)] text-center py-12">
-              {filter === 'done' ? 'Nothing completed yet.' : 'All clear.'}
+              {filter === 'done' ? 'Nothing completed yet.' : 'All clear — nothing pending.'}
             </p>
           )}
 
