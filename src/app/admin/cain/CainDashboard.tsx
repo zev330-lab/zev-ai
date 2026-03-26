@@ -119,11 +119,40 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
 
 // ─── Action Renderer ──────────────────────────────────────────────────────────
 
-function ActionRenderer({ action }: { action: TaskAction }) {
+function ActionRenderer({ action, taskId }: { action: TaskAction; taskId?: string }) {
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
+  const [sendState, setSendState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+  const [sendError, setSendError] = useState('');
 
   if (action.type === 'email') {
     const mailto = `mailto:${action.to}?subject=${encodeURIComponent(action.subject)}&body=${encodeURIComponent(action.body)}`;
+
+    async function handleSendNow() {
+      if (sendState === 'sending' || sendState === 'sent') return;
+      setSendState('sending');
+      setSendError('');
+      try {
+        const res = await fetch('/api/cain/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: (action as EmailAction).to,
+            subject: (action as EmailAction).subject,
+            body: (action as EmailAction).body,
+            ...(taskId ? { task_id: taskId } : {}),
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({ error: 'Send failed' }));
+          throw new Error(data.error || 'Send failed');
+        }
+        setSendState('sent');
+      } catch (err) {
+        setSendState('error');
+        setSendError(err instanceof Error ? err.message : 'Send failed');
+      }
+    }
+
     return (
       <div className="flex flex-col gap-3">
         <div className="text-xs text-[var(--color-muted)] space-y-0.5">
@@ -134,13 +163,29 @@ function ActionRenderer({ action }: { action: TaskAction }) {
           {action.body}
         </pre>
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={handleSendNow}
+            disabled={sendState === 'sending' || sendState === 'sent'}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-opacity ${
+              sendState === 'sent'
+                ? 'bg-emerald-600 text-white cursor-default'
+                : sendState === 'error'
+                  ? 'bg-red-600 text-white hover:opacity-90'
+                  : 'bg-[var(--color-accent)] text-white hover:opacity-90'
+            } disabled:opacity-60`}
+          >
+            {sendState === 'sending' ? 'Sending...' : sendState === 'sent' ? '✓ Sent' : sendState === 'error' ? 'Retry Send' : 'Send Now'}
+          </button>
           <a
             href={mailto}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--color-accent)] text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+            className="inline-flex items-center gap-2 px-4 py-2.5 border border-[var(--color-admin-border)] text-[var(--color-muted-light)] rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
           >
-            ✉ Send Email
+            ✉ Open in Mail
           </a>
           <CopyButton text={action.body} label="Copy Body" />
+          {sendState === 'error' && sendError && (
+            <span className="text-xs text-red-400">{sendError}</span>
+          )}
         </div>
       </div>
     );
@@ -343,7 +388,7 @@ function TaskCard({
             <p className="text-xs text-[var(--color-muted)] leading-relaxed">{task.context}</p>
           )}
           {task.actions.map((action, i) => (
-            <ActionRenderer key={i} action={action} />
+            <ActionRenderer key={i} action={action} taskId={task.id} />
           ))}
         </div>
       )}
