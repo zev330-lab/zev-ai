@@ -53,7 +53,7 @@ export function ChatWidget() {
       {/* Floating button */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-[var(--color-accent)] text-white shadow-lg shadow-[var(--color-accent)]/25 hover:shadow-[var(--color-accent)]/40 transition-all duration-300 flex items-center justify-center cursor-pointer group"
+        className="fixed bottom-20 right-6 md:bottom-6 z-40 w-14 h-14 rounded-full bg-[var(--color-accent)] text-white shadow-lg shadow-[var(--color-accent)]/25 hover:shadow-[var(--color-accent)]/40 transition-all duration-300 flex items-center justify-center cursor-pointer group"
         aria-label={open ? 'Close chat' : 'Open chat'}
       >
         {open ? (
@@ -70,7 +70,7 @@ export function ChatWidget() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-40 w-[380px] max-w-[calc(100vw-48px)] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-2xl shadow-black/40 flex flex-col overflow-hidden" style={{ height: '500px', maxHeight: 'calc(100vh - 140px)' }}>
+        <div className="fixed bottom-[136px] md:bottom-24 right-6 z-40 w-[380px] max-w-[calc(100vw-48px)] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl shadow-2xl shadow-black/40 flex flex-col overflow-hidden" style={{ height: '500px', maxHeight: 'calc(100vh - 140px)' }}>
           {/* Header */}
           <div className="px-5 py-4 border-b border-[var(--color-border)] bg-[var(--color-background)] shrink-0">
             <div className="flex items-center gap-3">
