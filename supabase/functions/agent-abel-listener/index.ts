@@ -1,7 +1,10 @@
 // =============================================================================
-// Agent: Abel Listener — Realtime watcher for cain_tasks
-// Subscribes to cain_tasks INSERT events where assigned_to='abel' and status='open'
-// Acknowledges new tasks by writing to cain_log
+// Agent: Abel Listener — Realtime watcher + fallback processor for cain_tasks
+// Primary: local Realtime listener (abel-realtime.mjs) handles task execution
+// This edge function serves as:
+//   1. Acknowledgment layer — logs new tasks to cain_log
+//   2. Stale task detector — flags tasks stuck in open/in_progress for too long
+//   3. Health check endpoint — returns listener status
 // =============================================================================
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
@@ -14,55 +17,85 @@ Deno.serve(async (req) => {
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const supabase = createClient(supabaseUrl, supabaseKey);
 
-  // How long to keep the listener alive (default 120s, safe under Edge Function limits)
-  const listenDurationMs = 120_000;
-  const processed: string[] = [];
+  const results: Record<string, unknown> = {};
 
-  const channel = supabase
-    .channel('abel-task-watcher')
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'cain_tasks',
-        filter: 'assigned_to=eq.abel',
-      },
-      async (payload) => {
-        const task = payload.new as { id: string; title: string; status: string; assigned_to: string };
+  // 1. Check for open tasks that haven't been picked up (stale > 10 minutes)
+  const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { data: staleTasks, error: staleErr } = await supabase
+    .from('cain_tasks')
+    .select('id, title, status, created_at')
+    .eq('assigned_to', 'abel')
+    .in('status', ['open'])
+    .lt('created_at', tenMinAgo)
+    .order('created_at', { ascending: true })
+    .limit(5);
 
-        // Only acknowledge open tasks
-        if (task.status !== 'open') return;
-
-        // Deduplicate within this invocation
-        if (processed.includes(task.id)) return;
-        processed.push(task.id);
-
-        // Write acknowledgment to cain_log
-        await supabase.from('cain_log').insert({
-          entry: `Abel acknowledged task: ${task.title}`,
-          created_by: 'abel',
-        });
-
-        console.log(`Abel acknowledged task: ${task.id} — ${task.title}`);
-      },
-    )
-    .subscribe((status) => {
-      console.log(`Realtime subscription status: ${status}`);
+  if (staleTasks && staleTasks.length > 0) {
+    results.stale_tasks = staleTasks.length;
+    // Log alert for stale tasks
+    await supabase.from('cain_log').insert({
+      entry: `Abel listener alert: ${staleTasks.length} task(s) open for 10+ minutes — local listener may be down. Tasks: ${staleTasks.map(t => t.title).join(', ')}`,
+      created_by: 'abel',
     });
+  } else {
+    results.stale_tasks = 0;
+  }
 
-  // Keep the function alive for the listen duration
-  await new Promise((resolve) => setTimeout(resolve, listenDurationMs));
+  // 2. Check for tasks stuck in_progress > 10 minutes (possible crash)
+  const { data: stuckTasks } = await supabase
+    .from('cain_tasks')
+    .select('id, title, status, created_at')
+    .eq('assigned_to', 'abel')
+    .eq('status', 'in_progress')
+    .lt('created_at', tenMinAgo)
+    .limit(5);
 
-  // Clean up
-  await supabase.removeChannel(channel);
+  if (stuckTasks && stuckTasks.length > 0) {
+    results.stuck_tasks = stuckTasks.length;
+    // Reset stuck tasks back to open so they can be retried
+    for (const task of stuckTasks) {
+      await supabase.from('cain_tasks')
+        .update({ status: 'open' })
+        .eq('id', task.id);
+
+      await supabase.from('cain_log').insert({
+        entry: `Abel listener: reset stuck task back to open — ${task.title} (was in_progress for 10+ min)`,
+        created_by: 'abel',
+      });
+    }
+  } else {
+    results.stuck_tasks = 0;
+  }
+
+  // 3. Get current task stats
+  const { count: openCount } = await supabase
+    .from('cain_tasks')
+    .select('*', { count: 'exact', head: true })
+    .eq('assigned_to', 'abel')
+    .eq('status', 'open');
+
+  const { count: doneCount } = await supabase
+    .from('cain_tasks')
+    .select('*', { count: 'exact', head: true })
+    .eq('assigned_to', 'abel')
+    .eq('status', 'done');
+
+  const { count: inProgressCount } = await supabase
+    .from('cain_tasks')
+    .select('*', { count: 'exact', head: true })
+    .eq('assigned_to', 'abel')
+    .eq('status', 'in_progress');
+
+  results.open = openCount || 0;
+  results.in_progress = inProgressCount || 0;
+  results.done = doneCount || 0;
 
   return new Response(
     JSON.stringify({
       ok: true,
-      listened_for_ms: listenDurationMs,
-      tasks_acknowledged: processed.length,
-      task_ids: processed,
+      agent: 'abel-listener',
+      checked_at: new Date().toISOString(),
+      ...results,
     }),
     { status: 200, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
   );

@@ -366,6 +366,19 @@ export default function AdminContentPage() {
             <span className="text-[10px] text-[var(--color-muted)] ml-auto">
               {activeAccounts.length}/{accounts.length} connected
             </span>
+            {activeAccounts.length < accounts.length && (
+              <div className="flex gap-1 ml-2">
+                {accounts.filter(a => !a.is_active && (a.platform === 'linkedin' || a.platform === 'twitter')).map(a => (
+                  <a
+                    key={a.id}
+                    href={`/api/admin/social/connect/${a.platform}`}
+                    className="text-[10px] px-2 py-0.5 rounded border border-[var(--color-accent)] text-[var(--color-accent)] hover:bg-[var(--color-accent)] hover:text-white transition-colors"
+                  >
+                    Connect {a.platform === 'twitter' ? 'X' : 'LinkedIn'}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
