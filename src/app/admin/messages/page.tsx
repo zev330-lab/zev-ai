@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface OpusMessage {
   id: string;
@@ -49,6 +49,29 @@ export default function MessagesPage() {
   const [sendType, setSendType] = useState('directive');
   const [sendTo, setSendTo] = useState('cain');
   const [sending, setSending] = useState(false);
+  const [filterType, setFilterType] = useState<string | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const topRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to top on mount
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const hasActiveFilters = filterType !== null || filterStatus !== null || searchQuery !== '';
+
+  const filteredMessages = messages.filter(msg => {
+    if (filterType && msg.message_type !== filterType) return false;
+    if (filterStatus && msg.status !== filterStatus) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!msg.message.toLowerCase().includes(q) &&
+          !msg.from_agent.toLowerCase().includes(q) &&
+          !msg.to_agent.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -124,7 +147,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '64rem', margin: '0 auto' }}>
+    <div ref={topRef} style={{ padding: '2rem', maxWidth: '64rem', margin: '0 auto' }}>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f0f0f5', marginBottom: '1.5rem' }}>
         Messages
       </h1>
@@ -207,14 +230,92 @@ export default function MessagesPage() {
         </div>
       </div>
 
+      {/* Search & Filters */}
+      <div style={{ marginBottom: '1rem' }}>
+        <input
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder="Search messages..."
+          style={{
+            width: '100%',
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: '0.375rem',
+            color: '#f0f0f5',
+            padding: '0.5rem 0.75rem',
+            fontSize: '0.875rem',
+            marginBottom: '0.75rem',
+          }}
+        />
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <span style={{ color: '#6b7280', fontSize: '0.75rem', marginRight: '0.25rem' }}>Type:</span>
+          {Object.keys(TYPE_BADGE).map(type => (
+            <button
+              key={type}
+              onClick={() => setFilterType(filterType === type ? null : type)}
+              style={{
+                background: filterType === type ? TYPE_BADGE[type].bg : 'rgba(255,255,255,0.03)',
+                color: filterType === type ? TYPE_BADGE[type].text : '#6b7280',
+                border: `1px solid ${filterType === type ? TYPE_BADGE[type].text + '40' : 'rgba(255,255,255,0.08)'}`,
+                borderRadius: '9999px',
+                padding: '0.2rem 0.6rem',
+                fontSize: '0.7rem',
+                cursor: 'pointer',
+                fontWeight: filterType === type ? 600 : 400,
+              }}
+            >
+              {type.replace('_', ' ')}
+            </button>
+          ))}
+          <span style={{ color: '#6b7280', fontSize: '0.75rem', marginLeft: '0.75rem', marginRight: '0.25rem' }}>Status:</span>
+          {Object.keys(STATUS_BADGE).map(status => (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(filterStatus === status ? null : status)}
+              style={{
+                background: filterStatus === status ? STATUS_BADGE[status].bg : 'rgba(255,255,255,0.03)',
+                color: filterStatus === status ? STATUS_BADGE[status].text : '#6b7280',
+                border: `1px solid ${filterStatus === status ? STATUS_BADGE[status].text + '40' : 'rgba(255,255,255,0.08)'}`,
+                borderRadius: '9999px',
+                padding: '0.2rem 0.6rem',
+                fontSize: '0.7rem',
+                cursor: 'pointer',
+                fontWeight: filterStatus === status ? 600 : 400,
+              }}
+            >
+              {status}
+            </button>
+          ))}
+          {hasActiveFilters && (
+            <button
+              onClick={() => { setFilterType(null); setFilterStatus(null); setSearchQuery(''); }}
+              style={{
+                background: 'rgba(248,113,113,0.1)',
+                color: '#f87171',
+                border: '1px solid rgba(248,113,113,0.2)',
+                borderRadius: '9999px',
+                padding: '0.2rem 0.6rem',
+                fontSize: '0.7rem',
+                cursor: 'pointer',
+                marginLeft: '0.5rem',
+              }}
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Messages */}
       {loading ? (
         <p style={{ color: '#6b7280', textAlign: 'center', padding: '2rem' }}>Loading...</p>
-      ) : messages.length === 0 ? (
-        <p style={{ color: '#6b7280', textAlign: 'center', padding: '2rem' }}>No messages yet.</p>
+      ) : filteredMessages.length === 0 ? (
+        <p style={{ color: '#6b7280', textAlign: 'center', padding: '2rem' }}>
+          {messages.length === 0 ? 'No messages yet.' : 'No messages match your filters.'}
+        </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {messages.map(msg => {
+          {filteredMessages.map(msg => {
             const typeBadge = TYPE_BADGE[msg.message_type] || TYPE_BADGE.status_update;
             const statusBadge = STATUS_BADGE[msg.status] || STATUS_BADGE.unread;
 
