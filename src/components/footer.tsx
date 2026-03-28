@@ -118,7 +118,7 @@ export function Footer() {
             &copy; {year} Zev Steinmetz. All rights reserved.
           </p>
           <p className="text-xs text-muted/50">
-            Built with Next.js, Claude, and Supabase
+            Built with Claude, Supabase, and TOLA
           </p>
         </div>
 
