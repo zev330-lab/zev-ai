@@ -20,6 +20,7 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border" role="contentinfo">
+      {/* TOLA — built by Abel, directed by Cain */}
       <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-16 md:py-20">
 
         {/* Top section: brand + columns */}
