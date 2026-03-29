@@ -208,7 +208,7 @@ export default function MessagesPage() {
         body: JSON.stringify({
           reply_message: replyText.trim(),
           reply_type: 'response',
-          from_agent: 'zev',
+          from_agent: 'cain',
         }),
       });
       if (res.ok) {
@@ -565,7 +565,7 @@ export default function MessagesPage() {
                       value={replyText}
                       onChange={e => setReplyText(e.target.value)}
                       onKeyDown={e => e.key === 'Enter' && handleReply(msg.id)}
-                      placeholder="Reply as Zev..."
+                      placeholder="Reply as Cain..."
                       autoFocus
                       style={{
                         flex: 1,
