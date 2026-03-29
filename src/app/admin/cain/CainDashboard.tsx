@@ -472,6 +472,7 @@ export default function CainDashboard({ tasks: initialTasks, log: initialLog }: 
   );
   const [filter, setFilter]         = useState('open');
   const [assignee, setAssignee]     = useState('zev');   // default: show Zev's tasks
+  const [showCompleted, setShowCompleted] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
 
@@ -546,10 +547,17 @@ export default function CainDashboard({ tasks: initialTasks, log: initialLog }: 
     const s = statuses[t.id] ?? t.status;
     const statusMatch = filter === 'open' ? (s === 'open' || s === 'in_progress')
                       : filter === 'done' ? s === 'done'
-                      : true;
+                      : (s === 'open' || s === 'in_progress');
     const assigneeMatch = assignee === 'all' ? true : t.assigned_to === assignee;
     return statusMatch && assigneeMatch;
   });
+
+  // Completed tasks for the "Show Completed" section (only in open/all views)
+  const completedTasks = filter !== 'done' ? tasks.filter(t => {
+    const s = statuses[t.id] ?? t.status;
+    const assigneeMatch = assignee === 'all' ? true : t.assigned_to === assignee;
+    return s === 'done' && assigneeMatch;
+  }) : [];
 
   const byPriority = (p: Priority) => filtered.filter(t => t.priority === p);
   const urgent  = byPriority('urgent');
@@ -665,6 +673,26 @@ export default function CainDashboard({ tasks: initialTasks, log: initialLog }: 
                   <TaskCard key={task.id} task={task} done={statuses[task.id] === 'done'} onToggle={handleToggle} />
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Show Completed toggle (only in open/all views) */}
+          {completedTasks.length > 0 && filter !== 'done' && (
+            <div className="mt-6">
+              <button
+                onClick={() => setShowCompleted(v => !v)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-[var(--color-admin-border)] text-[11px] font-semibold text-[var(--color-muted)] hover:text-[var(--color-foreground-strong)] hover:border-[var(--color-accent)]/40 transition-colors cursor-pointer"
+              >
+                <span className={`transition-transform duration-200 ${showCompleted ? 'rotate-180' : ''}`}>▼</span>
+                {showCompleted ? 'Hide' : 'Show'} {completedTasks.length} Completed
+              </button>
+              {showCompleted && (
+                <div className="mt-3 space-y-3">
+                  {completedTasks.map(task => (
+                    <TaskCard key={task.id} task={task} done onToggle={handleToggle} />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </section>

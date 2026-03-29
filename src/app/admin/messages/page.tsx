@@ -79,10 +79,10 @@ const TYPE_BADGE: Record<string, { bg: string; text: string }> = {
   response:      { bg: 'rgba(74,222,128,0.15)', text: '#4ade80' },
 };
 
-const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
-  unread:   { bg: 'rgba(250,204,21,0.15)', text: '#facc15' },
-  read:     { bg: 'rgba(124,155,245,0.15)', text: '#7c9bf5' },
-  actioned: { bg: 'rgba(74,222,128,0.15)', text: '#4ade80' },
+const STATUS_BADGE: Record<string, { bg: string; text: string; label?: string }> = {
+  unread:   { bg: 'rgba(248,113,113,0.15)', text: '#f87171', label: '● unread' },
+  read:     { bg: 'rgba(107,114,128,0.15)', text: '#6b7280', label: 'read' },
+  actioned: { bg: 'rgba(74,222,128,0.15)', text: '#4ade80', label: '✓ actioned' },
 };
 
 function relativeDate(iso: string | null) {
@@ -181,6 +181,22 @@ export default function MessagesPage() {
     const interval = setInterval(fetchMessages, 15000);
     return () => clearInterval(interval);
   }, [fetchMessages]);
+
+  // Auto-mark unread messages as read on load
+  useEffect(() => {
+    if (loading || messages.length === 0) return;
+    const unread = messages.filter(m => m.status === 'unread');
+    if (unread.length === 0) return;
+    Promise.all(
+      unread.map(m =>
+        fetch(`/api/opus/messages/${m.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'read' }),
+        })
+      )
+    ).then(() => fetchMessages());
+  }, [loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleReply(messageId: string) {
     if (!replyText.trim()) return;
@@ -441,7 +457,7 @@ export default function MessagesPage() {
               <div
                 style={{
                   background: 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${msg.status === 'unread' ? 'rgba(250,204,21,0.25)' : 'rgba(255,255,255,0.06)'}`,
+                  border: `1px solid ${msg.status === 'unread' ? 'rgba(248,113,113,0.25)' : msg.status === 'actioned' ? 'rgba(74,222,128,0.12)' : 'rgba(255,255,255,0.06)'}`,
                   borderRadius: '0.75rem',
                   padding: '1rem',
                 }}
@@ -474,10 +490,10 @@ export default function MessagesPage() {
                       padding: '0.125rem 0.5rem',
                       borderRadius: '9999px',
                       fontSize: '0.7rem',
-                      fontWeight: 500,
+                      fontWeight: msg.status === 'unread' ? 600 : 500,
                     }}
                   >
-                    {msg.status}
+                    {statusBadge.label || msg.status}
                   </span>
                   {msg.in_reply_to && (
                     <span style={{ color: '#6b7280', fontSize: '0.7rem' }}>↩ reply</span>

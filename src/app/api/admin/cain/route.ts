@@ -27,10 +27,17 @@ export async function GET(request: NextRequest) {
   // Default: tasks
   const status = searchParams.get('status');
   const assigned = searchParams.get('assigned_to');
+  const history = searchParams.get('history');
   let query = supabase
     .from('cain_tasks')
     .select('*')
     .order('created_at', { ascending: false });
+
+  // Only return last 7 days unless history=true is explicitly requested
+  if (history !== 'true') {
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    query = query.gte('created_at', sevenDaysAgo);
+  }
 
   if (status && status !== 'all') query = query.eq('status', status);
   if (assigned && assigned !== 'all') query = query.eq('assigned_to', assigned);
