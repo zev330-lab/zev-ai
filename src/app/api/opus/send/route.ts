@@ -9,12 +9,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const { message, message_type, to_agent, api_key } = body as {
+  const { message, message_type, to_agent, api_key, from_agent: bodyFromAgent } = body as {
     message?: string;
     message_type?: string;
     to_agent?: string;
     api_key?: string;
+    from_agent?: string;
   };
+  const fromAgent = bodyFromAgent && ['opus','cain','zev','abel'].includes(bodyFromAgent) ? bodyFromAgent : 'opus';
 
   // Auth: validate api_key
   const opusKey = process.env.OPUS_API_KEY?.trim();
@@ -43,7 +45,7 @@ export async function POST(req: NextRequest) {
   const { data: msg, error: msgErr } = await supabase
     .from('opus_messages')
     .insert({
-      from_agent: 'opus',
+      from_agent: fromAgent,
       to_agent,
       message: message.trim(),
       message_type,
