@@ -14,6 +14,57 @@ interface OpusMessage {
   read_at: string | null;
 }
 
+interface DisplayMessage extends OpusMessage {
+  /** If this is a collapsed broadcast group, contains all grouped message IDs */
+  _groupIds?: string[];
+  /** Display label for the recipient */
+  _toLabel?: string;
+}
+
+/** Group broadcast messages: same sender, same text, within 60s → single row */
+function groupBroadcasts(msgs: OpusMessage[]): DisplayMessage[] {
+  const result: DisplayMessage[] = [];
+  const consumed = new Set<string>();
+
+  for (let i = 0; i < msgs.length; i++) {
+    if (consumed.has(msgs[i].id)) continue;
+    const msg = msgs[i];
+    const group: OpusMessage[] = [msg];
+
+    // Look for siblings with same sender + same message text within 60s
+    for (let j = i + 1; j < msgs.length; j++) {
+      if (consumed.has(msgs[j].id)) continue;
+      const other = msgs[j];
+      if (
+        other.from_agent === msg.from_agent &&
+        other.message === msg.message &&
+        other.message_type === msg.message_type &&
+        Math.abs(new Date(other.created_at).getTime() - new Date(msg.created_at).getTime()) < 60000
+      ) {
+        group.push(other);
+        consumed.add(other.id);
+      }
+    }
+
+    if (group.length >= 2) {
+      // Collapsed broadcast — use the worst status (unread > read > actioned)
+      const statusPriority: Record<string, number> = { unread: 0, read: 1, actioned: 2 };
+      const worstStatus = group.reduce((worst, m) =>
+        (statusPriority[m.status] ?? 0) < (statusPriority[worst.status] ?? 0) ? m : worst
+      , group[0]);
+      result.push({
+        ...worstStatus,
+        _groupIds: group.map(m => m.id),
+        _toLabel: 'Everyone',
+      });
+    } else {
+      result.push(msg);
+    }
+  }
+
+  return result;
+}
+
 interface CompletedTask {
   id: string;
   title: string;
@@ -87,7 +138,7 @@ export default function MessagesPage() {
 
   const hasActiveFilters = filterType !== null || filterStatus !== null || searchQuery !== '';
 
-  const filteredMessages = messages.filter(msg => {
+  const filteredMessages = groupBroadcasts(messages.filter(msg => {
     if (filterType && msg.message_type !== filterType) return false;
     if (filterStatus && msg.status !== filterStatus) return false;
     if (searchQuery) {
@@ -97,7 +148,7 @@ export default function MessagesPage() {
           !msg.to_agent.toLowerCase().includes(q)) return false;
     }
     return true;
-  });
+  }));
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -180,12 +231,17 @@ export default function MessagesPage() {
     }
   }
 
-  async function markStatus(id: string, status: string) {
-    await fetch(`/api/opus/messages/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
+  async function markStatus(id: string, status: string, groupIds?: string[]) {
+    const ids = groupIds || [id];
+    await Promise.all(
+      ids.map(mid =>
+        fetch(`/api/opus/messages/${mid}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        })
+      )
+    );
     fetchMessages();
   }
 
@@ -396,8 +452,8 @@ export default function MessagesPage() {
                     {msg.from_agent}
                   </span>
                   <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>→</span>
-                  <span style={{ fontWeight: 600, color: '#d0d0da', fontSize: '0.85rem', textTransform: 'capitalize' }}>
-                    {msg.to_agent}
+                  <span style={{ fontWeight: 600, color: msg._toLabel ? '#c4b5e0' : '#d0d0da', fontSize: '0.85rem', textTransform: 'capitalize' }}>
+                    {msg._toLabel || msg.to_agent}
                   </span>
                   <span
                     style={{
@@ -440,7 +496,7 @@ export default function MessagesPage() {
                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}>
                   {msg.status === 'unread' && (
                     <button
-                      onClick={() => markStatus(msg.id, 'read')}
+                      onClick={() => markStatus(msg.id, 'read', msg._groupIds)}
                       style={{
                         background: 'rgba(124,155,245,0.1)',
                         color: '#7c9bf5',
@@ -456,7 +512,7 @@ export default function MessagesPage() {
                   )}
                   {msg.status !== 'actioned' && (
                     <button
-                      onClick={() => markStatus(msg.id, 'actioned')}
+                      onClick={() => markStatus(msg.id, 'actioned', msg._groupIds)}
                       style={{
                         background: 'rgba(74,222,128,0.1)',
                         color: '#4ade80',
