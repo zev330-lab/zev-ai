@@ -47,7 +47,7 @@ export default function MessagesPage() {
   const [replyText, setReplyText] = useState('');
   const [sendText, setSendText] = useState('');
   const [sendType, setSendType] = useState('directive');
-  const [sendTo, setSendTo] = useState('cain');
+  const [sendTo, setSendTo] = useState('everyone');
   const [sending, setSending] = useState(false);
   const [filterType, setFilterType] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
@@ -120,16 +120,21 @@ export default function MessagesPage() {
     if (!sendText.trim()) return;
     setSending(true);
     try {
-      await fetch('/api/opus/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: sendText.trim(),
-          message_type: sendType,
-          to_agent: sendTo,
-          from_agent: 'zev',
-        }),
-      });
+      const recipients = sendTo === 'everyone' ? ['opus', 'cain', 'abel'] : [sendTo];
+      await Promise.all(
+        recipients.map(agent =>
+          fetch('/api/opus/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: sendText.trim(),
+              message_type: sendType,
+              to_agent: agent,
+              from_agent: 'zev',
+            }),
+          })
+        )
+      );
       setSendText('');
       fetchMessages();
     } finally {
@@ -147,7 +152,7 @@ export default function MessagesPage() {
   }
 
   return (
-    <div ref={topRef} style={{ padding: '2rem', maxWidth: '64rem', margin: '0 auto' }}>
+    <div ref={topRef} style={{ padding: '2rem', maxWidth: '64rem', margin: '0 auto', display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f0f0f5', marginBottom: '1.5rem' }}>
         Messages
       </h1>
@@ -173,8 +178,10 @@ export default function MessagesPage() {
               fontSize: '0.8rem',
             }}
           >
+            <option value="everyone">To: Everyone</option>
             <option value="cain">To: Cain</option>
             <option value="opus">To: Opus</option>
+            <option value="abel">To: Abel</option>
           </select>
           <select
             value={sendType}
@@ -307,6 +314,7 @@ export default function MessagesPage() {
       </div>
 
       {/* Messages */}
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
       {loading ? (
         <p style={{ color: '#6b7280', textAlign: 'center', padding: '2rem' }}>Loading...</p>
       ) : filteredMessages.length === 0 ? (
@@ -468,6 +476,7 @@ export default function MessagesPage() {
           })}
         </div>
       )}
+      </div>
     </div>
   );
 }

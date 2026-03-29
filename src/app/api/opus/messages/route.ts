@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
   const validTypes = ['directive', 'question', 'status_update', 'response'];
   const msgType = message_type && validTypes.includes(message_type) ? message_type : 'directive';
 
-  const validAgents = ['opus', 'cain', 'zev'];
+  const validAgents = ['opus', 'cain', 'zev', 'abel'];
   const sender = from_agent && validAgents.includes(from_agent) ? from_agent : 'zev';
   const recipient = to_agent && validAgents.includes(to_agent) ? to_agent : 'cain';
 
