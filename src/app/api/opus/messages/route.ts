@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     .from('opus_messages')
     .select('*')
     .order('created_at', { ascending: false })
-    .limit(20);
+    .limit(since ? 100 : 20);
 
   if (status) query = query.eq('status', status);
   if (to_agent) query = query.eq('to_agent', to_agent);

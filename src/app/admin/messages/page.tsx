@@ -14,6 +14,13 @@ interface OpusMessage {
   read_at: string | null;
 }
 
+interface CompletedTask {
+  id: string;
+  title: string;
+  assigned_to: string;
+  completed_at: string;
+}
+
 const TYPE_BADGE: Record<string, { bg: string; text: string }> = {
   directive:     { bg: 'rgba(248,113,113,0.15)', text: '#f87171' },
   question:      { bg: 'rgba(250,204,21,0.15)', text: '#facc15' },
@@ -40,8 +47,27 @@ function relativeDate(iso: string | null) {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function dayLabel(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const msgDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const diffDays = Math.round((today.getTime() - msgDay.getTime()) / 86400000);
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+}
+
+const AGENT_COLORS: Record<string, string> = {
+  cain: '#7c9bf5',
+  abel: '#4ade80',
+  opus: '#c4b5e0',
+  zev: '#f59e0b',
+};
+
 export default function MessagesPage() {
   const [messages, setMessages] = useState<OpusMessage[]>([]);
+  const [completedTasks, setCompletedTasks] = useState<CompletedTask[]>([]);
   const [loading, setLoading] = useState(true);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
@@ -75,10 +101,22 @@ export default function MessagesPage() {
 
   const fetchMessages = useCallback(async () => {
     try {
-      const res = await fetch('/api/opus/messages');
-      if (res.ok) {
-        const data = await res.json();
+      const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const [msgRes, tasksRes] = await Promise.all([
+        fetch(`/api/opus/messages?since=${since}`),
+        fetch('/api/admin/cain?status=done'),
+      ]);
+      if (msgRes.ok) {
+        const data = await msgRes.json();
         setMessages(data);
+      }
+      if (tasksRes.ok) {
+        const tasksData = await tasksRes.json();
+        const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const done = (Array.isArray(tasksData) ? tasksData : [])
+          .filter((t: CompletedTask) => t.completed_at && new Date(t.completed_at).getTime() > cutoff)
+          .sort((a: CompletedTask, b: CompletedTask) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime());
+        setCompletedTasks(done);
       }
     } catch {
       // silent
@@ -323,13 +361,28 @@ export default function MessagesPage() {
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          {filteredMessages.map(msg => {
+          {filteredMessages.map((msg, idx) => {
             const typeBadge = TYPE_BADGE[msg.message_type] || TYPE_BADGE.status_update;
             const statusBadge = STATUS_BADGE[msg.status] || STATUS_BADGE.unread;
+            const currentDay = dayLabel(msg.created_at);
+            const prevDay = idx > 0 ? dayLabel(filteredMessages[idx - 1].created_at) : null;
+            const showDateSeparator = currentDay !== prevDay;
 
             return (
+              <div key={msg.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {showDateSeparator && (
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '0.75rem',
+                  padding: idx === 0 ? '0 0 0.25rem' : '0.5rem 0 0.25rem',
+                }}>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+                  <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {currentDay}
+                  </span>
+                  <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+                </div>
+              )}
               <div
-                key={msg.id}
                 style={{
                   background: 'rgba(255,255,255,0.03)',
                   border: `1px solid ${msg.status === 'unread' ? 'rgba(250,204,21,0.25)' : 'rgba(255,255,255,0.06)'}`,
@@ -472,8 +525,61 @@ export default function MessagesPage() {
                   </div>
                 )}
               </div>
+              </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Completed Tasks — last 7 days */}
+      {completedTasks.length > 0 && (
+        <div style={{ marginTop: '2rem' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '0.75rem',
+            marginBottom: '1rem',
+          }}>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+            <span style={{ color: '#6b7280', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Completed Tasks (7d)
+            </span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            {completedTasks.map((task) => {
+              const agentColor = AGENT_COLORS[task.assigned_to] || '#6b7280';
+              return (
+                <div
+                  key={task.id}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '0.75rem',
+                    padding: '0.625rem 0.75rem',
+                    background: 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.06)',
+                    borderRadius: '0.5rem',
+                  }}
+                >
+                  <span style={{ color: '#4ade80', fontSize: '0.75rem' }}>✓</span>
+                  <span style={{ flex: 1, color: '#d0d0da', fontSize: '0.8rem' }}>{task.title}</span>
+                  <span
+                    style={{
+                      background: `${agentColor}20`,
+                      color: agentColor,
+                      padding: '0.125rem 0.4rem',
+                      borderRadius: '9999px',
+                      fontSize: '0.65rem',
+                      fontWeight: 600,
+                      textTransform: 'capitalize',
+                    }}
+                  >
+                    {task.assigned_to}
+                  </span>
+                  <span style={{ color: '#6b7280', fontSize: '0.7rem', flexShrink: 0 }}>
+                    {relativeDate(task.completed_at)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
       </div>

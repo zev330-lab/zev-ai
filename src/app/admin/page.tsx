@@ -160,6 +160,7 @@ export default function AdminDashboardPage() {
   const [discoveries, setDiscoveries] = useState<Discovery[]>([]);
   const [tasks, setTasks] = useState<CainTask[]>([]);
   const [latestLog, setLatestLog] = useState<CainLogEntry | null>(null);
+  const [recentLogs, setRecentLogs] = useState<CainLogEntry[]>([]);
   const [unreadMessages, setUnreadMessages] = useState<OpusMessage[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -199,6 +200,9 @@ export default function AdminDashboardPage() {
 
       const logs = Array.isArray(logData) ? logData : [];
       if (logs.length > 0) setLatestLog(logs[0]);
+      // Filter to last 48 hours for project log
+      const cutoff48h = Date.now() - 48 * 60 * 60 * 1000;
+      setRecentLogs(logs.filter((l: CainLogEntry) => new Date(l.created_at).getTime() > cutoff48h));
 
       const msgs = Array.isArray(msgData) ? msgData : (msgData.messages || []);
       setUnreadMessages(msgs);
@@ -450,6 +454,51 @@ export default function AdminDashboardPage() {
             />
           </div>
         </div>
+
+        {/* ===== SECTION 5: Project Log ===== */}
+        {recentLogs.length > 0 && (
+          <div>
+            <SectionHeader title="Project Log" href="/admin/cain" count={recentLogs.length} />
+            <div className="space-y-1">
+              {(() => {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+
+                let lastGroup = '';
+                return recentLogs.slice(0, 20).map((log) => {
+                  const logDate = new Date(log.created_at);
+                  const logDay = new Date(logDate);
+                  logDay.setHours(0, 0, 0, 0);
+                  const group = logDay.getTime() >= today.getTime() ? 'Today' : logDay.getTime() >= yesterday.getTime() ? 'Yesterday' : '';
+                  const showHeader = group !== lastGroup;
+                  lastGroup = group;
+
+                  const agentColor = log.created_by === 'cain' ? '#7c9bf5' : log.created_by === 'abel' ? '#4ade80' : '#c4b5e0';
+
+                  return (
+                    <div key={log.id}>
+                      {showHeader && group && (
+                        <p className="text-[10px] font-medium text-[var(--color-muted)] uppercase tracking-wider pt-2 pb-1">{group}</p>
+                      )}
+                      <div className="flex items-start gap-2 py-1.5 px-3 rounded hover:bg-[var(--color-admin-surface)]/50">
+                        <span className="text-[10px] text-[var(--color-muted)] shrink-0 w-12 pt-0.5">{timeAgo(log.created_at)}</span>
+                        <span
+                          className="text-[10px] font-semibold shrink-0 w-10 pt-0.5"
+                          style={{ color: agentColor }}
+                        >
+                          {log.created_by}
+                        </span>
+                        <p className="text-xs text-[var(--color-muted-light)] line-clamp-2 min-w-0">{log.entry}</p>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        )}
 
         {/* Quick nav */}
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2 pb-4">
