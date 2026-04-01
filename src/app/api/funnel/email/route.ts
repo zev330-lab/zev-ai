@@ -87,7 +87,7 @@ EMAIL STRUCTURE (follow this exactly):
 
 5. SIGN-OFF: "If any of this resonates, I'd be happy to talk it through. No pitch — just a conversation about what's possible." Then sign with: — Zev
 
-6. P.S.: "If you want the full roadmap with specific tools, timelines, and implementation options mapped to your situation, it's available here: https://askzev.ai/services — built from what you shared, delivered within 24 hours. $499 — and it credits toward any future work together."
+6. P.S.: "If you want the full roadmap with specific tools, timelines, and implementation options mapped to your situation, it's available here: https://askzev.ai/roadmap/purchase?lead=${lead_id} — built from what you shared, delivered within 24 hours. $499 — and it credits toward any future work together."
 
 RULES:
 - Plain text only. No HTML, no bold, no bullet points with special chars. Use dashes for lists.

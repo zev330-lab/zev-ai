@@ -112,6 +112,7 @@ export default function DiscoverPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [discoveryId, setDiscoveryId] = useState<string | null>(null);
+  const [funnelLeadId, setFunnelLeadId] = useState<string | null>(null);
   const [ackLoading, setAckLoading] = useState(false);
   const [ackFetched, setAckFetched] = useState(false);
 
@@ -273,6 +274,7 @@ export default function DiscoverPage() {
       if (res.ok) {
         const data = await res.json();
         setDiscoveryId(data.discovery_id || null);
+        setFunnelLeadId(data.funnel_lead_id || null);
       }
     } catch {
       // Silent fail — confirmation screen will still show
@@ -355,7 +357,7 @@ export default function DiscoverPage() {
               />
             )}
             {screen === 7 && <Screen8Contact form={form} update={update} submitting={submitting} onSubmit={handleSubmit} />}
-            {screen === 8 && <Screen9Confirmation form={form} discoveryId={discoveryId} />}
+            {screen === 8 && <Screen9Confirmation form={form} discoveryId={discoveryId} funnelLeadId={funnelLeadId} />}
           </div>
         </motion.div>
       </AnimatePresence>
@@ -1304,11 +1306,32 @@ function Screen8Contact({
 function Screen9Confirmation({
   form,
   discoveryId,
+  funnelLeadId,
 }: {
   form: FunnelData;
   discoveryId: string | null;
+  funnelLeadId: string | null;
 }) {
   const firstName = form.name.trim().split(/\s+/)[0] || 'friend';
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
+  const handleGetRoadmap = async () => {
+    if (!funnelLeadId) return;
+    setCheckoutLoading(true);
+    try {
+      const res = await fetch('/api/funnel/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: funnelLeadId, email: form.email }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      setCheckoutLoading(false);
+    }
+  };
 
   return (
     <div className="text-center">
@@ -1387,18 +1410,34 @@ function Screen9Confirmation({
         <p className="text-sm font-medium mb-2" style={{ color: C.goldDark }}>
           Want the full picture?
         </p>
-        <p className="text-sm leading-relaxed mb-3" style={{ color: C.charcoalLight }}>
+        <p className="text-sm leading-relaxed mb-4" style={{ color: C.charcoalLight }}>
           I also offer a personalized AI roadmap — a detailed, step-by-step implementation plan built specifically for your situation. Specific tools, timelines, and decision points mapped to what you told me. $499, delivered within 24 hours. And it credits toward any future engagement.
         </p>
-        <a
-          href="/services"
-          className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
-          style={{ color: C.gold }}
-          onMouseEnter={e => (e.currentTarget.style.color = C.goldDark)}
-          onMouseLeave={e => (e.currentTarget.style.color = C.gold)}
-        >
-          Learn more &rarr;
-        </a>
+        {funnelLeadId ? (
+          <button
+            onClick={handleGetRoadmap}
+            disabled={checkoutLoading}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+            style={{ background: C.gold, color: '#fff' }}
+          >
+            {checkoutLoading ? 'Redirecting...' : 'Get Your Roadmap — $499'}
+            {!checkoutLoading && (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            )}
+          </button>
+        ) : (
+          <a
+            href="/services"
+            className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors"
+            style={{ color: C.gold }}
+            onMouseEnter={e => (e.currentTarget.style.color = C.goldDark)}
+            onMouseLeave={e => (e.currentTarget.style.color = C.gold)}
+          >
+            Learn more &rarr;
+          </a>
+        )}
       </motion.div>
 
       <motion.p
