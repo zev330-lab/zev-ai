@@ -68,7 +68,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       if (pendingG) {
         setPendingG(false);
-        const routes: Record<string, string> = { d: '/admin', t: '/admin/tola', i: '/admin/discoveries', c: '/admin/content', f: '/admin/family', a: '/admin/agents', p: '/admin/projects', k: '/admin/knowledge' };
+        const routes: Record<string, string> = { d: '/admin', t: '/admin/tola', i: '/admin/discoveries', l: '/admin/pipeline', c: '/admin/content', f: '/admin/family', a: '/admin/agents', p: '/admin/projects', k: '/admin/knowledge' };
         if (routes[e.key]) { e.preventDefault(); router.push(routes[e.key]); }
         return;
       }
@@ -111,6 +111,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     { href: '/admin', label: 'Dashboard', icon: <DashboardIcon />, badge: 0 },
     { href: '/admin/cain', label: 'Cain', icon: <CainNavIcon />, badge: badges.cain },
     { href: '/admin/discoveries', label: 'Discoveries', icon: <DiscoveryIcon />, badge: badges.discoveries },
+    { href: '/admin/pipeline', label: 'Pipeline', icon: <PipelineIcon />, badge: 0 },
     { href: '/admin/nurture', label: 'Nurture', icon: <NurtureIcon />, badge: 0 },
     { href: '/admin/content', label: 'Content', icon: <ContentIcon />, badge: badges.content },
     { href: '/admin/projects', label: 'Projects', icon: <ProjectIcon />, badge: 0 },
@@ -349,6 +350,14 @@ function MessagesIcon() {
   return (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+    </svg>
+  );
+}
+
+function PipelineIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 4h18M3 4v16h18V4M3 4l3 4h12l3-4M9 12h6M9 16h6" />
     </svg>
   );
 }
