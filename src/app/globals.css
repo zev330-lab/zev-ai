@@ -11,10 +11,10 @@
   --color-muted-light: #c4b5e0;
   --color-border: #1a1e2e;
   --color-surface: #10142a;
-  --color-surface-light: #f4f3f0;
-  --color-surface-light-foreground: #1c1e24;
-  --color-surface-light-muted: #5f6370;
-  --color-surface-light-border: #e2e0dc;
+  --color-surface-light: #121630;
+  --color-surface-light-foreground: #e8e8f0;
+  --color-surface-light-muted: #9a9eb5;
+  --color-surface-light-border: #1e2340;
   /* Admin dashboard (darker) */
   --color-admin-bg: #08090f;
   --color-admin-surface: #0d1020;

@@ -3,13 +3,13 @@
 import { motion } from 'framer-motion';
 
 const C = {
-  bg: '#FAFAF8',
-  sage: '#A8B5A0',
-  sageDark: '#8A9B80',
-  gold: '#C4A265',
-  charcoal: '#2C2C2C',
-  charcoalLight: '#5A5A5A',
-  charcoalLighter: '#8A8A8A',
+  bg: '#0f1328',
+  sage: '#7c9bf5',
+  sageDark: '#5a7ad4',
+  gold: '#d4b87a',
+  charcoal: '#f0f0f5',
+  charcoalLight: '#c4b5e0',
+  charcoalLighter: '#6a6e80',
 } as const;
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number];

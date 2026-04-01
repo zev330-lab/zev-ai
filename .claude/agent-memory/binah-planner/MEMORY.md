@@ -1,0 +1,3 @@
+- [user_zev_profile.md](user_zev_profile.md) — Zev's role, TOLA framework context, infrastructure details
+- [project_pipeline_rebuild.md](project_pipeline_rebuild.md) — Pipeline rebuild from pg_net triggers to pg_cron polling (active work as of 2026-03-18)
+- [project_admin_overhaul.md](project_admin_overhaul.md) — 5-phase admin showpiece overhaul plan (2026-03-21)

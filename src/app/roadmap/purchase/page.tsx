@@ -5,13 +5,13 @@ import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 
 const C = {
-  bg: '#FAFAF8',
-  sage: '#A8B5A0',
-  gold: '#C4A265',
-  charcoal: '#2C2C2C',
-  charcoalLight: '#5A5A5A',
-  charcoalLighter: '#8A8A8A',
-  rose: '#D4A0A0',
+  bg: '#0f1328',
+  sage: '#7c9bf5',
+  gold: '#d4b87a',
+  charcoal: '#f0f0f5',
+  charcoalLight: '#c4b5e0',
+  charcoalLighter: '#6a6e80',
+  rose: '#f5a0a0',
 } as const;
 
 const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number];
@@ -123,7 +123,7 @@ function PurchaseShell({ children, loading: isLoading }: { children?: React.Reac
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: EASE }}
           className="mt-10 p-8 rounded-2xl"
-          style={{ background: '#fff', border: `1px solid #E8E6E2` }}
+          style={{ background: '#161a30', border: `1px solid #1e2340` }}
         >
           <div className="space-y-4 mb-8">
             <div className="flex items-start gap-3">

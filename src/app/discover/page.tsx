@@ -4,22 +4,22 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ---------------------------------------------------------------------------
-// Design tokens — warm, calming, light
+// Design tokens — deep indigo / midnight dark scheme
 // ---------------------------------------------------------------------------
 const C = {
-  bg: '#FAFAF8',
-  sage: '#A8B5A0',
-  sageDark: '#8A9B80',
-  sageLight: '#C8D4C0',
-  gold: '#C4A265',
-  goldDark: '#A6873F',
-  rose: '#D4A0A0',
-  roseDark: '#B87878',
-  charcoal: '#2C2C2C',
-  charcoalLight: '#5A5A5A',
-  charcoalLighter: '#8A8A8A',
-  border: '#E8E6E2',
-  cardBg: '#FFFFFF',
+  bg: '#0f1328',
+  sage: '#7c9bf5',
+  sageDark: '#96aff8',
+  sageLight: '#5a7ad4',
+  gold: '#d4b87a',
+  goldDark: '#c4a265',
+  rose: '#f5a0a0',
+  roseDark: '#e07878',
+  charcoal: '#f0f0f5',
+  charcoalLight: '#c4b5e0',
+  charcoalLighter: '#6a6e80',
+  border: '#1e2340',
+  cardBg: '#161a30',
 } as const;
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -435,7 +435,7 @@ function CardOption({
       style={{
         background: selected ? `${C.sage}0D` : C.cardBg,
         borderColor: selected ? C.sage : C.border,
-        boxShadow: selected ? `0 0 0 1px ${C.sage}` : '0 1px 3px rgba(0,0,0,0.04)',
+        boxShadow: selected ? `0 0 0 1px ${C.sage}` : '0 1px 3px rgba(0,0,0,0.2)',
       }}
     >
       <div className="flex items-start gap-4">
@@ -471,9 +471,9 @@ function FormTextarea({
       onChange={e => onChange(e.target.value)}
       rows={rows}
       placeholder={placeholder}
-      className="w-full px-4 py-3.5 rounded-xl border text-[15px] leading-relaxed resize-none transition-colors duration-200 focus:outline-none"
+      className="w-full px-4 py-3.5 rounded-xl border text-[15px] leading-relaxed resize-none transition-colors duration-200 focus:outline-none placeholder:text-[#6a6e80]"
       style={{
-        background: C.cardBg,
+        backgroundColor: C.cardBg,
         color: C.charcoal,
         borderColor: C.border,
       }}
@@ -516,8 +516,8 @@ function FormInput({
         placeholder={placeholder}
         required={required}
         autoComplete={autoComplete}
-        className="w-full px-4 py-3 rounded-xl border text-[15px] transition-colors duration-200 focus:outline-none"
-        style={{ background: C.cardBg, color: C.charcoal, borderColor: C.border }}
+        className="w-full px-4 py-3 rounded-xl border text-[15px] transition-colors duration-200 focus:outline-none placeholder:text-[#6a6e80]"
+        style={{ backgroundColor: C.cardBg, color: C.charcoal, borderColor: C.border }}
         onFocus={e => (e.currentTarget.style.borderColor = C.sage)}
         onBlur={e => (e.currentTarget.style.borderColor = C.border)}
       />
@@ -579,10 +579,11 @@ function SelectDropdown({
       onChange={e => onChange(e.target.value)}
       className="w-full px-4 py-3 rounded-xl border text-[15px] transition-colors duration-200 focus:outline-none appearance-none bg-no-repeat cursor-pointer"
       style={{
-        background: C.cardBg,
+        backgroundColor: C.cardBg,
         color: value ? C.charcoal : C.charcoalLighter,
         borderColor: C.border,
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%238A8A8A' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")`,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236a6e80' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")`,
+        backgroundRepeat: 'no-repeat',
         backgroundPosition: 'right 16px center',
       }}
     >
