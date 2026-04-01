@@ -294,13 +294,13 @@ export default function ServicesPage() {
           </Reveal>
           <StaggerReveal className="max-w-3xl space-y-0 divide-y divide-border">
             {[
-              { q: 'Can I just get the free summary and stop there?', a: 'Absolutely. The free summary is designed to stand on its own. You get an honest take on where AI could help, whether you work with me or not. No follow-up pressure.' },
-              { q: 'I\'m not a business — just a person with an idea for an app. Is that okay?', a: 'More than okay. Custom Apps start at $1,000 and are designed for exactly this — personal tools, family organizers, hobby projects, learning aids. You don\'t need a company to have a good use case.' },
-
-              { q: 'Do you work with people outside the US?', a: 'Yes. All work is remote-first. I can accommodate anyone in compatible time zones.' },
-              { q: 'How do you handle data security?', a: 'I deploy on enterprise-grade infrastructure (Supabase, Vercel) with row-level security and encrypted connections. Your data stays in your infrastructure — I never train AI models on client data.' },
+              { q: 'How much does AI consulting cost?', a: 'Zev.AI offers a tiered model: a free AI analysis based on your discovery form, a $499 personalized roadmap that credits toward future work, a $2,500 private consultation, custom builds starting at $15,000, and ongoing partnerships from $2,500/month. Every tier credits toward the next.' },
+              { q: 'What does the $499 AI Roadmap include?', a: 'A personalized interactive roadmap with current state analysis, future vision, and 4 implementation phases — each with DIY, Guided, and Done-For-You options including specific tools, timelines, and cost estimates. Delivered within 24 hours. The $499 credits toward any future engagement.' },
+              { q: 'Do I need technical knowledge to work with you?', a: 'No. I handle the entire technical side — architecture, development, deployment, and maintenance. You provide context about your situation and feedback on what\'s working. No coding, no jargon, no IT team required.' },
+              { q: 'What makes this different from just using ChatGPT?', a: 'ChatGPT is a general-purpose tool you prompt manually. I build custom systems designed for your specific situation — they connect to your data, run on their own schedule, coordinate multiple AI agents, and do actual work without you having to prompt them every time.' },
+              { q: 'How long does it take to build a custom AI system?', a: 'A focused tool or custom app typically takes 1-4 weeks. A full AI system build takes 4-8 weeks. You see the first working version within the first week of any engagement.' },
+              { q: 'I\'m not a business — just a person with an idea. Is that okay?', a: 'More than okay. Custom Apps start at $1,000 and are designed for exactly this — personal tools, family organizers, hobby projects, learning aids. You don\'t need a company to have a good use case.' },
               { q: 'What happens if it doesn\'t work?', a: 'Every Build engagement includes 30 days of post-launch support. If the system isn\'t doing what we agreed it would, I iterate until it does. I don\'t ship and disappear.' },
-              { q: 'Can I pause or cancel ongoing work?', a: 'Yes. The ongoing partnership is month-to-month with no lock-in. You can pause or end with 30 days notice. I want you to stay because it\'s working, not because of a contract.' },
             ].map((faq) => (
               <StaggerChild key={faq.q}>
                 <div className="py-8">

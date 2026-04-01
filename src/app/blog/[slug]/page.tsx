@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import { BlogPostContent } from '@/components/blog-post-content';
+import { BreadcrumbSchema } from '@/components/json-ld';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -102,6 +103,11 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <>
+      <BreadcrumbSchema items={[
+        { name: 'Home', url: 'https://askzev.ai' },
+        { name: 'Blog', url: 'https://askzev.ai/blog' },
+        { name: post.title, url: `https://askzev.ai/blog/${post.slug}` },
+      ]} />
       {/* JSON-LD BlogPosting */}
       <script
         type="application/ld+json"
