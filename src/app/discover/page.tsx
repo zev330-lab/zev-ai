@@ -133,11 +133,19 @@ export default function DiscoverPage() {
   }, []);
 
   function next() {
-    if (screen < TOTAL_SCREENS - 1) setScreen(s => s + 1);
+    if (screen < TOTAL_SCREENS - 1) {
+      // Build path: screen 4 (hope) → screen 6 (audio), skipping screen 5 (already shown at screen 1)
+      if (screen === 4 && form.intent === 'build') { setScreen(6); return; }
+      setScreen(s => s + 1);
+    }
   }
 
   function prev() {
-    if (screen > 0) setScreen(s => s - 1);
+    if (screen > 0) {
+      // Build path: screen 6 (audio) → screen 4 (hope), skipping screen 5
+      if (screen === 6 && form.intent === 'build') { setScreen(4); return; }
+      setScreen(s => s - 1);
+    }
   }
 
   // Fetch acknowledgment when entering screen 3
@@ -344,7 +352,8 @@ export default function DiscoverPage() {
         >
           <div className="w-full max-w-xl">
             {screen === 0 && <Screen1Intent form={form} update={update} next={next} />}
-            {screen === 1 && <Screen2Audience form={form} update={update} next={next} />}
+            {screen === 1 && form.intent === 'build' && <Screen6Details form={form} update={update} next={next} />}
+            {screen === 1 && form.intent !== 'build' && <Screen2Audience form={form} update={update} next={next} />}
             {screen === 2 && <Screen3Pain form={form} update={update} next={next} />}
             {screen === 3 && <Screen4Acknowledgment form={form} ackLoading={ackLoading} next={next} />}
             {screen === 4 && <Screen5Hope form={form} update={update} next={next} />}
