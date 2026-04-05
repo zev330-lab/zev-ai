@@ -310,6 +310,14 @@ export default function ServicesPage() {
               </StaggerChild>
             ))}
           </StaggerReveal>
+          <div className="mt-8 pt-8 border-t border-border max-w-3xl">
+            <p className="text-muted-light">
+              Ready to see what AI can actually do for you?{' '}
+              <Link href="/discover" className="text-accent hover:text-accent-hover underline underline-offset-2 transition-colors">
+                Start with our free discovery form →
+              </Link>
+            </p>
+          </div>
         </div>
       </section>
 

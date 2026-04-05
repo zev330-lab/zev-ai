@@ -85,6 +85,22 @@ export function BlogList({ posts }: { posts: BlogPost[] }) {
         </div>
       </section>
 
+      {/* Discovery Banner */}
+      <section className="border-b border-border bg-accent/5">
+        <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-4 flex items-center justify-between gap-4 flex-wrap">
+          <p className="text-sm text-muted-light">
+            <span className="text-foreground-strong font-medium">Want a personalized AI analysis?</span>{' '}
+            It&apos;s free and takes 5 minutes.
+          </p>
+          <Link
+            href="/discover"
+            className="shrink-0 inline-flex items-center gap-2 text-sm text-accent hover:text-accent-hover font-medium transition-colors"
+          >
+            Start your discovery →
+          </Link>
+        </div>
+      </section>
+
       {/* Posts grid */}
       <section>
         <div className="mx-auto max-w-[1280px] px-6 md:px-12 py-16 md:py-24">

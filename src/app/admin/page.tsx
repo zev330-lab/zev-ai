@@ -6,6 +6,27 @@ import Link from 'next/link';
 
 // --- Types ---
 
+interface SeoPageCheck {
+  url: string;
+  status: number;
+  has_jsonld: boolean;
+  jsonld_valid: boolean;
+  has_title: boolean;
+  has_description: boolean;
+  has_og_title: boolean;
+  has_og_description: boolean;
+  pass: boolean;
+  issues: string[];
+}
+
+interface SeoAuditResult {
+  score: number;
+  run_at: string;
+  summary: { pages_checked: number; pages_passed: number; pages_failed: number };
+  checks: Record<string, SeoPageCheck>;
+  infrastructure: { sitemap: { status: number; pass: boolean }; robots: { status: number; pass: boolean } };
+}
+
 interface DashboardStats {
   total_discoveries: number;
   pipeline_success_rate: number;
@@ -163,6 +184,18 @@ export default function AdminDashboardPage() {
   const [recentLogs, setRecentLogs] = useState<CainLogEntry[]>([]);
   const [unreadMessages, setUnreadMessages] = useState<OpusMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [seoAudit, setSeoAudit] = useState<SeoAuditResult | null>(null);
+  const [seoRunning, setSeoRunning] = useState(false);
+
+  const runSeoAudit = async () => {
+    setSeoRunning(true);
+    try {
+      const res = await fetch('/api/admin/seo-health', { method: 'POST' });
+      if (res.ok) setSeoAudit(await res.json());
+    } catch { /* silent */ } finally {
+      setSeoRunning(false);
+    }
+  };
 
   const fetchAll = useCallback(async () => {
     try {
@@ -453,6 +486,59 @@ export default function AdminDashboardPage() {
               sub="pipeline"
             />
           </div>
+        </div>
+
+        {/* ===== SECTION 4b: SEO Health ===== */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-[var(--color-foreground-strong)]">SEO Health</h2>
+            <button
+              onClick={runSeoAudit}
+              disabled={seoRunning}
+              className="text-[10px] px-3 py-1.5 rounded-full bg-[var(--color-accent)]/15 text-[var(--color-accent)] hover:bg-[var(--color-accent)]/25 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            >
+              {seoRunning ? 'Running...' : 'Run Audit'}
+            </button>
+          </div>
+          {seoAudit ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-4 px-4 py-3 rounded-lg bg-[var(--color-admin-surface)] border border-[var(--color-admin-border)]">
+                <span
+                  className="text-2xl font-semibold"
+                  style={{ color: seoAudit.score >= 80 ? '#4ade80' : seoAudit.score >= 60 ? '#f59e0b' : '#f87171' }}
+                >
+                  {seoAudit.score}%
+                </span>
+                <div>
+                  <p className="text-xs font-medium text-[var(--color-foreground-strong)]">
+                    {seoAudit.summary.pages_passed}/{seoAudit.summary.pages_checked} pages passing
+                  </p>
+                  <p className="text-[10px] text-[var(--color-muted)]">
+                    Last run: {new Date(seoAudit.run_at).toLocaleString()}
+                  </p>
+                </div>
+                <div className="ml-auto flex gap-3 text-[10px] text-[var(--color-muted)]">
+                  <span>Sitemap: <span className={seoAudit.infrastructure.sitemap.pass ? 'text-green-400' : 'text-red-400'}>{seoAudit.infrastructure.sitemap.pass ? '✓' : '✗'}</span></span>
+                  <span>Robots: <span className={seoAudit.infrastructure.robots.pass ? 'text-green-400' : 'text-red-400'}>{seoAudit.infrastructure.robots.pass ? '✓' : '✗'}</span></span>
+                </div>
+              </div>
+              {Object.entries(seoAudit.checks)
+                .filter(([, check]) => !check.pass)
+                .map(([page, check]) => (
+                  <div key={page} className="px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-[11px] flex items-start gap-2">
+                    <span className="font-medium text-red-400 shrink-0">{page}</span>
+                    <span className="text-[var(--color-muted)]">{check.issues.join(', ')}</span>
+                  </div>
+                ))}
+              {seoAudit.summary.pages_failed === 0 && (
+                <p className="text-[11px] text-green-400 px-2">All pages passing ✓</p>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-[var(--color-muted)] py-3 text-center">
+              {seoRunning ? 'Checking all pages...' : 'Click "Run Audit" to check SEO health across all public pages.'}
+            </p>
+          )}
         </div>
 
         {/* ===== SECTION 5: Project Log ===== */}

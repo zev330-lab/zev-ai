@@ -38,9 +38,11 @@ interface FunnelData {
   acknowledgmentText: string;
   hopeText: string;
   // App path
+  appType: string;
+  appAudience: string;
+  appPlatforms: string[];
+  appStage: string;
   appDescription: string;
-  appUsers: string;
-  appExisting: string;
   // Business AI path
   businessTools: string[];
   teamSize: string;
@@ -71,9 +73,11 @@ const INITIAL_DATA: FunnelData = {
   painText: '',
   acknowledgmentText: '',
   hopeText: '',
+  appType: '',
+  appAudience: '',
+  appPlatforms: [],
+  appStage: '',
   appDescription: '',
-  appUsers: '',
-  appExisting: '',
   businessTools: [],
   teamSize: '',
   aiExperience: '',
@@ -232,9 +236,11 @@ export default function DiscoverPage() {
       const detailsJson: Record<string, unknown> = {};
 
       if (detailPath === 'app') {
-        detailsJson.appDescription = form.appDescription;
-        detailsJson.appUsers = form.appUsers;
-        detailsJson.appExisting = form.appExisting;
+        detailsJson.app_type = form.appType;
+        detailsJson.app_audience = form.appAudience;
+        detailsJson.app_platforms = form.appPlatforms;
+        detailsJson.app_stage = form.appStage;
+        detailsJson.app_description = form.appDescription;
       } else if (detailPath === 'business_ai') {
         detailsJson.businessTools = form.businessTools;
         detailsJson.teamSize = form.teamSize;
@@ -888,36 +894,142 @@ function Screen6Details({
   const detailPath = getDetailPath(form.intent, form.audience);
 
   if (detailPath === 'app') {
+    const togglePlatform = (val: string) => {
+      if (val === 'both') {
+        update('appPlatforms', ['both']);
+      } else {
+        const current = form.appPlatforms.filter(p => p !== 'both');
+        update('appPlatforms', current.includes(val) ? current.filter(p => p !== val) : [...current, val]);
+      }
+    };
+
     return (
       <>
-        <Heading>Tell me about what you want to build.</Heading>
-        <Sub>Don&apos;t worry about technical details — just describe what a user would experience.</Sub>
-        <div className="space-y-5">
-          <FormTextarea
-            value={form.appDescription}
-            onChange={v => update('appDescription', v)}
-            placeholder="When someone opens it, they'd be able to..."
-            rows={5}
-          />
-          <SelectDropdown
-            value={form.appUsers}
-            onChange={v => update('appUsers', v)}
-            placeholder="Who would use it?"
-            options={[
-              { value: 'just_me', label: 'Just me' },
-              { value: 'my_team', label: 'My team' },
-              { value: 'customers', label: 'My customers' },
-              { value: 'public', label: 'The public' },
-            ]}
-          />
-          <FormInput
-            value={form.appExisting}
-            onChange={v => update('appExisting', v)}
-            placeholder="e.g., I've been using spreadsheets, or nothing exists yet"
-            label="Does anything like this exist already?"
-          />
+        <Heading>Tell me about the app you want to build.</Heading>
+        <Sub>Five quick questions so I can scope this accurately.</Sub>
+        <div className="space-y-8">
+
+          {/* Q1: App type */}
+          <div>
+            <p className="text-sm font-medium mb-3" style={{ color: C.charcoalLight }}>
+              What kind of app are you thinking about?
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { value: 'business_tool', title: 'A tool for my business', subtitle: 'Internal tool, dashboard, automation — inventory tracker, client portal, scheduling system' },
+                { value: 'sell_launch', title: 'Something to sell or launch', subtitle: 'SaaS, marketplace, consumer app — subscription service, booking platform, e-commerce' },
+                { value: 'game_creative', title: 'A game or creative project', subtitle: 'Games, interactive experiences, creative tools — mobile game, educational app, AR experience' },
+                { value: 'personal', title: 'Something personal', subtitle: 'Personal productivity, family tool, hobby project — habit tracker, recipe manager, family organizer' },
+              ].map(opt => (
+                <CardOption
+                  key={opt.value}
+                  selected={form.appType === opt.value}
+                  onClick={() => update('appType', opt.value)}
+                  icon={null}
+                  title={opt.title}
+                  subtitle={opt.subtitle}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Q2: Audience */}
+          <div>
+            <p className="text-sm font-medium mb-3" style={{ color: C.charcoalLight }}>
+              Who will use it?
+            </p>
+            <div className="space-y-2">
+              {[
+                { value: 'just_me', title: 'Just me', subtitle: 'Personal use only' },
+                { value: 'team_org', title: 'My team or organization', subtitle: 'Internal users, employees, members' },
+                { value: 'public', title: 'The public — anyone can sign up', subtitle: 'Consumer-facing, app store, web app' },
+              ].map(opt => (
+                <CardOption
+                  key={opt.value}
+                  selected={form.appAudience === opt.value}
+                  onClick={() => update('appAudience', opt.value)}
+                  icon={null}
+                  title={opt.title}
+                  subtitle={opt.subtitle}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Q3: Platforms (multi-select) */}
+          <div>
+            <p className="text-sm font-medium mb-3" style={{ color: C.charcoalLight }}>
+              Where should it work?
+            </p>
+            <div className="space-y-2">
+              {[
+                { value: 'phone', title: 'Phone', subtitle: 'iOS, Android, or both' },
+                { value: 'web', title: 'Web browser', subtitle: 'Desktop and mobile web' },
+                { value: 'both', title: 'Both — phone app and website', subtitle: '' },
+              ].map(opt => {
+                const isSelected = form.appPlatforms.includes(opt.value);
+                return (
+                  <motion.button
+                    key={opt.value}
+                    onClick={() => togglePlatform(opt.value)}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full text-left p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer"
+                    style={{
+                      background: isSelected ? `${C.sage}0D` : C.cardBg,
+                      borderColor: isSelected ? C.sage : C.border,
+                      boxShadow: isSelected ? `0 0 0 1px ${C.sage}` : '0 1px 3px rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    <p className="text-[15px] font-medium" style={{ color: C.charcoal }}>{opt.title}</p>
+                    {opt.subtitle && <p className="text-sm mt-0.5" style={{ color: C.charcoalLight }}>{opt.subtitle}</p>}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Q4: Stage */}
+          <div>
+            <p className="text-sm font-medium mb-3" style={{ color: C.charcoalLight }}>
+              How far along are you?
+            </p>
+            <div className="space-y-2">
+              {[
+                { value: 'just_idea', title: 'Just an idea — nothing built yet', subtitle: '' },
+                { value: 'has_spec', title: 'I have designs, wireframes, or a detailed spec', subtitle: '' },
+                { value: 'existing_app', title: 'I have an existing app that needs to be rebuilt or improved', subtitle: '' },
+              ].map(opt => (
+                <CardOption
+                  key={opt.value}
+                  selected={form.appStage === opt.value}
+                  onClick={() => update('appStage', opt.value)}
+                  icon={null}
+                  title={opt.title}
+                  subtitle={opt.subtitle}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Q5: Description */}
+          <div>
+            <label className="block text-sm font-medium mb-2" style={{ color: C.charcoalLight }}>
+              Describe what the app should do.
+            </label>
+            <FormTextarea
+              value={form.appDescription}
+              onChange={v => update('appDescription', v)}
+              placeholder="Walk us through the experience. What does someone see when they open it? What can they do? What problem does it solve? Don't worry about technical details — just describe it like you're explaining it to a friend."
+              rows={5}
+            />
+            <p className="mt-2 text-xs" style={{ color: C.charcoalLighter }}>
+              The more specific you are, the more accurate our estimate will be.
+            </p>
+          </div>
+
         </div>
-        <ContinueButton onClick={next} disabled={!form.appDescription.trim()} />
+        <ContinueButton onClick={next} disabled={!form.appType || !form.appDescription.trim()} />
       </>
     );
   }
