@@ -120,7 +120,7 @@ async function handleFunnelSubmission(body: Record<string, unknown>) {
 
     // Notification to Zev
     try {
-      const pathLabel = body.path === 'app' ? 'Build Something' : body.path === 'solution' ? 'AI Optimization' : 'Not Sure';
+      const pathLabel = body.path === 'app' ? 'App Development' : body.path === 'solution' ? 'AI Optimization' : 'Not Sure';
       const audienceLabel = body.audience === 'personal' ? 'Personal' : body.audience === 'business' ? 'Business' : 'Both';
 
       const fields = [
@@ -153,29 +153,51 @@ async function handleFunnelSubmission(body: Record<string, unknown>) {
     // Confirmation to prospect
     try {
       const firstName = name.split(/\s+/)[0];
+      const isApp = body.path === 'app';
+
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'Zev Steinmetz <hello@askzev.ai>',
         to: email,
-        subject: `Got it, ${firstName} — your free AI analysis is on its way`,
-        text: [
-          `Hi ${firstName},`,
-          '',
-          `Thanks for taking the time to share what's going on. I've received everything and I'm already working on your personalized analysis.`,
-          '',
-          `Here's what happens next:`,
-          `- I'll review what you shared and do some research specific to your situation`,
-          `- You'll get a response that's tailored to you — not a template`,
-          `- No pitch, no pressure — just an honest take on where AI could help`,
-          '',
-          `Check your inbox — you should have something from me soon.`,
-          '',
-          `If you have questions in the meantime, just reply to this email.`,
-          '',
-          `— Zev`,
-          '',
-          `Zev Steinmetz`,
-          `askzev.ai`,
-        ].join('\n'),
+        subject: isApp
+          ? `Got it, ${firstName} — we received your app project details`
+          : `Got it, ${firstName} — your free AI analysis is on its way`,
+        text: isApp
+          ? [
+              `Hi ${firstName},`,
+              '',
+              `Thanks for sharing your app idea with us. I've received your project details and I'm reviewing everything now.`,
+              '',
+              `Here's what happens next:`,
+              `- I'll review your project scope and do some research on the technical approach`,
+              `- You'll get a preliminary scope, timeline estimate, and budget range within 24 hours`,
+              `- No commitment — just a clear picture of what it would take to build this`,
+              '',
+              `If you have questions or want to add anything, just reply to this email.`,
+              '',
+              `— Zev`,
+              '',
+              `Zev Steinmetz`,
+              `askzev.ai`,
+            ].join('\n')
+          : [
+              `Hi ${firstName},`,
+              '',
+              `Thanks for taking the time to share what's going on. I've received everything and I'm already working on your personalized analysis.`,
+              '',
+              `Here's what happens next:`,
+              `- I'll review what you shared and do some research specific to your situation`,
+              `- You'll get a response that's tailored to you — not a template`,
+              `- No pitch, no pressure — just an honest take on where AI could help`,
+              '',
+              `Check your inbox — you should have something from me soon.`,
+              '',
+              `If you have questions in the meantime, just reply to this email.`,
+              '',
+              `— Zev`,
+              '',
+              `Zev Steinmetz`,
+              `askzev.ai`,
+            ].join('\n'),
       });
     } catch (confirmErr) {
       console.error('Confirmation email error:', confirmErr);

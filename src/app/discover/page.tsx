@@ -23,7 +23,6 @@ const C = {
 } as const;
 
 const EASE = [0.16, 1, 0.3, 1] as const;
-const TOTAL_SCREENS = 9;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -43,6 +42,8 @@ interface FunnelData {
   appPlatforms: string[];
   appStage: string;
   appDescription: string;
+  appBudget: string;
+  appTimeline: string;
   // Business AI path
   businessTools: string[];
   teamSize: string;
@@ -78,6 +79,8 @@ const INITIAL_DATA: FunnelData = {
   appPlatforms: [],
   appStage: '',
   appDescription: '',
+  appBudget: '',
+  appTimeline: '',
   businessTools: [],
   teamSize: '',
   aiExperience: '',
@@ -107,6 +110,13 @@ function getDetailPath(intent: Intent | null, audience: Audience | null) {
   return 'both_ai';
 }
 
+function getTotalScreens(intent: Intent | null) {
+  // App path: intent, appType, appAudience, appPlatform, appStage, appDescription, appBudget, appTimeline, audio, contact, confirm = 11
+  if (intent === 'build') return 11;
+  // Consulting/unsure: intent, audience, pain, ack, hope, details, audio, contact, confirm = 9
+  return 9;
+}
+
 // ---------------------------------------------------------------------------
 // Main Component
 // ---------------------------------------------------------------------------
@@ -128,29 +138,24 @@ export default function DiscoverPage() {
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const totalScreens = getTotalScreens(form.intent);
+  const isAppPath = form.intent === 'build';
+
   const update = useCallback(<K extends keyof FunnelData>(key: K, value: FunnelData[K]) => {
     setForm(prev => ({ ...prev, [key]: value }));
   }, []);
 
   function next() {
-    if (screen < TOTAL_SCREENS - 1) {
-      // Build path: screen 4 (hope) → screen 6 (audio), skipping screen 5 (already shown at screen 1)
-      if (screen === 4 && form.intent === 'build') { setScreen(6); return; }
-      setScreen(s => s + 1);
-    }
+    if (screen < totalScreens - 1) setScreen(s => s + 1);
   }
 
   function prev() {
-    if (screen > 0) {
-      // Build path: screen 6 (audio) → screen 4 (hope), skipping screen 5
-      if (screen === 6 && form.intent === 'build') { setScreen(4); return; }
-      setScreen(s => s - 1);
-    }
+    if (screen > 0) setScreen(s => s - 1);
   }
 
-  // Fetch acknowledgment when entering screen 3
+  // Fetch acknowledgment when entering screen 3 (consulting path only)
   useEffect(() => {
-    if (screen === 3 && !ackFetched && form.painText.trim()) {
+    if (screen === 3 && !isAppPath && !ackFetched && form.painText.trim()) {
       setAckLoading(true);
       setAckFetched(true);
       fetch('/api/discover/acknowledge', {
@@ -171,7 +176,7 @@ export default function DiscoverPage() {
         .catch(() => {})
         .finally(() => setAckLoading(false));
     }
-  }, [screen, ackFetched, form.painText, form.intent, form.audience, update]);
+  }, [screen, isAppPath, ackFetched, form.painText, form.intent, form.audience, update]);
 
   // Audio recording handlers
   async function startRecording() {
@@ -249,6 +254,8 @@ export default function DiscoverPage() {
         detailsJson.app_platforms = form.appPlatforms;
         detailsJson.app_stage = form.appStage;
         detailsJson.app_description = form.appDescription;
+        detailsJson.app_budget = form.appBudget;
+        detailsJson.app_timeline = form.appTimeline;
       } else if (detailPath === 'business_ai') {
         detailsJson.businessTools = form.businessTools;
         detailsJson.teamSize = form.teamSize;
@@ -295,7 +302,7 @@ export default function DiscoverPage() {
     } finally {
       setSubmitting(false);
       setSubmitted(true);
-      setScreen(8);
+      setScreen(isAppPath ? 10 : 8);
     }
   }
 
@@ -307,7 +314,7 @@ export default function DiscoverPage() {
       {/* Progress dots */}
       {!submitted && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex gap-1.5">
-          {Array.from({ length: TOTAL_SCREENS - 1 }).map((_, i) => (
+          {Array.from({ length: totalScreens - 1 }).map((_, i) => (
             <motion.div
               key={i}
               layout
@@ -351,14 +358,18 @@ export default function DiscoverPage() {
           className="min-h-[100dvh] flex items-center justify-center px-5 py-20"
         >
           <div className="w-full max-w-xl">
+            {/* Shared: Screen 0 */}
             {screen === 0 && <Screen1Intent form={form} update={update} next={next} />}
-            {screen === 1 && form.intent === 'build' && <Screen6Details form={form} update={update} next={next} />}
-            {screen === 1 && form.intent !== 'build' && <Screen2Audience form={form} update={update} next={next} />}
-            {screen === 2 && <Screen3Pain form={form} update={update} next={next} />}
-            {screen === 3 && <Screen4Acknowledgment form={form} ackLoading={ackLoading} next={next} />}
-            {screen === 4 && <Screen5Hope form={form} update={update} next={next} />}
-            {screen === 5 && <Screen6Details form={form} update={update} next={next} />}
-            {screen === 6 && (
+
+            {/* ============ APP PATH (screens 1-10) ============ */}
+            {screen === 1 && isAppPath && <AppScreenType form={form} update={update} next={next} />}
+            {screen === 2 && isAppPath && <AppScreenAudience form={form} update={update} next={next} />}
+            {screen === 3 && isAppPath && <AppScreenPlatform form={form} update={update} next={next} />}
+            {screen === 4 && isAppPath && <AppScreenStage form={form} update={update} next={next} />}
+            {screen === 5 && isAppPath && <AppScreenDescription form={form} update={update} next={next} />}
+            {screen === 6 && isAppPath && <AppScreenBudget form={form} update={update} next={next} />}
+            {screen === 7 && isAppPath && <AppScreenTimeline form={form} update={update} next={next} />}
+            {screen === 8 && isAppPath && (
               <Screen7Audio
                 form={form}
                 recording={recording}
@@ -371,8 +382,30 @@ export default function DiscoverPage() {
                 next={next}
               />
             )}
-            {screen === 7 && <Screen8Contact form={form} update={update} submitting={submitting} onSubmit={handleSubmit} />}
-            {screen === 8 && <Screen9Confirmation form={form} discoveryId={discoveryId} funnelLeadId={funnelLeadId} />}
+            {screen === 9 && isAppPath && <Screen8Contact form={form} update={update} submitting={submitting} onSubmit={handleSubmit} />}
+            {screen === 10 && isAppPath && <AppConfirmation form={form} />}
+
+            {/* ============ CONSULTING PATH (screens 1-8) ============ */}
+            {screen === 1 && !isAppPath && <Screen2Audience form={form} update={update} next={next} />}
+            {screen === 2 && !isAppPath && <Screen3Pain form={form} update={update} next={next} />}
+            {screen === 3 && !isAppPath && <Screen4Acknowledgment form={form} ackLoading={ackLoading} next={next} />}
+            {screen === 4 && !isAppPath && <Screen5Hope form={form} update={update} next={next} />}
+            {screen === 5 && !isAppPath && <Screen6Details form={form} update={update} next={next} />}
+            {screen === 6 && !isAppPath && (
+              <Screen7Audio
+                form={form}
+                recording={recording}
+                recordingTime={recordingTime}
+                audioPreviewUrl={audioPreviewUrl}
+                startRecording={startRecording}
+                stopRecording={stopRecording}
+                clearAudio={clearAudio}
+                handleFileUpload={handleFileUpload}
+                next={next}
+              />
+            )}
+            {screen === 7 && !isAppPath && <Screen8Contact form={form} update={update} submitting={submitting} onSubmit={handleSubmit} />}
+            {screen === 8 && !isAppPath && <Screen9Confirmation form={form} discoveryId={discoveryId} funnelLeadId={funnelLeadId} />}
           </div>
         </motion.div>
       </AnimatePresence>
@@ -453,16 +486,18 @@ function CardOption({
         boxShadow: selected ? `0 0 0 1px ${C.sage}` : '0 1px 3px rgba(0,0,0,0.2)',
       }}
     >
-      <div className="flex items-start gap-4">
-        <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: selected ? `${C.sage}20` : `${C.charcoal}08` }}
-        >
-          {icon}
-        </div>
+      <div className={`flex items-start ${icon ? 'gap-4' : ''}`}>
+        {icon && (
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ background: selected ? `${C.sage}20` : `${C.charcoal}08` }}
+          >
+            {icon}
+          </div>
+        )}
         <div>
           <p className="text-[15px] font-medium leading-snug" style={{ color: C.charcoal }}>{title}</p>
-          <p className="text-sm mt-1 leading-relaxed" style={{ color: C.charcoalLight }}>{subtitle}</p>
+          {subtitle && <p className="text-sm mt-1 leading-relaxed" style={{ color: C.charcoalLight }}>{subtitle}</p>}
         </div>
       </div>
     </motion.button>
@@ -611,7 +646,7 @@ function SelectDropdown({
 }
 
 // ===========================================================================
-// Screen 1: Intent
+// Screen 1: Intent (shared)
 // ===========================================================================
 function Screen1Intent({
   form,
@@ -641,8 +676,8 @@ function Screen1Intent({
               <path d="M18 14a6 6 0 0 0-12 0c0 2.21 1.34 4.1 3.26 4.93.22.1.41.27.54.48l.2.59h4l.2-.59c.13-.21.32-.38.54-.48A6.01 6.01 0 0 0 18 14z" />
             </svg>
           }
-          title="I have something specific I want built"
-          subtitle="An app, a tool, a system — you know what you need, you just need someone to make it real."
+          title="I want an app or product built"
+          subtitle="You have an idea for an app, tool, or digital product and need someone to build it."
         />
         <CardOption
           selected={form.intent === 'optimize'}
@@ -654,7 +689,7 @@ function Screen1Intent({
               <path d="M16 2h6v6" />
             </svg>
           }
-          title="I want AI to make things run better"
+          title="I want AI to improve my business or life"
           subtitle="You're drowning in busywork, things are falling through the cracks, and you know there's a smarter way."
         />
         <CardOption
@@ -667,7 +702,7 @@ function Screen1Intent({
               <path d="M12 12l4-4" />
             </svg>
           }
-          title="I'm not sure yet — I just know something needs to change"
+          title="I'm not sure yet — I just want to explore"
           subtitle="That's the most honest answer. Let's figure it out together."
         />
       </div>
@@ -676,8 +711,454 @@ function Screen1Intent({
 }
 
 // ===========================================================================
-// Screen 2: Audience
+// APP TRACK — Screens 1-7 (after intent)
 // ===========================================================================
+function AppScreenType({
+  form,
+  update,
+  next,
+}: {
+  form: FunnelData;
+  update: <K extends keyof FunnelData>(key: K, val: FunnelData[K]) => void;
+  next: () => void;
+}) {
+  function select(val: string) {
+    update('appType', val);
+    setTimeout(next, 300);
+  }
+
+  return (
+    <>
+      <Heading>What kind of app are you thinking about?</Heading>
+      <Sub>Pick the one that&apos;s closest — we&apos;ll get into the details later.</Sub>
+      <div className="space-y-3">
+        <CardOption
+          selected={form.appType === 'business_tool'}
+          onClick={() => select('business_tool')}
+          icon={null}
+          title="A tool for my business"
+          subtitle="Something to make your operations run smoother"
+        />
+        <CardOption
+          selected={form.appType === 'sell_launch'}
+          onClick={() => select('sell_launch')}
+          icon={null}
+          title="Something to sell or launch"
+          subtitle="A product you want to put in front of customers"
+        />
+        <CardOption
+          selected={form.appType === 'game_creative'}
+          onClick={() => select('game_creative')}
+          icon={null}
+          title="A game or creative project"
+          subtitle="Something fun, creative, or experimental"
+        />
+        <CardOption
+          selected={form.appType === 'personal'}
+          onClick={() => select('personal')}
+          icon={null}
+          title="Something personal"
+          subtitle="Just for you or your family — no commercial goals"
+        />
+      </div>
+    </>
+  );
+}
+
+function AppScreenAudience({
+  form,
+  update,
+  next,
+}: {
+  form: FunnelData;
+  update: <K extends keyof FunnelData>(key: K, val: FunnelData[K]) => void;
+  next: () => void;
+}) {
+  function select(val: string) {
+    update('appAudience', val);
+    setTimeout(next, 300);
+  }
+
+  return (
+    <>
+      <Heading>Who will use it?</Heading>
+      <Sub>This helps us understand the scope.</Sub>
+      <div className="space-y-3">
+        <CardOption
+          selected={form.appAudience === 'just_me'}
+          onClick={() => select('just_me')}
+          icon={null}
+          title="Just me"
+          subtitle="Personal use only"
+        />
+        <CardOption
+          selected={form.appAudience === 'team_org'}
+          onClick={() => select('team_org')}
+          icon={null}
+          title="My team or organization"
+          subtitle="Internal users, employees, members"
+        />
+        <CardOption
+          selected={form.appAudience === 'public'}
+          onClick={() => select('public')}
+          icon={null}
+          title="Anyone — it's for the public"
+          subtitle="Consumer-facing, app store, web app"
+        />
+      </div>
+    </>
+  );
+}
+
+function AppScreenPlatform({
+  form,
+  update,
+  next,
+}: {
+  form: FunnelData;
+  update: <K extends keyof FunnelData>(key: K, val: FunnelData[K]) => void;
+  next: () => void;
+}) {
+  const platformSelection = form.appPlatforms.length === 2 ? 'both'
+    : form.appPlatforms[0] || '';
+
+  function select(val: string) {
+    if (val === 'both') {
+      update('appPlatforms', ['phone', 'web']);
+    } else {
+      update('appPlatforms', [val]);
+    }
+    setTimeout(next, 300);
+  }
+
+  return (
+    <>
+      <Heading>Where should it work?</Heading>
+      <Sub>You can always expand later — just pick what matters most right now.</Sub>
+      <div className="space-y-3">
+        <CardOption
+          selected={platformSelection === 'phone'}
+          onClick={() => select('phone')}
+          icon={null}
+          title="Phone app"
+          subtitle="iOS, Android, or both"
+        />
+        <CardOption
+          selected={platformSelection === 'web'}
+          onClick={() => select('web')}
+          icon={null}
+          title="Web browser"
+          subtitle="Desktop + mobile web"
+        />
+        <CardOption
+          selected={platformSelection === 'both'}
+          onClick={() => select('both')}
+          icon={null}
+          title="Both — phone app and website"
+          subtitle=""
+        />
+      </div>
+    </>
+  );
+}
+
+function AppScreenStage({
+  form,
+  update,
+  next,
+}: {
+  form: FunnelData;
+  update: <K extends keyof FunnelData>(key: K, val: FunnelData[K]) => void;
+  next: () => void;
+}) {
+  function select(val: string) {
+    update('appStage', val);
+    setTimeout(next, 300);
+  }
+
+  return (
+    <>
+      <Heading>How far along are you?</Heading>
+      <Sub>All starting points are valid — this helps us calibrate.</Sub>
+      <div className="space-y-3">
+        <CardOption
+          selected={form.appStage === 'just_idea'}
+          onClick={() => select('just_idea')}
+          icon={null}
+          title="Just an idea — nothing built yet"
+          subtitle=""
+        />
+        <CardOption
+          selected={form.appStage === 'has_spec'}
+          onClick={() => select('has_spec')}
+          icon={null}
+          title="I have designs, wireframes, or a spec"
+          subtitle=""
+        />
+        <CardOption
+          selected={form.appStage === 'existing_app'}
+          onClick={() => select('existing_app')}
+          icon={null}
+          title="I have an existing app that needs rebuilding or new features"
+          subtitle=""
+        />
+      </div>
+    </>
+  );
+}
+
+function AppScreenDescription({
+  form,
+  update,
+  next,
+}: {
+  form: FunnelData;
+  update: <K extends keyof FunnelData>(key: K, val: FunnelData[K]) => void;
+  next: () => void;
+}) {
+  return (
+    <>
+      <Heading>Describe what the app should do.</Heading>
+      <Sub>
+        Walk us through the experience. What does someone see when they open it?
+        What can they do? What problem does it solve for them? Don&apos;t worry about
+        technical details — describe it like you&apos;re showing it to a friend.
+      </Sub>
+      <FormTextarea
+        value={form.appDescription}
+        onChange={v => update('appDescription', v)}
+        placeholder="When you open the app, the first thing you see is..."
+        rows={7}
+      />
+      <p className="mt-2 text-xs" style={{ color: C.charcoalLighter }}>
+        The more specific you are, the more accurate our scope and estimate will be.
+      </p>
+      <ContinueButton onClick={next} disabled={!form.appDescription.trim()} />
+    </>
+  );
+}
+
+function AppScreenBudget({
+  form,
+  update,
+  next,
+}: {
+  form: FunnelData;
+  update: <K extends keyof FunnelData>(key: K, val: FunnelData[K]) => void;
+  next: () => void;
+}) {
+  function select(val: string) {
+    update('appBudget', val);
+    setTimeout(next, 300);
+  }
+
+  return (
+    <>
+      <Heading>What&apos;s your budget range?</Heading>
+      <Sub>No judgment — this helps us recommend the right approach for your situation.</Sub>
+      <div className="space-y-3">
+        <CardOption
+          selected={form.appBudget === 'under_5k'}
+          onClick={() => select('under_5k')}
+          icon={null}
+          title="Under $5,000"
+          subtitle="Small project, MVP, single feature"
+        />
+        <CardOption
+          selected={form.appBudget === '5k_to_15k'}
+          onClick={() => select('5k_to_15k')}
+          icon={null}
+          title="$5,000 – $15,000"
+          subtitle="Full app with multiple features"
+        />
+        <CardOption
+          selected={form.appBudget === 'over_15k'}
+          onClick={() => select('over_15k')}
+          icon={null}
+          title="$15,000+"
+          subtitle="Complex app, multiple platforms, ongoing development"
+        />
+        <CardOption
+          selected={form.appBudget === 'not_sure'}
+          onClick={() => select('not_sure')}
+          icon={null}
+          title="Not sure yet — help me figure it out"
+          subtitle="That's totally fine. We'll help you scope it."
+        />
+      </div>
+    </>
+  );
+}
+
+function AppScreenTimeline({
+  form,
+  update,
+  next,
+}: {
+  form: FunnelData;
+  update: <K extends keyof FunnelData>(key: K, val: FunnelData[K]) => void;
+  next: () => void;
+}) {
+  function select(val: string) {
+    update('appTimeline', val);
+    setTimeout(next, 300);
+  }
+
+  return (
+    <>
+      <Heading>When do you need this?</Heading>
+      <Sub>We&apos;ll work with whatever timeline makes sense for you.</Sub>
+      <div className="space-y-3">
+        <CardOption
+          selected={form.appTimeline === 'asap'}
+          onClick={() => select('asap')}
+          icon={null}
+          title="As soon as possible"
+          subtitle=""
+        />
+        <CardOption
+          selected={form.appTimeline === 'few_months'}
+          onClick={() => select('few_months')}
+          icon={null}
+          title="Within a few months"
+          subtitle=""
+        />
+        <CardOption
+          selected={form.appTimeline === 'no_rush'}
+          onClick={() => select('no_rush')}
+          icon={null}
+          title="No rush — I want it done right"
+          subtitle=""
+        />
+      </div>
+    </>
+  );
+}
+
+// ===========================================================================
+// App Confirmation (screen 10)
+// ===========================================================================
+function AppConfirmation({ form }: { form: FunnelData }) {
+  const firstName = form.name.trim().split(/\s+/)[0] || 'friend';
+
+  return (
+    <div className="text-center">
+      <motion.div
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.6, ease: EASE }}
+        className="w-16 h-16 rounded-full border-2 flex items-center justify-center mx-auto mb-8"
+        style={{ borderColor: C.sage }}
+      >
+        <motion.svg
+          className="w-8 h-8"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke={C.sage}
+          strokeWidth={2}
+        >
+          <motion.path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M4.5 12.75l6 6 9-13.5"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: EASE }}
+          />
+        </motion.svg>
+      </motion.div>
+
+      <motion.h1
+        className="font-[family-name:var(--font-serif)] text-[clamp(1.6rem,5vw,2.5rem)] leading-[1.15] tracking-tight"
+        style={{ color: C.charcoal }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.4, ease: EASE }}
+      >
+        {firstName}, thanks for sharing your app idea with us.
+      </motion.h1>
+
+      <motion.div
+        className="mt-6 text-left max-w-md mx-auto"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.55, ease: EASE }}
+      >
+        <p className="text-base leading-relaxed mb-4" style={{ color: C.charcoalLight }}>
+          We&apos;ll review your project details and get back to you within 24 hours with:
+        </p>
+        <ul className="space-y-2 text-sm" style={{ color: C.charcoalLight }}>
+          <li className="flex items-start gap-2">
+            <span style={{ color: C.sage }} className="mt-0.5">&#10003;</span>
+            A preliminary scope and feature breakdown
+          </li>
+          <li className="flex items-start gap-2">
+            <span style={{ color: C.sage }} className="mt-0.5">&#10003;</span>
+            An estimated timeline
+          </li>
+          <li className="flex items-start gap-2">
+            <span style={{ color: C.sage }} className="mt-0.5">&#10003;</span>
+            A budget range based on what you described
+          </li>
+        </ul>
+      </motion.div>
+
+      <motion.p
+        className="mt-6 text-base leading-relaxed max-w-md mx-auto"
+        style={{ color: C.charcoalLight }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.7, ease: EASE }}
+      >
+        No commitment, no pressure. Just a clear picture of what it would take to build this.
+      </motion.p>
+
+      {/* Strategy session upsell */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, delay: 0.9, ease: EASE }}
+        className="mt-10 p-6 rounded-2xl text-left max-w-md mx-auto"
+        style={{ background: `${C.gold}08`, border: `1px solid ${C.gold}25` }}
+      >
+        <p className="text-sm font-medium mb-2" style={{ color: C.goldDark }}>
+          Want to get deeper faster?
+        </p>
+        <p className="text-sm leading-relaxed mb-4" style={{ color: C.charcoalLight }}>
+          Book a 1-hour app strategy session where we&apos;ll map out the full product together.
+          $2,500, and it includes wireframes and a technical architecture document you can use
+          with any developer.
+        </p>
+        <a
+          href="/services"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+          style={{ background: C.gold, color: '#fff' }}
+        >
+          Book App Strategy Session
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </a>
+      </motion.div>
+
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay: 1.1, ease: EASE }}
+        className="mt-8 text-sm"
+        style={{ color: C.charcoalLighter }}
+      >
+        Check your email — we&apos;ll be in touch soon.
+      </motion.p>
+    </div>
+  );
+}
+
+// ===========================================================================
+// CONSULTING TRACK — Screens 1-5
+// ===========================================================================
+
+// Screen 2: Audience
 function Screen2Audience({
   form,
   update,
@@ -738,9 +1219,7 @@ function Screen2Audience({
   );
 }
 
-// ===========================================================================
 // Screen 3: Pain question (varies by path)
-// ===========================================================================
 function Screen3Pain({
   form,
   update,
@@ -790,9 +1269,7 @@ function Screen3Pain({
   );
 }
 
-// ===========================================================================
 // Screen 4: Dynamic acknowledgment
-// ===========================================================================
 function Screen4Acknowledgment({
   form,
   ackLoading,
@@ -859,9 +1336,7 @@ function Screen4Acknowledgment({
   );
 }
 
-// ===========================================================================
 // Screen 5: Hope question
-// ===========================================================================
 function Screen5Hope({
   form,
   update,
@@ -888,9 +1363,7 @@ function Screen5Hope({
   );
 }
 
-// ===========================================================================
-// Screen 6: Path-specific details
-// ===========================================================================
+// Screen 6: Path-specific details (consulting paths only)
 function Screen6Details({
   form,
   update,
@@ -901,147 +1374,6 @@ function Screen6Details({
   next: () => void;
 }) {
   const detailPath = getDetailPath(form.intent, form.audience);
-
-  if (detailPath === 'app') {
-    const togglePlatform = (val: string) => {
-      if (val === 'both') {
-        update('appPlatforms', ['both']);
-      } else {
-        const current = form.appPlatforms.filter(p => p !== 'both');
-        update('appPlatforms', current.includes(val) ? current.filter(p => p !== val) : [...current, val]);
-      }
-    };
-
-    return (
-      <>
-        <Heading>Tell me about the app you want to build.</Heading>
-        <Sub>Five quick questions so I can scope this accurately.</Sub>
-        <div className="space-y-8">
-
-          {/* Q1: App type */}
-          <div>
-            <p className="text-sm font-medium mb-3" style={{ color: C.charcoalLight }}>
-              What kind of app are you thinking about?
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                { value: 'business_tool', title: 'A tool for my business', subtitle: 'Internal tool, dashboard, automation — inventory tracker, client portal, scheduling system' },
-                { value: 'sell_launch', title: 'Something to sell or launch', subtitle: 'SaaS, marketplace, consumer app — subscription service, booking platform, e-commerce' },
-                { value: 'game_creative', title: 'A game or creative project', subtitle: 'Games, interactive experiences, creative tools — mobile game, educational app, AR experience' },
-                { value: 'personal', title: 'Something personal', subtitle: 'Personal productivity, family tool, hobby project — habit tracker, recipe manager, family organizer' },
-              ].map(opt => (
-                <CardOption
-                  key={opt.value}
-                  selected={form.appType === opt.value}
-                  onClick={() => update('appType', opt.value)}
-                  icon={null}
-                  title={opt.title}
-                  subtitle={opt.subtitle}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Q2: Audience */}
-          <div>
-            <p className="text-sm font-medium mb-3" style={{ color: C.charcoalLight }}>
-              Who will use it?
-            </p>
-            <div className="space-y-2">
-              {[
-                { value: 'just_me', title: 'Just me', subtitle: 'Personal use only' },
-                { value: 'team_org', title: 'My team or organization', subtitle: 'Internal users, employees, members' },
-                { value: 'public', title: 'The public — anyone can sign up', subtitle: 'Consumer-facing, app store, web app' },
-              ].map(opt => (
-                <CardOption
-                  key={opt.value}
-                  selected={form.appAudience === opt.value}
-                  onClick={() => update('appAudience', opt.value)}
-                  icon={null}
-                  title={opt.title}
-                  subtitle={opt.subtitle}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Q3: Platforms (multi-select) */}
-          <div>
-            <p className="text-sm font-medium mb-3" style={{ color: C.charcoalLight }}>
-              Where should it work?
-            </p>
-            <div className="space-y-2">
-              {[
-                { value: 'phone', title: 'Phone', subtitle: 'iOS, Android, or both' },
-                { value: 'web', title: 'Web browser', subtitle: 'Desktop and mobile web' },
-                { value: 'both', title: 'Both — phone app and website', subtitle: '' },
-              ].map(opt => {
-                const isSelected = form.appPlatforms.includes(opt.value);
-                return (
-                  <motion.button
-                    key={opt.value}
-                    onClick={() => togglePlatform(opt.value)}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full text-left p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer"
-                    style={{
-                      background: isSelected ? `${C.sage}0D` : C.cardBg,
-                      borderColor: isSelected ? C.sage : C.border,
-                      boxShadow: isSelected ? `0 0 0 1px ${C.sage}` : '0 1px 3px rgba(0,0,0,0.2)',
-                    }}
-                  >
-                    <p className="text-[15px] font-medium" style={{ color: C.charcoal }}>{opt.title}</p>
-                    {opt.subtitle && <p className="text-sm mt-0.5" style={{ color: C.charcoalLight }}>{opt.subtitle}</p>}
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Q4: Stage */}
-          <div>
-            <p className="text-sm font-medium mb-3" style={{ color: C.charcoalLight }}>
-              How far along are you?
-            </p>
-            <div className="space-y-2">
-              {[
-                { value: 'just_idea', title: 'Just an idea — nothing built yet', subtitle: '' },
-                { value: 'has_spec', title: 'I have designs, wireframes, or a detailed spec', subtitle: '' },
-                { value: 'existing_app', title: 'I have an existing app that needs to be rebuilt or improved', subtitle: '' },
-              ].map(opt => (
-                <CardOption
-                  key={opt.value}
-                  selected={form.appStage === opt.value}
-                  onClick={() => update('appStage', opt.value)}
-                  icon={null}
-                  title={opt.title}
-                  subtitle={opt.subtitle}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Q5: Description */}
-          <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: C.charcoalLight }}>
-              Describe what the app should do.
-            </label>
-            <FormTextarea
-              value={form.appDescription}
-              onChange={v => update('appDescription', v)}
-              placeholder="Walk us through the experience. What does someone see when they open it? What can they do? What problem does it solve? Don't worry about technical details — just describe it like you're explaining it to a friend."
-              rows={5}
-            />
-            <p className="mt-2 text-xs" style={{ color: C.charcoalLighter }}>
-              The more specific you are, the more accurate our estimate will be.
-            </p>
-          </div>
-
-        </div>
-        <ContinueButton onClick={next} disabled={!form.appType || !form.appDescription.trim()} />
-      </>
-    );
-  }
 
   if (detailPath === 'business_ai') {
     return (
@@ -1179,8 +1511,10 @@ function Screen6Details({
 }
 
 // ===========================================================================
-// Screen 7: Audio
+// SHARED — Audio, Contact, Consulting Confirmation
 // ===========================================================================
+
+// Audio screen
 function Screen7Audio({
   form,
   recording,
@@ -1205,13 +1539,15 @@ function Screen7Audio({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mins = Math.floor(recordingTime / 60);
   const secs = recordingTime % 60;
+  const isApp = form.intent === 'build';
 
   return (
     <>
-      <Heading>Want to tell me more?</Heading>
+      <Heading>{isApp ? 'Want to tell us more?' : 'Want to tell me more?'}</Heading>
       <Sub>
-        Record a quick voice message — just talk like you&apos;re explaining this to a friend.
-        Most people find it easier to talk than type.
+        {isApp
+          ? "Sometimes it's easier to just talk through your idea. Record a quick voice message or upload a file."
+          : "Record a quick voice message — just talk like you're explaining this to a friend. Most people find it easier to talk than type."}
       </Sub>
 
       {!audioPreviewUrl && !recording && (
@@ -1321,9 +1657,7 @@ function Screen7Audio({
   );
 }
 
-// ===========================================================================
-// Screen 8: Contact info
-// ===========================================================================
+// Contact screen
 function Screen8Contact({
   form,
   update,
@@ -1336,11 +1670,16 @@ function Screen8Contact({
   onSubmit: () => void;
 }) {
   const canSubmit = form.name.trim().length > 0 && form.email.trim().length > 0 && form.email.includes('@');
+  const isApp = form.intent === 'build';
 
   return (
     <>
       <Heading>Almost done. How should I reach you?</Heading>
-      <Sub>I&apos;ll send your free AI analysis to this email.</Sub>
+      <Sub>
+        {isApp
+          ? "We'll send your preliminary scope to this email."
+          : "I'll send your free AI analysis to this email."}
+      </Sub>
       <div className="space-y-4">
         <FormInput
           value={form.name}
@@ -1422,9 +1761,7 @@ function Screen8Contact({
   );
 }
 
-// ===========================================================================
-// Screen 9: Confirmation
-// ===========================================================================
+// Consulting Confirmation (screen 8)
 function Screen9Confirmation({
   form,
   discoveryId,

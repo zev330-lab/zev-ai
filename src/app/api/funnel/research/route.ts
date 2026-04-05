@@ -57,14 +57,39 @@ export async function POST(req: NextRequest) {
     audioNote = '\n\nNote: The lead also submitted a voice recording. The audio URL is available but transcription is not yet processed.';
   }
 
-  const prompt = `You are a research analyst for an AI consulting practice (askzev.ai). A new lead just submitted a discovery form. Do quick, light research and produce a brief summary.
+  const isAppPath = lead.path === 'app';
+
+  const prompt = isAppPath
+    ? `You are a research analyst for a software development practice (askzev.ai). A new lead wants an app or product built. Research their project idea and produce a brief analysis focused on technical feasibility and competitive landscape.
+
+Lead information:
+- Name: ${lead.name}
+- Email: ${lead.email}${emailDomain ? ` (domain: ${emailDomain})` : ''}
+- Company: ${lead.company || 'Not provided'}
+- Referral source: ${lead.referral_source || 'Not specified'}
+
+Project details:
+${detailsSummary || 'None'}${audioNote}
+
+Return ONLY valid JSON:
+{
+  "person_summary": "1-2 sentences about who this person likely is based on their name, email domain, and company",
+  "company_analysis": "What we can infer about their company/organization. If personal email, note that.",
+  "industry": "Best guess at their industry or the market their app targets",
+  "competitor_landscape": "2-3 existing apps or products in the same space — name specific competitors if possible",
+  "technical_feasibility": "Brief assessment of technical complexity and key technical considerations for their described app",
+  "market_insight": "One genuinely useful insight about the market they're entering or the problem they're solving — something specific and actionable",
+  "research_confidence": "low|medium|high — how confident are we in this analysis",
+  "talking_points": ["point 1", "point 2", "point 3"]
+}`
+    : `You are a research analyst for an AI consulting practice (askzev.ai). A new lead just submitted a discovery form. Do quick, light research and produce a brief summary.
 
 Lead information:
 - Name: ${lead.name}
 - Email: ${lead.email}${emailDomain ? ` (domain: ${emailDomain})` : ''}
 - Company: ${lead.company || 'Not provided'}
 - Phone: ${lead.phone || 'Not provided'}
-- Form path: ${lead.path || 'unknown'} (${lead.path === 'app' ? 'wants to build something' : lead.path === 'solution' ? 'wants AI optimization' : 'not sure yet'})
+- Form path: ${lead.path || 'unknown'} (${lead.path === 'solution' ? 'wants AI optimization' : 'not sure yet'})
 - Audience: ${lead.audience || 'unknown'}
 - Referral source: ${lead.referral_source || 'Not specified'}
 

@@ -51,14 +51,64 @@ export async function POST(req: NextRequest) {
 
   const firstName = lead.name?.trim().split(/\s+/)[0] || 'there';
   const research = lead.research_json || {};
+  const isAppPath = lead.path === 'app';
+  const details = lead.details_json || {};
 
-  const prompt = `You are Zev Steinmetz, an AI consultant (askzev.ai). Someone just filled out your discovery form. Write them a personalized email using Chris Voss tactical empathy principles. The email should feel like a real person wrote it — plain text, no HTML, no formatting tricks.
+  const prompt = isAppPath
+    ? `You are Zev Steinmetz, a software developer and AI consultant (askzev.ai). Someone just submitted an app/product development request. Write them a professional project acknowledgment email. This is NOT a therapy-style empathy email — these are buyers with a product idea. Be professional, knowledgeable, and direct.
 
 LEAD INFO:
 - Name: ${lead.name} (first name: ${firstName})
 - Company: ${lead.company || 'not specified'}
 - Email: ${lead.email}
-- Path: ${lead.path === 'app' ? 'wants to build something specific' : lead.path === 'solution' ? 'wants AI to improve operations' : 'not sure what they need'}
+
+PROJECT DETAILS:
+- App type: ${details.app_type || 'not specified'}
+- Target audience: ${details.app_audience || 'not specified'}
+- Platforms: ${Array.isArray(details.app_platforms) ? details.app_platforms.join(', ') : details.app_platforms || 'not specified'}
+- Stage: ${details.app_stage || 'not specified'}
+- Budget range: ${details.app_budget || 'not specified'}
+- Timeline: ${details.app_timeline || 'not specified'}
+- Description: ${details.app_description || 'Not provided'}
+
+RESEARCH:
+${research.person_summary || 'No research available'}
+${research.company_analysis || ''}
+Industry/Market: ${research.industry || 'unknown'}
+Competitor landscape: ${research.competitor_landscape || ''}
+Technical feasibility: ${research.technical_feasibility || ''}
+Market insight: ${research.market_insight || ''}
+
+EMAIL STRUCTURE:
+
+1. OPENING: "We received your app project details" — reference their specific app idea by name/description. Show you actually read what they wrote.
+
+2. ONE RELEVANT TECHNICAL OR MARKET INSIGHT: Mention one specific thing about their space — a competitor to watch, a technical consideration, a market trend. Something that shows expertise without being preachy.
+
+3. NEXT STEPS: "We'll have a preliminary scope for you within 24 hours" — list what they'll receive (feature breakdown, timeline estimate, budget range).
+
+4. SIGN-OFF: Professional, direct. Sign with: — Zev
+
+RULES:
+- Plain text only. No HTML, no bold.
+- Write as "I" not "we" (except where "we" is natural for project scoping). This is one person.
+- Keep it under 300 words.
+- Professional and knowledgeable, not therapeutic. These are buyers, not therapy clients.
+- NO mention of $499 roadmap. NO Voss empathy framework. NO accusation audit.
+- NO P.S. upsell.
+
+Return ONLY valid JSON:
+{
+  "subject": "Professional subject line referencing their project — not generic",
+  "body": "The full email text"
+}`
+    : `You are Zev Steinmetz, an AI consultant (askzev.ai). Someone just filled out your discovery form. Write them a personalized email using Chris Voss tactical empathy principles. The email should feel like a real person wrote it — plain text, no HTML, no formatting tricks.
+
+LEAD INFO:
+- Name: ${lead.name} (first name: ${firstName})
+- Company: ${lead.company || 'not specified'}
+- Email: ${lead.email}
+- Path: ${lead.path === 'solution' ? 'wants AI to improve operations' : 'not sure what they need'}
 - Audience: ${lead.audience || 'unknown'}
 
 WHAT THEY SAID (pain point):
