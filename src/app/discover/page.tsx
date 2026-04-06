@@ -4,22 +4,22 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // ---------------------------------------------------------------------------
-// Design tokens — deep indigo / midnight dark scheme
+// Design tokens — warm light scheme (matches askzev.ai public design system)
 // ---------------------------------------------------------------------------
 const C = {
-  bg: '#0f1328',
-  sage: '#7c9bf5',
-  sageDark: '#96aff8',
-  sageLight: '#5a7ad4',
-  gold: '#d4b87a',
-  goldDark: '#c4a265',
-  rose: '#f5a0a0',
-  roseDark: '#e07878',
-  charcoal: '#f0f0f5',
-  charcoalLight: '#c4b5e0',
-  charcoalLighter: '#6a6e80',
-  border: '#1e2340',
-  cardBg: '#161a30',
+  bg: '#FAFAF8',
+  sage: '#A8B5A0',
+  sageDark: '#8A9B82',
+  sageLight: '#C2CCBC',
+  gold: '#C4A265',
+  goldDark: '#A8893F',
+  rose: '#D4A0A0',
+  roseDark: '#B87878',
+  charcoal: '#2C2C2C',
+  charcoalLight: '#5A5A5A',
+  charcoalLighter: '#8A8A8A',
+  border: '#E0DDD8',
+  cardBg: '#FFFFFF',
 } as const;
 
 const EASE = [0.16, 1, 0.3, 1] as const;
@@ -483,7 +483,7 @@ function CardOption({
       style={{
         background: selected ? `${C.sage}0D` : C.cardBg,
         borderColor: selected ? C.sage : C.border,
-        boxShadow: selected ? `0 0 0 1px ${C.sage}` : '0 1px 3px rgba(0,0,0,0.2)',
+        boxShadow: selected ? `0 0 0 1px ${C.sage}` : '0 1px 3px rgba(0,0,0,0.08)',
       }}
     >
       <div className={`flex items-start ${icon ? 'gap-4' : ''}`}>

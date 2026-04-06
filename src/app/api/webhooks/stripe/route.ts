@@ -2,14 +2,13 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase';
 
 /**
- * Stripe webhook for $499 Insight Report payment.
- * On successful payment, creates a discovery with pipeline_track='paid_499'
- * and triggers the full assessment pipeline for auto-delivery.
- *
- * Setup: Configure Stripe webhook endpoint to POST to /api/webhooks/stripe
- * Events: checkout.session.completed
+ * @deprecated LEGACY — This webhook writes to the `discoveries` table (old pipeline).
+ * The new webhook is at /api/funnel/roadmap-webhook/route.ts and writes to `funnel_leads`.
+ * Keeping this alive temporarily in case Stripe is still sending events to this endpoint.
+ * TODO: Remove once Stripe webhook URL is updated to /api/funnel/roadmap-webhook.
  */
 export async function POST(request: Request) {
+  console.warn('[DEPRECATED] Legacy Stripe webhook at /api/webhooks/stripe was called. Update Stripe to use /api/funnel/roadmap-webhook instead.');
   try {
     const body = await request.text();
     const sig = request.headers.get('stripe-signature');
