@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { ComingSoonOverlay } from '@/components/admin/coming-soon-overlay';
 
 interface OpusMessage {
   id: string;
@@ -117,6 +118,14 @@ const AGENT_COLORS: Record<string, string> = {
 };
 
 export default function MessagesPage() {
+  return (
+    <ComingSoonOverlay>
+      <MessagesPageInner />
+    </ComingSoonOverlay>
+  );
+}
+
+function MessagesPageInner() {
   const [messages, setMessages] = useState<OpusMessage[]>([]);
   const [completedTasks, setCompletedTasks] = useState<CompletedTask[]>([]);
   const [loading, setLoading] = useState(true);

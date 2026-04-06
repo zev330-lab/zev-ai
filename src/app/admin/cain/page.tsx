@@ -9,8 +9,18 @@ export const dynamic = 'force-dynamic';
 import { getSupabaseAdmin } from '@/lib/supabase';
 import CainDashboard from './CainDashboard';
 import type { DBTask, DBLog, TaskAction, InfoAction } from './CainDashboard';
+import { ComingSoonOverlay } from '@/components/admin/coming-soon-overlay';
 
 export default async function CainPage() {
+  const inner = await CainPageInner();
+  return (
+    <ComingSoonOverlay>
+      {inner}
+    </ComingSoonOverlay>
+  );
+}
+
+async function CainPageInner() {
   const supabase = getSupabaseAdmin();
 
   const [{ data: rawTasks }, { data: log }] = await Promise.all([

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { ComingSoonOverlay } from '@/components/admin/coming-soon-overlay';
 
 interface KnowledgeEntry {
   id: string; title: string; content: string; source: string;
@@ -29,6 +30,14 @@ const PROJECT_LABELS: Record<string, string> = {
 };
 
 export default function AdminKnowledgePage() {
+  return (
+    <ComingSoonOverlay>
+      <AdminKnowledgePageInner />
+    </ComingSoonOverlay>
+  );
+}
+
+function AdminKnowledgePageInner() {
   const router = useRouter();
   const [entries, setEntries] = useState<KnowledgeEntry[]>([]);
   const [loading, setLoading] = useState(true);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { ComingSoonOverlay } from '@/components/admin/coming-soon-overlay';
 
 interface NurtureSequence {
   id: string;
@@ -86,6 +87,14 @@ function formatDate(iso: string | null) {
 }
 
 export default function AdminNurturePage() {
+  return (
+    <ComingSoonOverlay>
+      <AdminNurturePageInner />
+    </ComingSoonOverlay>
+  );
+}
+
+function AdminNurturePageInner() {
   const router = useRouter();
   const [sequences, setSequences] = useState<NurtureSequence[]>([]);
   const [emails, setEmails] = useState<NurtureEmail[]>([]);

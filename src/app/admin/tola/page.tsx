@@ -681,7 +681,12 @@ export default function AdminTolaPage() {
   }, [kiosk]);
 
   return (
-    <div className={`flex flex-col h-full ${kiosk ? 'fixed inset-0 z-[90] bg-[var(--color-admin-bg)]' : ''}`}>
+    <div className={`flex flex-col h-full relative ${kiosk ? 'fixed inset-0 z-[90] bg-[var(--color-admin-bg)]' : ''}`}>
+      {/* Demo Mode badge */}
+      <div className="absolute top-3 right-4 z-20 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[10px] font-semibold uppercase tracking-wider">
+        Demo Mode
+      </div>
+
       {/* Tab bar */}
       <div className="px-6 pt-4 pb-0 border-b border-[var(--color-admin-border)] shrink-0 flex items-center gap-1">
         {TABS.map((tab) => (

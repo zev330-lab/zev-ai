@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { ComingSoonOverlay } from '@/components/admin/coming-soon-overlay';
 
 interface FamilyMember { id: string; name: string; role: string; avatar_color: string; }
 interface Task {
@@ -97,6 +98,14 @@ function eventBorderColor(date: string): string {
 }
 
 export default function AdminFamilyPage() {
+  return (
+    <ComingSoonOverlay>
+      <AdminFamilyPageInner />
+    </ComingSoonOverlay>
+  );
+}
+
+function AdminFamilyPageInner() {
   const router = useRouter();
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);

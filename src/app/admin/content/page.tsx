@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { MarkdownContent } from '@/components/admin/markdown-content';
+import { ComingSoonOverlay } from '@/components/admin/coming-soon-overlay';
 
 interface BlogPost {
   id: string;
@@ -101,6 +102,14 @@ function formatShortDate(iso: string) {
 }
 
 export default function AdminContentPage() {
+  return (
+    <ComingSoonOverlay>
+      <AdminContentPageInner />
+    </ComingSoonOverlay>
+  );
+}
+
+function AdminContentPageInner() {
   const router = useRouter();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [social, setSocial] = useState<SocialItem[]>([]);

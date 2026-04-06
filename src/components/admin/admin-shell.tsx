@@ -106,21 +106,27 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   if (pathname === '/admin/login') return <>{children}</>;
 
+  const COMING_SOON_PATHS = new Set([
+    '/admin/content', '/admin/nurture', '/admin/messages',
+    '/admin/family', '/admin/finance', '/admin/knowledge',
+    '/admin/projects', '/admin/cain', '/admin/tola/collaboration',
+  ]);
+
   const nav = [
-    { href: '/admin/tola', label: 'TOLA', icon: <TolaIcon />, badge: 0 },
     { href: '/admin', label: 'Dashboard', icon: <DashboardIcon />, badge: 0 },
-    { href: '/admin/cain', label: 'Cain', icon: <CainNavIcon />, badge: badges.cain },
-    { href: '/admin/discoveries', label: 'Discoveries', icon: <DiscoveryIcon />, badge: badges.discoveries },
     { href: '/admin/pipeline', label: 'Pipeline', icon: <PipelineIcon />, badge: 0 },
-    { href: '/admin/nurture', label: 'Nurture', icon: <NurtureIcon />, badge: 0 },
-    { href: '/admin/content', label: 'Content', icon: <ContentIcon />, badge: badges.content },
-    { href: '/admin/projects', label: 'Projects', icon: <ProjectIcon />, badge: 0 },
-    { href: '/admin/finance', label: 'Finance', icon: <FinanceIcon />, badge: badges.finance },
-    { href: '/admin/family', label: 'Family', icon: <FamilyIcon />, badge: badges.family },
-    { href: '/admin/knowledge', label: 'Knowledge', icon: <KnowledgeIcon />, badge: 0 },
+    { href: '/admin/discoveries', label: 'Discoveries', icon: <DiscoveryIcon />, badge: badges.discoveries },
+    { href: '/admin/tola', label: 'TOLA', icon: <TolaIcon />, badge: 0 },
     { href: '/admin/agents', label: 'Agents', icon: <AgentIcon />, badge: 0 },
-    { href: '/admin/messages', label: 'Messages', icon: <MessagesIcon />, badge: 0 },
     { href: '/admin/contacts', label: 'Contacts', icon: <ContactIcon />, badge: badges.contacts },
+    { href: '/admin/content', label: 'Content', icon: <ContentIcon />, badge: 0 },
+    { href: '/admin/nurture', label: 'Nurture', icon: <NurtureIcon />, badge: 0 },
+    { href: '/admin/messages', label: 'Messages', icon: <MessagesIcon />, badge: 0 },
+    { href: '/admin/family', label: 'Family', icon: <FamilyIcon />, badge: 0 },
+    { href: '/admin/finance', label: 'Finance', icon: <FinanceIcon />, badge: 0 },
+    { href: '/admin/knowledge', label: 'Knowledge', icon: <KnowledgeIcon />, badge: 0 },
+    { href: '/admin/projects', label: 'Projects', icon: <ProjectIcon />, badge: 0 },
+    { href: '/admin/cain', label: 'Cain', icon: <CainNavIcon />, badge: 0 },
   ];
 
   return (
@@ -155,6 +161,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               item.href === '/admin'
                 ? pathname === '/admin'
                 : pathname.startsWith(item.href);
+            const comingSoon = COMING_SOON_PATHS.has(item.href);
             return (
               <Link
                 key={item.href}
@@ -162,12 +169,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 className={`flex items-center gap-2.5 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
                   active
                     ? 'bg-[var(--color-admin-surface)] text-[var(--color-foreground-strong)]'
+                    : comingSoon
+                    ? 'text-[var(--color-muted)]/50 hover:text-[var(--color-muted)]'
                     : 'text-[var(--color-muted-light)] hover:bg-[var(--color-admin-surface)] hover:text-[var(--color-foreground-strong)]'
                 }`}
               >
-                {item.icon}
-                {item.label}
-                {item.badge > 0 && (
+                <span className={comingSoon ? 'opacity-40' : ''}>{item.icon}</span>
+                <span className={comingSoon ? 'opacity-50' : ''}>{item.label}</span>
+                {comingSoon && (
+                  <svg className="ml-auto w-3 h-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                  </svg>
+                )}
+                {!comingSoon && item.badge > 0 && (
                   <span className="ml-auto text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white">
                     {item.badge > 9 ? '9+' : item.badge}
                   </span>
@@ -197,7 +211,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
       {/* Mobile bottom nav */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--color-admin-bg)] border-t border-[var(--color-admin-border)] flex overflow-x-auto py-2 px-1 [scrollbar-width:none] [-webkit-overflow-scrolling:touch] [&::-webkit-scrollbar]:hidden">
-        {nav.map((item) => {
+        {nav.filter(item => !COMING_SOON_PATHS.has(item.href)).map((item) => {
           const active =
             item.href === '/admin'
               ? pathname === '/admin'

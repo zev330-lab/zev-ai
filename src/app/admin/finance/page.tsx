@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { ComingSoonOverlay } from '@/components/admin/coming-soon-overlay';
 
 interface FinanceMetrics {
   revenueThisMonth: number;
@@ -56,6 +57,14 @@ const INV_BADGE: Record<string, { bg: string; text: string; label: string }> = {
 const INV_FILTERS = ['all', 'draft', 'sent', 'paid', 'overdue'] as const;
 
 export default function AdminFinancePage() {
+  return (
+    <ComingSoonOverlay>
+      <AdminFinancePageInner />
+    </ComingSoonOverlay>
+  );
+}
+
+function AdminFinancePageInner() {
   const router = useRouter();
   const [metrics, setMetrics] = useState<FinanceMetrics | null>(null);
   const [invoices, setInvoices] = useState<Invoice[]>([]);

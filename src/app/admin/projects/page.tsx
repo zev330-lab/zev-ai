@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { ComingSoonOverlay } from '@/components/admin/coming-soon-overlay';
 
 interface Project {
   id: string; name: string; client: string; status: string; description: string;
@@ -52,6 +53,14 @@ const FILTERS = ['all', 'active', 'paused', 'completed', 'archived'] as const;
 const TODAY = new Date().toISOString().slice(0, 10);
 
 export default function AdminProjectsPage() {
+  return (
+    <ComingSoonOverlay>
+      <AdminProjectsPageInner />
+    </ComingSoonOverlay>
+  );
+}
+
+function AdminProjectsPageInner() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);

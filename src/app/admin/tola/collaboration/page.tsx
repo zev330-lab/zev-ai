@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { ComingSoonOverlay } from '@/components/admin/coming-soon-overlay';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -168,6 +169,14 @@ function truncateJson(obj: unknown, maxLen = 200): string {
 // ---------------------------------------------------------------------------
 
 export default function CollaborationPage() {
+  return (
+    <ComingSoonOverlay>
+      <CollaborationPageInner />
+    </ComingSoonOverlay>
+  );
+}
+
+function CollaborationPageInner() {
   const [data, setData] = useState<CollaborationData | null>(null);
   const [agents, setAgents] = useState<AgentData[]>([]);
   const [activity, setActivity] = useState<AgentActivity[]>([]);
